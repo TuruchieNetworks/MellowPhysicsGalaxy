@@ -51,9 +51,10 @@ const Landing = () => {
             <MusicBackground />
             <PhysicsAnimations />
             <About />
+            <PerlinShader />
             <BackgroundCarousel />
-            {/* <FallingInstancedSand /> */}
-            <VideoBackground/>
+            <FallingInstancedSand />
+            {/* <VideoBackground/> */}
         </div>
     );
 };
