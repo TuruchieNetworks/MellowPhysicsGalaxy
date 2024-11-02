@@ -1,0 +1,24 @@
+.scroll-header {
+  margin: 10px;
+}
+
+.box {
+  background-color: aquamarine;
+  color: black;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 400px;
+  height: 200px;
+  margin: 10px;
+  border-radius: 10%;
+  box-shadow: 2px 4px 5px rgba(0, 0, 0, 0.3);
+  transform: translateX(200%); /* active class is defaulted to 0 */
+  transition: transform 0.4s ease;
+}
+.box:nth-last-of-type(even) {
+  transform: translateX(-200%); /* even ones to the left */
+}
+.box.show {
+  transform: translateX(0);
+}
