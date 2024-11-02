@@ -10,6 +10,7 @@ import globe_concert from '../../img/globe_concert.jpg';
 import landing_dj from '../../img/landing_dj.jpg';
 import blue_concert from '../../img/blue_concert.jpg';
 import vasil_guitar from '../../img/vasil_guitar.jpg';
+import PerlinShader from '../surface_shaders/PerlinShader';
 
 // Array of background images
 const images = [
@@ -45,6 +46,7 @@ const Services = () => {
                 backgroundPosition: 'center',
             }}
         >
+        <PerlinShader />
             <div className="container showcase-container imageCover">
                 <div className='flex-carousel'>
                     <div className='showcase-container'>

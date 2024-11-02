@@ -14,6 +14,8 @@ import bright_stage from '../../img/tube_concerts.avif';
 import blue_stage from '../../img/blue_stage_entrance.avif';
 import guitar_boy from '../../img/dark-greece.avif';
 import concert_lights from '../../img/bright-concert-lights.avif';
+import PhysicsAnimations from '../physics_graphics/PhysicsAnimations';
+import FallingSand from '../physics_graphics/FallingSand';
 
 const images = [
     globe_concert,
@@ -51,6 +53,7 @@ const Music = () => {
             // backgroundPosition: 'center',
         }}
         >
+        <PhysicsAnimations />
             <div className="container showcase-container imageCover">
                 <div className='flex-carousel'>
                     <div className='showcase-container'>
@@ -70,6 +73,7 @@ const Music = () => {
                 </Link>
                 </div>
             </div>
+        <FallingSand />
         </div>
     );
 };

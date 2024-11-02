@@ -56,8 +56,8 @@ const NoiseShader = ({ width = window.innerWidth, height = window.innerHeight, p
                     for (int j = -1; j <= 1; j++) {
                         float aij = 0.0; // base value
                         float bij = 1.0; // variation
-                        float cij = 0.51; // adjust
-                        float dij = 0.33; // noise contribution
+                        float cij = 0.42; // adjust
+                        float dij = 0.17; // noise contribution
 
                         value += aij + (bij - aij) * S(x - float(i)) + (aij - bij - cij + dij) * S(x - float(i)) * S(z - float(j));
                     }
@@ -67,6 +67,10 @@ const NoiseShader = ({ width = window.innerWidth, height = window.innerHeight, p
             }
         `,
     };
+
+    const random_hex_color = () => {
+      return '#' + Math.floor(Math.random() * 16777215).toString(16);
+    }  
 
     // Create a camera path with yet another color
     const cameraPathPoints = [
@@ -98,24 +102,24 @@ const NoiseShader = ({ width = window.innerWidth, height = window.innerHeight, p
 
         // Fog
         scene.fog = new THREE.Fog(0xFFFFFF, 0, 200);
-        scene.fog = new THREE.FogExp2(randomHexColor(), 0.01);
+        scene.fog = new THREE.FogExp2( 0x444444 * Math.random(0x444444), 0.01);
         const textureLoader = new THREE.TextureLoader();
         textureLoader.load(nebula);
         // scene.background = textureLoader.load(stars);
 
         // Lighting setup
         const light = new Lighting(scene);
-        light.addAmbientLight({ color: randomHexColor(), intensity: 0.5, castShadow: true });
-        light.addSpotLight({ color: randomRgbaColor(), intensity: 1, position: { x: -100, y: 100, z: 0 }, angle: 0.2, castShadow: true });
+        light.addAmbientLight({ color:  0x444444 * Math.random(0x444444), intensity: 0.5, castShadow: true });
+        light.addSpotLight({ color:  0x444444 * Math.random(0x444444), intensity: 1, position: { x: -100, y: 100, z: 0 }, angle: 0.2, castShadow: true });
         light.addHemisphereLight({ skyColor: 0xFFFFFF, groundColor: 0x444444, intensity: 0.9, position: { x: 0, y: 50, z: 0 }, castShadow: true });
-        light.addDirectionalLight({ color: randomHexColor(), intensity: 1, position: { x: 10, y: 20, z: 10 }, castShadow: true });
-        light.addPointLight({ color: randomRgbaColor(), intensity: 0.8, position: { x: 20, y: 20, z: 20 }, castShadow: true });
-        const directionalLight = light.addDirectionalLight({ color: randomHexColor(), intensity: 1, position: { x: 10, y: 20, z: 10 }, castShadow: true });
+        light.addDirectionalLight({ color:  0x444444 * Math.random(0x444444), intensity: 1, position: { x: 10, y: 20, z: 10 }, castShadow: true });
+        light.addPointLight({ color:  0x444444 * Math.random(0x444444), intensity: 0.8, position: { x: 20, y: 20, z: 20 }, castShadow: true });
+        const directionalLight = light.addDirectionalLight({ color:  0x444444 * Math.random(0x444444), intensity: 1, position: { x: 10, y: 20, z: 10 }, castShadow: true });
 
         // Optionally, add a path for an object or animation
         const points = [new THREE.Vector3(0, 0, 0), new THREE.Vector3(10, 0, 0)];
-        light.createPath(points, randomRgbaColor())
-        light.createPath(cameraPathPoints, randomHexColor());
+        light.createPath(points,  0x444444 * Math.random(0x444444))
+        light.createPath(cameraPathPoints, 0x444444 * Math.random(0x444444));
 
         // Initialize helpers
         const helpers = new LightAxisUtilHelper(scene, camera, renderer);
@@ -149,7 +153,7 @@ const NoiseShader = ({ width = window.innerWidth, height = window.innerHeight, p
         scene.add(plane); // Add the plane to the scene // Add the plane geometry to the scene
         const planeGeometry = new THREE.PlaneGeometry(60, 60, 60);
         const planeMaterial = new THREE.MeshPhongMaterial({
-            color: randomHexColor(),
+            color: random_hex_color(),
             side: THREE.DoubleSide
         });
 
@@ -172,7 +176,7 @@ const NoiseShader = ({ width = window.innerWidth, height = window.innerHeight, p
 
         // Instanced mesh setup
         // const particleGeometry = new THREE.SphereGeometry(0.2, 16, 16);
-        // const particleMaterial = new THREE.MeshStandardMaterial({ color: randomHexColor() });
+        // const particleMaterial = new THREE.MeshStandardMaterial({ color:  0x444444 * Math.random(0x444444) });
         
         // Correct the ground body instantiation
         // Step 1: Define materials for particles and ground
@@ -210,7 +214,7 @@ const NoiseShader = ({ width = window.innerWidth, height = window.innerHeight, p
 
         // // Step 4: Create an InstancedMesh for particles
         // const geometry = new THREE.SphereGeometry(0.2, 16, 16);
-        // const material = new THREE.MeshStandardMaterial({ color: randomHexColor() });
+        // const material = new THREE.MeshStandardMaterial({ color:  0x444444 * Math.random(0x444444) });
         // const particlesMesh = new THREE.InstancedMesh(geometry, material, particleCount);
         // particlesMesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
         // scene.add(particlesMesh);
@@ -219,7 +223,7 @@ const NoiseShader = ({ width = window.innerWidth, height = window.innerHeight, p
         for (let i = 0; i < particleCount; i++) {
             // Three.js particle
             const geometry = new THREE.SphereGeometry(0.2, 16, 16);
-            const material = new THREE.MeshStandardMaterial({ color: randomHexColor() });
+            const material = new THREE.MeshStandardMaterial({ color:  0x444444 * Math.random(0x444444) });
             const mesh = new THREE.Mesh(geometry, material);
             mesh.position.set(
                 (Math.random() - 0.5) * 10,
@@ -254,7 +258,7 @@ const NoiseShader = ({ width = window.innerWidth, height = window.innerHeight, p
         // for (let i = 0; i < particleCount; i++) {
         //     // Three.js particle
         //     const geometry = new THREE.SphereGeometry(0.2, 16, 16);
-        //     const material = new THREE.MeshStandardMaterial({ color: randomHexColor() });
+        //     const material = new THREE.MeshStandardMaterial({ color:  0x444444 * Math.random(0x444444) });
         //     const mesh = new THREE.Mesh(geometry, material);
         //     mesh.position.set(
         //         (Math.random() - 0.5) * 10,

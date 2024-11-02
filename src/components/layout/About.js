@@ -10,6 +10,8 @@ import globe_concert from '../../img/globe_concert.jpg';
 import landing_dj from '../../img/landing_dj.jpg';
 import metal_blocks from '../../img/metal_blocks.jpg';
 import vasil_guitar from '../../img/vasil_guitar.jpg';
+import FallingSand from '../physics_graphics/FallingSand';
+import PerlinShader from '../surface_shaders/PerlinShader';
 
 const images = [
     landing_dj,
@@ -45,6 +47,7 @@ const About = ({ currentBackground, handlePrev, handleNext }) => {
             transition: 'background-image 0.5s ease-in-out'
         }}
         >
+        <FallingSand />
             <div className="container showcase-container imageCover">
                 <div className='flex-carousel'>
                     <div className='showcase-container'>
@@ -64,6 +67,7 @@ const About = ({ currentBackground, handlePrev, handleNext }) => {
                 </Link>
                 </div>
             </div>
+            <PerlinShader />
         </div>
     );
 };

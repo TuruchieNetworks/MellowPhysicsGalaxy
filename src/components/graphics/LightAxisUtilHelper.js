@@ -6,6 +6,9 @@ export class LightAxisUtilHelper {
         this.scene = scene;
         this.camera = camera;
         this.renderer = renderer;
+        this.lightHelpers = []; // Array to store light helpers
+        this.axesHelper = null; // Store the axes helper
+        this.gridHelper = null; // Store the grid helper
 
         // Create initial helpers
         this.createInitialHelpers();
@@ -19,26 +22,28 @@ export class LightAxisUtilHelper {
 
     // Add Axis Helper
     addAxesHelper(size = 5) {
-        const axesHelper = new THREE.AxesHelper(size);
-        this.scene.add(axesHelper);
+        this.axesHelper = new THREE.AxesHelper(size); // Store the helper for disposal
+        this.scene.add(this.axesHelper);
     }
 
     // Add Grid Helper
     addGridHelper(size = 30, divisions = 30) {
-        const gridHelper = new THREE.GridHelper(size, divisions);
-        this.scene.add(gridHelper);
+        this.gridHelper = new THREE.GridHelper(size, divisions); // Store the helper for disposal
+        this.scene.add(this.gridHelper);
     }
 
     // Add helper for Directional Light
     addDirectionalLightHelper(directionalLight, size = 5) {
         const helper = new THREE.DirectionalLightHelper(directionalLight, size);
         this.scene.add(helper);
+        this.lightHelpers.push(helper); // Store the helper for disposal
     }
 
     // Add helper for Camera
     addCameraHelper(camera) {
         const helper = new THREE.CameraHelper(camera);
         this.scene.add(helper);
+        this.lightHelpers.push(helper); // Store the helper for disposal
     }
 
     // Add helper for Shadow Camera
@@ -46,6 +51,7 @@ export class LightAxisUtilHelper {
         if (light.castShadow) {
             const helper = new THREE.CameraHelper(light.shadow.camera);
             this.scene.add(helper);
+            this.lightHelpers.push(helper); // Store the helper for disposal
         }
     }
 
@@ -55,15 +61,16 @@ export class LightAxisUtilHelper {
             console.error("Light object is undefined.");
             return;
         }
-        
+
         const helperGeometry = new THREE.SphereGeometry(0.1, 8, 8); // Small sphere to represent ambient light
         const helperMaterial = new THREE.MeshBasicMaterial({ color: light.color });
         const helperMesh = new THREE.Mesh(helperGeometry, helperMaterial);
-        
+
         // Default position if light.position is not set
         const position = light.position || new THREE.Vector3(0, 0, 0);
         helperMesh.position.copy(position); // Position it at the light's position
         this.scene.add(helperMesh);
+        this.lightHelpers.push(helperMesh); // Store for cleanup
     }
 
     // Add Spot Light Helper
@@ -71,10 +78,12 @@ export class LightAxisUtilHelper {
         const light = new THREE.SpotLight(color, intensity, distance, angle, decay);
         const spotLightHelper = new THREE.SpotLightHelper(light);
         this.scene.add(spotLightHelper);
+        this.lightHelpers.push(spotLightHelper); // Store for cleanup
 
         // Add Spot Light Shadow Helper
         const spotLightShadowHelper = new THREE.CameraHelper(light.shadow.camera);
         this.scene.add(spotLightShadowHelper);
+        this.lightHelpers.push(spotLightShadowHelper); // Store for cleanup
     }
 
     // Add Hemisphere Light Helper
@@ -90,6 +99,7 @@ export class LightAxisUtilHelper {
         const groundMesh = new THREE.Mesh(groundGeometry, groundMaterial);
         groundMesh.position.set(0, 0, 0); // Position it at the ground level
         this.scene.add(groundMesh);
+        this.lightHelpers.push(skyMesh, groundMesh); // Store for cleanup
     }
 
     // Add Orbit Controls
@@ -108,4 +118,31 @@ export class LightAxisUtilHelper {
             this.orbitControls.update(); // Call update in your animation loop if needed
         }
     }
+
+    dispose() {
+        // Remove and dispose of all helpers
+        if (this.axesHelper) {
+            this.scene.remove(this.axesHelper);
+            this.axesHelper.geometry.dispose();
+            this.axesHelper.material.dispose();
+            this.axesHelper = null; // Clear reference
+        }
+        if (this.gridHelper) {
+            this.scene.remove(this.gridHelper);
+            this.gridHelper.geometry.dispose();
+            this.gridHelper.material.dispose();
+            this.gridHelper = null; // Clear reference
+        }
+        this.lightHelpers.forEach(helper => {
+            this.scene.remove(helper);
+            if (helper.geometry) {
+                helper.geometry.dispose();
+            }
+            if (helper.material) {
+                helper.material.dispose();
+            }
+        });
+        this.lightHelpers = []; // Clear the array
+    }
 }
+

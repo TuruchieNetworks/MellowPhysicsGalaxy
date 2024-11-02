@@ -9,6 +9,7 @@ import ImageCarousel from '../carousels/ImageCarousel';
 // import solid_pose_kharki from '../../img/solid_pose_kharki.jpg'; 
 import HeaderLinks from '../headers/HeaderLinks';
 import useCarouselImages from '../hooks/UseCarouselImages';
+import FallingSand from '../physics_graphics/FallingSand';
 
 // Array of background images
 // const images = [
@@ -45,6 +46,10 @@ const Contact = ({images}) => {
                 transition: 'background-image 0.5s ease-in-out',
             }}
         >
+        <FallingSand />
+        {/* <NoiseShaderMaterial /> */}
+        {/* <PerlinShader />
+        <PhysicsAnimations /> */}
             <div className="container showcase-container imageCover">
                 <div className='flex-carousel'>
                     <div className='showcase-container'>

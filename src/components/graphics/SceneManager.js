@@ -1,15 +1,26 @@
 import * as THREE from 'three';
 
 export class SceneManager {
-    constructor() {
+    constructor(width, height) {
         // Initialize scene, camera, and renderer
         this.scene = new THREE.Scene();
-        this.camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        this.camera = new THREE.PerspectiveCamera(75, width / height, 0.1, 1000);
         this.renderer = new THREE.WebGLRenderer({ antialias: true });
         
-        // Set renderer size and append to document body
-        this.renderer.setSize(window.innerWidth, window.innerHeight);
-        document.body.appendChild(this.renderer.domElement);
+        // Set renderer size and append to the specified container
+        this.renderer.setSize(width, height);
+    }
+
+    getScene() {
+        return this.scene; // Return the scene
+    }
+
+    getCamera() {
+        return this.camera; // Return the camera
+    }
+
+    getRenderer() {
+        return this.renderer; // Return the renderer
     }
 
     update() {
@@ -17,18 +28,15 @@ export class SceneManager {
         this.renderer.render(this.scene, this.camera);
     }
 
-    resize() {
+    resize(width, height) {
         // Handle window resizing
-        const newWidth = window.innerWidth;
-        const newHeight = window.innerHeight;
-
-        this.camera.aspect = newWidth / newHeight; // Update camera aspect
+        this.camera.aspect = width / height; // Update camera aspect
         this.camera.updateProjectionMatrix(); // Update projection matrix
-        this.renderer.setSize(newWidth, newHeight); // Set new renderer size
+        this.renderer.setSize(width, height); // Set new renderer size
     }
 
     cleanup() {
         // Clean up the renderer from the DOM
-        document.body.removeChild(this.renderer.domElement);
+        this.renderer.dispose();
     }
 }

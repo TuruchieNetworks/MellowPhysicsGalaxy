@@ -24,9 +24,9 @@ const Landing = () => {
         <div id="showcase">
             <NoiseShader />
             {/* <NoiseShaderMaterial /> */}
-            <PerlinShader />
-            {/* <FallingSand /> */}
-            <PhysicsAnimations />
+            {/* <PerlinShader />
+            <FallingSand />
+            <PhysicsAnimations /> */}
             {/* <SphereAnimationScene /> */}
             {/* <div className="galaxial-animations"></div> */}
             <div className="container showcase-container imageCover">
@@ -49,13 +49,12 @@ const Landing = () => {
                 </div>
             </div>
             <MusicBackground />
-            <PhysicsAnimations />
             <About />
             {/* <PerlinShader /> */}
             <BackgroundCarousel />
-            <FallingInstancedSand />
+            {/* <FallingInstancedSand /> */}
             {/* <VideoBackground/> */}
-            {/* <PhysicsAnimations /> */}
+            <PhysicsAnimations />
         </div>
     );
 };

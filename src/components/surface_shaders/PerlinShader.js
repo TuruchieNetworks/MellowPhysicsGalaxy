@@ -55,8 +55,8 @@ const PerlinShader = ({ width = window.innerWidth, height = window.innerHeight, 
                 for (int i = -1; i <= 1; i++) {
                     for (int j = -1; j <= 1; j++) {
                         float aij = 0.0; // base value
-                        float bij = 1.0; // variation
-                        float cij = 0.5; // adjust
+                        float bij = 1.6; // variation
+                        float cij = 0.4; // adjust
                         float dij = 0.2; // noise contribution
 
                         value += aij + (bij - aij) * S(x - float(i)) + (aij - bij - cij + dij) * S(x - float(i)) * S(z - float(j));

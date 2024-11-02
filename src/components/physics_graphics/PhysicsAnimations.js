@@ -49,12 +49,12 @@ import concert_lights from '../../img/bright-concert-lights.avif';
 //   nebula,
 //   jupiter,
 // ];
-import { Lighting } from '../graphics/Lighting';
 import { Mixer } from '../../components/graphics/Mixer';
 import { Plane } from '../../components/graphics/Plane';
 import { Gravity } from '../../components/graphics/Gravity';
 import { MomentumPhysics } from '../../components/graphics/MomentumPhysics';
 import { BoundingObjects } from '../graphics/BoundingObjects';
+import { Lighting } from '../graphics/Lighting';
 import { LightAxisUtilHelper } from '../graphics/LightAxisUtilHelper';
 import { SceneManager } from '../../components/graphics/SceneManager';
 import { Geometry } from '../../components/graphics/Geometry';

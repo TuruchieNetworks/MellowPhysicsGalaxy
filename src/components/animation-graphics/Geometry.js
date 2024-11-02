@@ -10,23 +10,34 @@ import globe_concert from '../../img/globe_concert.jpg';
 import metal_blocks from '../../img/metal_blocks.jpg';
 
 export class Geometry {
-    constructor(scene) {
+    constructor(scene, { numBoxes = 5, numSpheres = 5, numGLTFModels = 0, numFBXModels = 0 } = {}) {
         this.scene = scene;
         this.spheres = [];
         this.boxes = [];
         this.gltfModels = [];
         this.fbxModels = [];
-        this.textureLoader = new THREE.TextureLoader();
 
-        // Create initial geometries
-        // this.createInitialGeometries();
+        this.textureLoader = new THREE.TextureLoader();
+        this.textures = {
+            nebula: this.textureLoader.load(nebula),
+            stars: this.textureLoader.load(stars),
+            crowd_angle: this.textureLoader.load(crowd_angle),
+            concert_lights: this.textureLoader.load(concert_lights),
+            landing_dj: this.textureLoader.load(landing_dj),
+            globe_concert: this.textureLoader.load(globe_concert),
+            metal_blocks: this.textureLoader.load(metal_blocks),
+        };
+
+        this.createInitialGeometries(numBoxes, numSpheres);
+        // Optionally, load models here if URLs are provided
+        this.loadGLTFModels(numGLTFModels);
+        this.loadFBXModels(numFBXModels);
     }
 
-    // createInitialGeometries() {
-    //     this.createMultiBoxes(5);
-    //     this.createSpheres(5);
-    //     this.createBoxes(5);
-    // }
+    createInitialGeometries(numBoxes, numSpheres) {
+        this.createMultiBoxes(numBoxes);
+        this.createSpheres(numSpheres);
+    }
 
     createBox({ width = 1, height = 1, depth = 1, position = new THREE.Vector3(0, 0, 0), color = 0xff7700 } = {}) {
         const geometry = new THREE.BoxGeometry(width, height, depth);
@@ -92,26 +103,34 @@ export class Geometry {
         }
     }
 
-    // loadGLTFModel(url) {
-    //     const loader = new GLTFLoader();
-    //     loader.load(url, (gltf) => {
-    //         const model = gltf.scene;
-    //         model.position.set(Math.random() * 10 - 5, Math.random() * 10 - 5, Math.random() * 10 - 5);
-    //         model.castShadow = model.receiveShadow = true;
-    //         this.scene.add(model);
-    //         this.gltfModels.push(model);
-    //     });
-    // }
+    loadGLTFModels(count) {
+        const loader = new GLTFLoader();
+        for (let i = 0; i < count; i++) {
+            // Example model URL; replace with actual URLs as needed
+            const url = `path/to/model${i}.gltf`; // Add your model URL logic here
+            loader.load(url, (gltf) => {
+                const model = gltf.scene;
+                model.position.set(Math.random() * 10 - 5, Math.random() * 10 - 5, Math.random() * 10 - 5);
+                model.castShadow = model.receiveShadow = true;
+                this.scene.add(model);
+                this.gltfModels.push(model);
+            });
+        }
+    }
 
-    // loadFBXModel(url) {
-    //     const loader = new FBXLoader();
-    //     loader.load(url, (fbx) => {
-    //         fbx.position.set(Math.random() * 10 - 5, Math.random() * 10 - 5, Math.random() * 10 - 5);
-    //         fbx.castShadow = fbx.receiveShadow = true;
-    //         this.scene.add(fbx);
-    //         this.fbxModels.push(fbx);
-    //     });
-    // }
+    loadFBXModels(count) {
+        const loader = new FBXLoader();
+        for (let i = 0; i < count; i++) {
+            // Example model URL; replace with actual URLs as needed
+            const url = `path/to/model${i}.fbx`; // Add your model URL logic here
+            loader.load(url, (fbx) => {
+                fbx.position.set(Math.random() * 10 - 5, Math.random() * 10 - 5, Math.random() * 10 - 5);
+                fbx.castShadow = fbx.receiveShadow = true;
+                this.scene.add(fbx);
+                this.fbxModels.push(fbx);
+            });
+        }
+    }
 
     update() {
         this.spheres.forEach(sphere => {

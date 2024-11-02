@@ -18,15 +18,17 @@ export class Geometry {
         this.fbxModels = [];
         this.textureLoader = new THREE.TextureLoader();
 
+        this.geometries = []; 
+
         // Create initial geometries
-        this.createInitialGeometries();
+        // this.createInitialGeometries();
     }
 
-    createInitialGeometries() {
-        this.createMultiBoxes(5);
-        this.createSpheres(5);
-        this.createBoxes(5);
-    }
+    // createInitialGeometries() {
+    //     this.createMultiBoxes(5);
+    //     this.createSpheres(5);
+    //     this.createBoxes(5);
+    // }
 
     createBox({ width = 1, height = 1, depth = 1, position = new THREE.Vector3(0, 0, 0), color = 0xff7700 } = {}) {
         const geometry = new THREE.BoxGeometry(width, height, depth);
@@ -92,26 +94,26 @@ export class Geometry {
         }
     }
 
-    // loadGLTFModel(url) {
-    //     const loader = new GLTFLoader();
-    //     loader.load(url, (gltf) => {
-    //         const model = gltf.scene;
-    //         model.position.set(Math.random() * 10 - 5, Math.random() * 10 - 5, Math.random() * 10 - 5);
-    //         model.castShadow = model.receiveShadow = true;
-    //         this.scene.add(model);
-    //         this.gltfModels.push(model);
-    //     });
-    // }
+    loadGLTFModel(url) {
+        const loader = new GLTFLoader();
+        loader.load(url, (gltf) => {
+            const model = gltf.scene;
+            model.position.set(Math.random() * 10 - 5, Math.random() * 10 - 5, Math.random() * 10 - 5);
+            model.castShadow = model.receiveShadow = true;
+            this.scene.add(model);
+            this.gltfModels.push(model);
+        });
+    }
 
-    // loadFBXModel(url) {
-    //     const loader = new FBXLoader();
-    //     loader.load(url, (fbx) => {
-    //         fbx.position.set(Math.random() * 10 - 5, Math.random() * 10 - 5, Math.random() * 10 - 5);
-    //         fbx.castShadow = fbx.receiveShadow = true;
-    //         this.scene.add(fbx);
-    //         this.fbxModels.push(fbx);
-    //     });
-    // }
+    loadFBXModel(url) {
+        const loader = new FBXLoader();
+        loader.load(url, (fbx) => {
+            fbx.position.set(Math.random() * 10 - 5, Math.random() * 10 - 5, Math.random() * 10 - 5);
+            fbx.castShadow = fbx.receiveShadow = true;
+            this.scene.add(fbx);
+            this.fbxModels.push(fbx);
+        });
+    }
 
     update() {
         this.spheres.forEach(sphere => {
@@ -127,5 +129,15 @@ export class Geometry {
         [...this.gltfModels, ...this.fbxModels].forEach(model => {
             model.rotation.y += 0.01;
         });
+    }
+
+    // Implement other methods for creating geometries...
+    dispose() {
+        this.geometries.forEach(mesh => {
+            this.scene.remove(mesh); // Remove from the scene
+            mesh.geometry.dispose(); // Dispose of the geometry
+            mesh.material.dispose(); // Dispose of the material
+        });
+        this.geometries = []; // Clear the array
     }
 }

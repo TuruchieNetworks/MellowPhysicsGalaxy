@@ -10,6 +10,7 @@ import ImageCarousel from '../carousels/ImageCarousel';
 import HeaderLinks from '../headers/HeaderLinks';
 import useCarouselImages from '../hooks/UseCarouselImages';
 import Bio from '../layout/Bio';
+import NoiseShader from '../surface_shaders/NoiseShader';
 
 // Array of background images
 // const images = [
@@ -47,6 +48,11 @@ const Merchandise = ({ images }) => {
                 transition: 'background-image 0.5s ease-in-out',
             }}
         >
+        <NoiseShader />
+        {/* <NoiseShaderMaterial /> */}
+        {/* <PerlinShader />
+        <FallingSand />
+        <PhysicsAnimations /> */}
             <div className="container showcase-container imageCover">
                 <div className='flex-carousel'>
                     <div className='showcase-container'>
