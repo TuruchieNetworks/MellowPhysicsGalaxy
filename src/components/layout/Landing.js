@@ -25,7 +25,7 @@ const Landing = () => {
             <NoiseShader />
             {/* <NoiseShaderMaterial /> */}
             <PerlinShader />
-            <FallingSand />
+            {/* <FallingSand /> */}
             <PhysicsAnimations />
             {/* <SphereAnimationScene /> */}
             {/* <div className="galaxial-animations"></div> */}
@@ -55,7 +55,7 @@ const Landing = () => {
             <BackgroundCarousel />
             <FallingInstancedSand />
             {/* <VideoBackground/> */}
-            <PhysicsAnimations />
+            {/* <PhysicsAnimations /> */}
         </div>
     );
 };

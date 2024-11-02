@@ -39,6 +39,8 @@ const FallingSand = ({ height = window.innerHeight, width = window.innerWidth, p
         radius: 10,
     };
 
+    const timeStep = 1 / 60;
+
     // // Define boundary walls for confinement
     // const boundaries = [
     //     { size: [0.1, 10, 20], position: [boxBoundary.min.x, 5, 0] }, // Left wall
@@ -261,8 +263,9 @@ const FallingSand = ({ height = window.innerHeight, width = window.innerWidth, p
             // Create corresponding Cannon.js body
             const shape = new CANNON.Sphere(0.2);
             const particleBody = new CANNON.Body({
-                mass: 0.1,
+                mass: 13.1,
                 position: new CANNON.Vec3(x, y, z),
+                // type: CANNON.Body.STATIC
             });
             particleBody.addShape(shape);
             world.addBody(particleBody);
@@ -282,7 +285,7 @@ const FallingSand = ({ height = window.innerHeight, width = window.innerWidth, p
             requestAnimationFrame(animate);
 
             // Step the physics world
-            world.step(1 / 60);
+            world.step(timeStep);
 
             // Sync Three.js meshes with Cannon.js bodies
             sandParticlesRef.current.forEach((mesh, i) => {

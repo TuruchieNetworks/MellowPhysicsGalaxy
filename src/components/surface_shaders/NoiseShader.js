@@ -75,6 +75,8 @@ const NoiseShader = ({ width = window.innerWidth, height = window.innerHeight, p
         new THREE.Vector3(-20, 30, -30),
     ];
 
+    const timeStep = 1 / 60;
+
     useEffect(() => {
         const scene = sceneRef.current;
         const world = worldRef.current;
@@ -133,6 +135,14 @@ const NoiseShader = ({ width = window.innerWidth, height = window.innerHeight, p
             vertexShader: noiseShader.vertexShader,
             fragmentShader: noiseShader.fragmentShader,
         });
+        const spherePhysMat = new CANNON.Material();
+        const canonSphereBody = new CANNON.Body({
+            mass: 24,
+            position: new CANNON.Vec3(0, 10, -10),
+            material: spherePhysMat
+        });
+        canonSphereBody.addShape(new CANNON.Sphere(1)); // Adjust the size if needed
+        world.addBody(canonSphereBody);
 
         const plane = new THREE.Mesh(geo, mat); // Apply the shader material to the plane
         plane.rotation.x = -Math.PI / 2; // Rotate the plane to face upwards
@@ -148,19 +158,21 @@ const NoiseShader = ({ width = window.innerWidth, height = window.innerHeight, p
         planePad.receiveShadow = true;
         scene.add(planePad);
 
-        const groundGeo = new THREE.PlaneGeometry(30, 30);
-        const groundMat = new THREE.MeshBasicMaterial({
-            color: randomHexColor(),
-            side: THREE.DoubleSide,
-            wireframe: true
+        const cannonGroundBody = new CANNON.Body({
+            shape: new CANNON.Plane(),
+            mass: 15,
+            type: CANNON.Body.STATIC
         });
+
+        world.addBody(cannonGroundBody);
+
 
         //   const groundMesh = new THREE.Mesh(groundGeo, groundMat);
         //   scene.add(groundMesh);
 
         // Instanced mesh setup
-        const particleGeometry = new THREE.SphereGeometry(0.2, 16, 16);
-        const particleMaterial = new THREE.MeshStandardMaterial({ color: randomHexColor() });
+        // const particleGeometry = new THREE.SphereGeometry(0.2, 16, 16);
+        // const particleMaterial = new THREE.MeshStandardMaterial({ color: randomHexColor() });
         
         // Correct the ground body instantiation
         // Step 1: Define materials for particles and ground
@@ -186,7 +198,7 @@ const NoiseShader = ({ width = window.innerWidth, height = window.innerHeight, p
         // Step 4: Create a ground plane in Cannon.js
         const groundShape = new CANNON.Plane();
         const groundBody = new CANNON.Body({
-            mass: 0, // Static ground
+            mass: 10, // Static ground
             material: groundMaterial
         });
         groundBody.addShape(groundShape);
@@ -220,7 +232,7 @@ const NoiseShader = ({ width = window.innerWidth, height = window.innerHeight, p
             // Cannon.js body for physics
             const body = new CANNON.Sphere(0.2);
             const particleBody = new CANNON.Body({
-                mass: 0.1, // Small mass for realistic sand behavior
+                mass: 10.1, // Small mass for realistic sand behavior
                 position: new CANNON.Vec3(mesh.position.x, mesh.position.y, mesh.position.z),
                 material: sandMaterial // Assign the sand material for particle interactions
             });
@@ -282,7 +294,7 @@ const NoiseShader = ({ width = window.innerWidth, height = window.innerHeight, p
             const totalPoints = cameraPathPoints.length;
 
             // Step the physics world forward
-            world.step(1 / 60);
+            world.step(timeStep);
 
             // Sync Three.js meshes with Cannon.js bodies
             sandParticlesRef.current.forEach((mesh, i) => {

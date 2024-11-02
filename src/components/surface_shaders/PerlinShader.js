@@ -78,6 +78,7 @@ const PerlinShader = ({ width = window.innerWidth, height = window.innerHeight, 
   useEffect(() => {
     const scene = sceneRef.current;
     const world = worldRef.current;
+    world.gravity.set(0, -9.81, 0); 
 
     // Set up camera
     const camera = new THREE.PerspectiveCamera(75, width / height, 0.1, 1000);
@@ -133,7 +134,16 @@ const PerlinShader = ({ width = window.innerWidth, height = window.innerHeight, 
       uniforms: noiseShader.uniforms,
       vertexShader: noiseShader.vertexShader,
       fragmentShader: noiseShader.fragmentShader,
+    }); 
+    
+    const spherePhysMat = new CANNON.Material();
+    const canonSphereBody = new CANNON.Body({
+        mass: 14,
+        position: new CANNON.Vec3(0, 10, -10),
+        material: spherePhysMat
     });
+    canonSphereBody.addShape(new CANNON.Sphere(1)); // Adjust the size if needed
+    world.addBody(canonSphereBody);
 
     const plane = new THREE.Mesh(geo, mat); // Apply the shader material to the plane
     plane.rotation.x = -Math.PI / 2; // Rotate the plane to face upwards
@@ -218,7 +228,7 @@ const PerlinShader = ({ width = window.innerWidth, height = window.innerHeight, 
       // Cannon.js body for physics
       const body = new CANNON.Sphere(0.2);
       const particleBody = new CANNON.Body({
-        mass: 0.1, // Small mass for realistic sand behavior
+        mass: 13.1, // Small mass for realistic sand behavior
         position: new CANNON.Vec3(mesh.position.x, mesh.position.y, mesh.position.z),
         material: sandMaterial // Assign the sand material for particle interactions
       });
@@ -229,8 +239,7 @@ const PerlinShader = ({ width = window.innerWidth, height = window.innerHeight, 
       particleBody.sleepTimeLimit = 1;  // Time required to enter sleep state
       world.addBody(particleBody);
       particleBodiesRef.current.push(particleBody);
-    }
-    world.gravity.set(0, -9.81, 0); // Set gravity for the world
+    }// Set gravity for the world
     // Animation loop
     
     let startTime = 1;
