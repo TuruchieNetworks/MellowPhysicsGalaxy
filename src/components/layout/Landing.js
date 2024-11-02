@@ -51,10 +51,11 @@ const Landing = () => {
             <MusicBackground />
             <PhysicsAnimations />
             <About />
-            <PerlinShader />
+            {/* <PerlinShader /> */}
             <BackgroundCarousel />
             <FallingInstancedSand />
             {/* <VideoBackground/> */}
+            <PhysicsAnimations />
         </div>
     );
 };

@@ -196,12 +196,12 @@ const NoiseShader = ({ width = window.innerWidth, height = window.innerHeight, p
         // Set gravity for the world
         world.gravity.set(0, -9.81, 0);
 
-        // Step 4: Create an InstancedMesh for particles
-        const geometry = new THREE.SphereGeometry(0.2, 16, 16);
-        const material = new THREE.MeshStandardMaterial({ color: randomHexColor() });
-        const particlesMesh = new THREE.InstancedMesh(geometry, material, particleCount);
-        particlesMesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
-        scene.add(particlesMesh);
+        // // Step 4: Create an InstancedMesh for particles
+        // const geometry = new THREE.SphereGeometry(0.2, 16, 16);
+        // const material = new THREE.MeshStandardMaterial({ color: randomHexColor() });
+        // const particlesMesh = new THREE.InstancedMesh(geometry, material, particleCount);
+        // particlesMesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
+        // scene.add(particlesMesh);
 
         // Step 5: Create sand particles with assigned material and interaction properties
         for (let i = 0; i < particleCount; i++) {
@@ -284,24 +284,23 @@ const NoiseShader = ({ width = window.innerWidth, height = window.innerHeight, p
             // Step the physics world forward
             world.step(1 / 60);
 
-            // Sync InstancedMesh with physics bodies
-            const dummy = new THREE.Object3D();
-            particleBodiesRef.current.forEach((body, i) => {
-                dummy.position.copy(body.position);
-                dummy.quaternion.copy(body.quaternion);
-                dummy.updateMatrix();
-                particlesMesh.setMatrixAt(i, dummy.matrix);
+            // Sync Three.js meshes with Cannon.js bodies
+            sandParticlesRef.current.forEach((mesh, i) => {
+                const body = particleBodiesRef.current[i];
+                mesh.position.copy(body.position);
+                mesh.quaternion.copy(body.quaternion);
             });
-            particlesMesh.instanceMatrix.needsUpdate = true;
 
-            // Camera movement along path
-            const pointIndex = Math.floor((elapsedTime / speed)) % totalPoints;
+            // Calculate the index of the current point in the camera path
+            const pointIndex = Math.floor(elapsedTime / speed) % totalPoints;
             const nextPointIndex = (pointIndex + 1) % totalPoints;
-            const t = (elapsedTime % speed) / speed;
+
+            // Interpolate between the current and next point
+            const t = (elapsedTime % speed) / speed; // Value between 0 and 1 over 'speed' seconds
             const currentPoint = cameraPathPoints[pointIndex];
             const nextPoint = cameraPathPoints[nextPointIndex];
             camera.position.lerpVectors(currentPoint, nextPoint, t);
-            camera.lookAt(scene.position);
+            camera.lookAt(scene.position); // Ensure the camera looks at the center of the scene
 
             // Update shader time
             noiseShader.uniforms.time.value = time * 0.001; // Update time uniform

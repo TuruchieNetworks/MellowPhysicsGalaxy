@@ -81,7 +81,7 @@ const PerlinShader = ({ width = window.innerWidth, height = window.innerHeight, 
 
     // Set up camera
     const camera = new THREE.PerspectiveCamera(75, width / height, 0.1, 1000);
-    camera.position.set(0, 5, 15);
+    camera.position.set(-10, 25, 65);
     cameraRef.current = camera; // Store the camera in a ref
 
     // Set up renderer
@@ -98,8 +98,8 @@ const PerlinShader = ({ width = window.innerWidth, height = window.innerHeight, 
     scene.fog = new THREE.Fog(0xFFFFFF, 0, 200);
     scene.fog = new THREE.FogExp2(randomHexColor(), 0.01);
 
-    const textureLoader = new THREE.TextureLoader();
-    textureLoader.load(nebula);
+    // const textureLoader = new THREE.TextureLoader();
+    //textureLoader.load(nebula);
     // scene.background = textureLoader.load(stars);
 
     // Lighting setup
@@ -158,7 +158,9 @@ const PerlinShader = ({ width = window.innerWidth, height = window.innerHeight, 
       });
 
     const groundMesh = new THREE.Mesh(groundGeo, groundMat);
-    scene.add(groundMesh);// Correct the ground body instantiation
+    scene.add(groundMesh);
+    
+    // Correct the ground body instantiation
     // Step 1: Define materials for particles and ground
     const sandMaterial = new CANNON.Material("sandMaterial");
     const groundMaterial = new CANNON.Material("groundMaterial");
@@ -166,7 +168,7 @@ const PerlinShader = ({ width = window.innerWidth, height = window.innerHeight, 
     // Step 2: Set up contact materials for particle-ground and particle-particle interactions
     const groundContactMaterial = new CANNON.ContactMaterial(sandMaterial, groundMaterial, {
       friction: 0.3,     // Ground friction
-      restitution: 0.1   // Minimal bounciness on ground
+      restitution: 0.4   // Minimal bounciness on ground
     });
     const particleContactMaterial = new CANNON.ContactMaterial(sandMaterial, sandMaterial, {
       friction: 0.2,     // Friction between particles
@@ -197,7 +199,7 @@ const PerlinShader = ({ width = window.innerWidth, height = window.innerHeight, 
     const material = new THREE.MeshStandardMaterial({ color: randomHexColor() });
     const particlesMesh = new THREE.InstancedMesh(geometry, material, particleCount);
     particlesMesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
-    scene.add(particlesMesh);
+    // scene.add(particlesMesh);
 
     // Step 5: Create sand particles with assigned material and interaction properties
     for (let i = 0; i < particleCount; i++) {
@@ -222,7 +224,7 @@ const PerlinShader = ({ width = window.innerWidth, height = window.innerHeight, 
       });
 
       particleBody.addShape(body);
-      particleBody.allowSleep = true;  // Allow particles to sleep when at rest
+      // particleBody.allowSleep = true;  // Allow particles to sleep when at rest
       particleBody.sleepSpeedLimit = 0.1; // Lower speed threshold for sleeping
       particleBody.sleepTimeLimit = 1;  // Time required to enter sleep state
       world.addBody(particleBody);
@@ -230,17 +232,31 @@ const PerlinShader = ({ width = window.innerWidth, height = window.innerHeight, 
     }
     world.gravity.set(0, -9.81, 0); // Set gravity for the world
     // Animation loop
+    
+    let startTime = 1;
     const animate = (time) => {
       requestAnimationFrame(animate);
-      let startTime = 1;
-      // Calculate the time elapsed since the start
       const elapsedTime = (Date.now() - startTime) / 1000; // Convert to seconds
+      const speed = 5; // Speed factor
+      const totalPoints = cameraPathPoints.length;
 
+      // Step the physics world forward
+      world.step(0.01 / 60);
+
+      // Sync Three.js meshes with Cannon.js bodies
+      sandParticlesRef.current.forEach((mesh, i) => {
+          const body = particleBodiesRef.current[i];
+          mesh.position.copy(body.position);
+          mesh.quaternion.copy(body.quaternion);
+      });
+
+      // Update shader time
       noiseShader.uniforms.time.value = time * 0.001; // Update time uniform
-      renderer.render(scene, camera);
-    };
 
-    animate(0);
+      renderer.render(scene, camera);
+  };
+
+    animate();
 
     // Handle window resizing
     const handleResize = () => {
@@ -257,7 +273,7 @@ const PerlinShader = ({ width = window.innerWidth, height = window.innerHeight, 
       window.removeEventListener('resize', handleResize);
       renderer.dispose();
     };
-  }, []);
+  }, [width, height]);
 
   return <canvas ref={canvasRef} className="galaxial-animation" />;
 };

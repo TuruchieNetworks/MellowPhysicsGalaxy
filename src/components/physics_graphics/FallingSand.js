@@ -230,8 +230,8 @@ const FallingSand = ({ height = window.innerHeight, width = window.innerWidth, p
         const particleGeometry = new THREE.SphereGeometry(0.2, 16, 16);
         const particleMaterial = new THREE.MeshStandardMaterial({ color: randomHexColor() });
 
-        const instancedMesh = new THREE.InstancedMesh(particleGeometry, particleMaterial, particleCount);
-        scene.add(instancedMesh);
+        // const instancedMesh = new THREE.InstancedMesh(particleGeometry, particleMaterial, particleCount);
+        // scene.add(instancedMesh);
 
         // Initialize matrix and Cannon bodies for each particle
         const tempMatrix = new THREE.Matrix4();
@@ -251,8 +251,8 @@ const FallingSand = ({ height = window.innerHeight, width = window.innerWidth, p
             const z = (Math.random() - 0.5) * 10;
 
             // Set position in the instanced mesh matrix
-            tempMatrix.setPosition(x, y, z);
-            instancedMesh.setMatrixAt(i, tempMatrix);
+            // tempMatrix.setPosition(x, y, z);
+            // instancedMesh.setMatrixAt(i, tempMatrix);
 
             scene.add(mesh);
             sandParticlesRef.current.push(mesh);
