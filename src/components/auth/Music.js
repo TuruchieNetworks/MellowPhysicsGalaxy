@@ -15,7 +15,7 @@ import blue_stage from '../../img/blue_stage_entrance.avif';
 import guitar_boy from '../../img/dark-greece.avif';
 import concert_lights from '../../img/bright-concert-lights.avif';
 import PhysicsAnimations from '../physics_graphics/PhysicsAnimations';
-import FallingSand from '../physics_graphics/FallingSand';
+import GalaxialFallingSandPlane from '../physics_graphics/GalaxialFallingSandPlane';
 
 const images = [
     globe_concert,
@@ -73,7 +73,7 @@ const Music = () => {
                 </Link>
                 </div>
             </div>
-        <FallingSand />
+            <GalaxialFallingSandPlane/>
         </div>
     );
 };

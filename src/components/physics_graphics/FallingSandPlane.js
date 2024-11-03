@@ -10,7 +10,7 @@ import { useCannonGround, useCannonUnderground } from '../hooks/UseCannonGround'
 import { LightAxisUtilHelper } from '../graphics/LightAxisUtilHelper';
 
 
-const FallingSand = ({ height = window.innerHeight, width = window.innerWidth, particleCount = 500 }) => {
+const FallingSandPlane = ({ height = window.innerHeight, width = window.innerWidth, particleCount = 500 }) => {
     const { randomHexColor, randomRgbaColor } = useColorUtils();
     const canvasRef = useRef();
     const sceneRef = useRef(new THREE.Scene());
@@ -20,13 +20,8 @@ const FallingSand = ({ height = window.innerHeight, width = window.innerWidth, p
     const sphereMeshRef = useRef([]);
     const particleBodiesRef = useRef([]);
     // const box = useBox();
-    // const multiBox = useMultiBox();
-
-    // Access the Cannon.js world and ground
-    // Access the Cannon.js ground
+    // const multiBox = useMultiBox()
     const { groundBody } = useCannonGround();
-    const { underGroundBody } = useCannonUnderground();
-    const { cannonBox, boxMesh } = useCannonBox(); // If you want to use boxes as well
 
     // Define your box boundaries (min and max coordinates)
     const boxBoundary = {
@@ -65,6 +60,8 @@ const FallingSand = ({ height = window.innerHeight, width = window.innerWidth, p
     useEffect(() => {
         const scene = sceneRef.current;
         const world = worldRef.current; // Ensure you're using the reference 
+
+        world.gravity.set(0, -9.81, 0); // Set gravity for the world
 
         // Set up camera
         const camera = new THREE.PerspectiveCamera(75, width / height, 0.1, 1000);
@@ -117,15 +114,9 @@ const FallingSand = ({ height = window.innerHeight, width = window.innerWidth, p
         const canonSphereParticle = new THREE.Mesh(canonSphereGeo, canonSphereMat);
         scene.add(canonSphereParticle);
 
-        // Correct the ground body instantiation
-        // const groundBody = new CANNON.Body({
-        //     mass: 0, // Set mass to 0 for static bodies
-        //     position: new CANNON.Vec3(0, -1, 0)
-        // });
-        underGroundBody.addShape(new CANNON.Plane()); // Add plane shape to ground body
-        world.addBody(underGroundBody);
-        underGroundBody.quaternion.setFromEuler(-Math.PI / 2, 0, 0);
-
+        groundBody.addShape(new CANNON.Plane()); // Add plane shape to ground body
+        world.addBody(groundBody);
+        groundBody.quaternion.setFromEuler(-Math.PI / 2, 0, 0);
 
         const boxPhysMat = new CANNON.Material();
         const groundPhysMat = new CANNON.Material();
@@ -136,17 +127,6 @@ const FallingSand = ({ height = window.innerHeight, width = window.innerWidth, p
         });
         canonBoxBody.addShape(new CANNON.Box(new CANNON.Vec3(1, 1, 1)));
         world.addBody(canonBoxBody);
-
-        // const groundGeo = new THREE.PlaneGeometry(30, 30);
-        // const groundMat = new THREE.MeshBasicMaterial({
-        //     color: 0xffffff,
-        //     side: THREE.DoubleSide,
-        //     wireframe: true
-        // });
-
-        // const groundMesh = new THREE.Mesh(groundGeo, groundMat);
-        // scene.add(groundMesh);
-        world.gravity.set(0, -9.81, 0); // Set gravity for the world
 
         const groundBoxContactMat = new CANNON.ContactMaterial(
             groundPhysMat,
@@ -165,14 +145,6 @@ const FallingSand = ({ height = window.innerHeight, width = window.innerWidth, p
         canonSphereBody.addShape(new CANNON.Sphere(1)); // Adjust the size if needed
         world.addBody(canonSphereBody);
 
-        // const groundSphereContactMat = new CANNON.ContactMaterial(
-        //     groundPhysMat,
-        //     spherePhysMat,
-        //     { restitution: 0.9 }
-        // );
-
-        // world.addContactMaterial(groundSphereContactMat);
-
         // Add the plane geometry to the scene
         const planeGeometry = new THREE.PlaneGeometry(30, 30, 30);
         const planeMaterial = new THREE.MeshPhongMaterial({
@@ -184,7 +156,6 @@ const FallingSand = ({ height = window.innerHeight, width = window.innerWidth, p
         scene.add(plane);
         plane.rotation.x = -0.5 * Math.PI;
         plane.receiveShadow = true;
-
         plane.receiveShadow = true;
 
         const gridHelper = new THREE.GridHelper(30);
@@ -275,14 +246,6 @@ const FallingSand = ({ height = window.innerHeight, width = window.innerWidth, p
             particleBodiesRef.current.push(particleBody);
         }
 
-        // Add a ground plane
-        // const groundGeometry = new THREE.PlaneGeometry(20, 20);
-        // const groundMaterial = new THREE.MeshStandardMaterial({ color: 0x00aa00 });
-        // const ground = new THREE.Mesh(groundGeometry, groundMaterial);
-        // ground.rotation.x = -Math.PI / 2;
-        // ground.position.y = 8;
-        // scene.add(ground);
-
         // Animation loop
         const animate = () => {
             requestAnimationFrame(animate);
@@ -319,4 +282,4 @@ const FallingSand = ({ height = window.innerHeight, width = window.innerWidth, p
     return <canvas ref={canvasRef} className="galaxial-animation" />;
 };
 
-export default FallingSand;
+export default FallingSandPlane;

@@ -10,6 +10,8 @@ import ImageCarousel from '../carousels/ImageCarousel';
 import HeaderLinks from '../headers/HeaderLinks';
 import useCarouselImages from '../hooks/UseCarouselImages';
 import FallingSand from '../physics_graphics/FallingSand';
+import GalaxialFallingSandPlane from '../physics_graphics/GalaxialFallingSandPlane';
+import Biography from '../layout/Bio';
 
 // Array of background images
 // const images = [
@@ -46,28 +48,18 @@ const Contact = ({images}) => {
                 transition: 'background-image 0.5s ease-in-out',
             }}
         >
-        <FallingSand />
-        {/* <NoiseShaderMaterial /> */}
-        {/* <PerlinShader />
-        <PhysicsAnimations /> */}
+        {/* 
+        <NoiseShaderMaterial /> 
+        <PerlinShader />
+        <PhysicsAnimations /> 
+        */}
             <div className="container showcase-container imageCover">
                 <div className='flex-carousel'>
                     <div className='showcase-container'>
                         <ImageCarousel />
                     </div>
                     <div className='carousel-contents'>
-                        <p style={{fontSize: '14px'}}>
-                            Lorem ipsum dolor sit amet consectetur adipisicing elit. Voluptas maiores sint impedit delectus quam molestiae explicabo cum facere ratione veritatis.
-                            Lorem ipsum dolor sit amet consectetur adipisicing elit. Voluptas maiores sint impedit delectus quam molestiae explicabo cum facere ratione veritatis.
-                            Lorem ipsum dolor sit amet consectetur adipisicing elit. Voluptas maiores sint impedit delectus quam molestiae explicabo cum facere ratione veritatis.
-                            Lorem ipsum dolor sit amet consectetur adipisicing elit. Voluptas maiores sint impedit delectus quam molestiae explicabo cum facere ratione veritatis.    Lorem ipsum dolor sit amet consectetur adipisicing elit. Voluptas maiores sint impedit delectus quam molestiae explicabo cum facere ratione veritatis.
-                            Lorem ipsum dolor sit amet consectetur adipisicing elit. Voluptas maiores sint impedit delectus quam molestiae explicabo cum facere ratione veritatis.
-                            Lorem ipsum dolor sit amet consectetur adipisicing elit. Voluptas maiores sint impedit delectus quam molestiae explicabo cum facere ratione veritatis.
-                            Lorem ipsum dolor sit amet consectetur adipisicing elit. Voluptas maiores sint impedit delectus quam molestiae explicabo cum facere ratione veritatis.
-                            Lorem ipsum dolor sit amet consectetur adipisicing elit. Voluptas maiores sint impedit delectus quam molestiae explicabo cum facere ratione veritatis.
-                            Lorem ipsum dolor sit amet consectetur adipisicing elit. Voluptas maiores sint impedit delectus quam molestiae explicabo cum facere ratione veritatis.
-                            Lorem ipsum dolor sit amet consectetur adipisicing elit. Voluptas maiores sint impedit delectus quam molestiae explicabo cum facere ratione veritatis.
-                        </p>
+                     <Biography />
                     </div>
                 </div>
                 <HeaderLinks />
@@ -75,6 +67,7 @@ const Contact = ({images}) => {
                     Read More
                 </Link>
             </div>
+        <GalaxialFallingSandPlane />
         </div>
     );
 };

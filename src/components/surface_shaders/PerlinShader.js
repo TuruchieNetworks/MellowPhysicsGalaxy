@@ -75,6 +75,8 @@ const PerlinShader = ({ width = window.innerWidth, height = window.innerHeight, 
     new THREE.Vector3(10, 0, -10),
   ];
 
+  const time = 1;
+  const timeStep = 1 / 60;
   useEffect(() => {
     const scene = sceneRef.current;
     const world = worldRef.current;
@@ -169,6 +171,22 @@ const PerlinShader = ({ width = window.innerWidth, height = window.innerHeight, 
 
     const groundMesh = new THREE.Mesh(groundGeo, groundMat);
     scene.add(groundMesh);
+    const boxPhysMat = new CANNON.Material();
+    // const groundPhysMat = new CANNON.Material();
+    const canonBoxBody = new CANNON.Body({
+        mass: 1,
+        position: new CANNON.Vec3(1, 20, 0),
+        material: boxPhysMat
+    });
+    canonBoxBody.addShape(new CANNON.Box(new CANNON.Vec3(1, 1, 1)));
+    world.addBody(canonBoxBody);
+
+    //   const groundMesh = new THREE.Mesh(groundGeo, groundMat);
+    //   scene.add(groundMesh);
+
+    // Instanced mesh setup
+    const particleGeometry = new THREE.SphereGeometry(0.2, 16, 16);
+    const particleMaterial = new THREE.MeshStandardMaterial({ color: randomHexColor() });
     
     // Correct the ground body instantiation
     // Step 1: Define materials for particles and ground
@@ -177,12 +195,12 @@ const PerlinShader = ({ width = window.innerWidth, height = window.innerHeight, 
 
     // Step 2: Set up contact materials for particle-ground and particle-particle interactions
     const groundContactMaterial = new CANNON.ContactMaterial(sandMaterial, groundMaterial, {
-      friction: 0.3,     // Ground friction
-      restitution: 0.4   // Minimal bounciness on ground
+        friction: 0.3,     // Ground friction
+        restitution: 0.1   // Minimal bounciness on ground
     });
     const particleContactMaterial = new CANNON.ContactMaterial(sandMaterial, sandMaterial, {
-      friction: 0.2,     // Friction between particles
-      restitution: 0.1   // Minimal bounciness between particles
+        friction: 0.2,     // Friction between particles
+        restitution: 0.1   // Minimal bounciness between particles
     });
     world.addContactMaterial(groundContactMaterial);
     world.addContactMaterial(particleContactMaterial);
@@ -194,8 +212,8 @@ const PerlinShader = ({ width = window.innerWidth, height = window.innerHeight, 
     // Step 4: Create a ground plane in Cannon.js
     const groundShape = new CANNON.Plane();
     const groundBody = new CANNON.Body({
-      mass: 0, // Static ground
-      material: groundMaterial
+        mass: 0, // Static ground
+        material: groundMaterial
     });
     groundBody.addShape(groundShape);
     groundBody.quaternion.setFromEuler(-Math.PI / 2, 0, 0); // Rotate to lie flat
@@ -210,17 +228,15 @@ const PerlinShader = ({ width = window.innerWidth, height = window.innerHeight, 
     const particlesMesh = new THREE.InstancedMesh(geometry, material, particleCount);
     particlesMesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
     // scene.add(particlesMesh);
-
-    // Step 5: Create sand particles with assigned material and interaction properties
     for (let i = 0; i < particleCount; i++) {
       // Three.js particle
       const geometry = new THREE.SphereGeometry(0.2, 16, 16);
       const material = new THREE.MeshStandardMaterial({ color: randomHexColor() });
       const mesh = new THREE.Mesh(geometry, material);
       mesh.position.set(
-        (Math.random() - 0.5) * 10,
-        Math.random() * 10 + 10,
-        (Math.random() - 0.5) * 10
+          (Math.random() - 0.5) * 10,
+          Math.random() * 10 + 10,
+          (Math.random() - 0.5) * 10
       );
       scene.add(mesh);
       sandParticlesRef.current.push(mesh);
@@ -228,29 +244,69 @@ const PerlinShader = ({ width = window.innerWidth, height = window.innerHeight, 
       // Cannon.js body for physics
       const body = new CANNON.Sphere(0.2);
       const particleBody = new CANNON.Body({
-        mass: 13.1, // Small mass for realistic sand behavior
-        position: new CANNON.Vec3(mesh.position.x, mesh.position.y, mesh.position.z),
-        material: sandMaterial // Assign the sand material for particle interactions
+          mass: 0.1, // Small mass for realistic sand behavior
+          position: new CANNON.Vec3(mesh.position.x, mesh.position.y, mesh.position.z),
+          material: sandMaterial // Assign the sand material for particle interactions
       });
 
       particleBody.addShape(body);
-      // particleBody.allowSleep = true;  // Allow particles to sleep when at rest
+      particleBody.allowSleep = true;  // Allow particles to sleep when at rest
       particleBody.sleepSpeedLimit = 0.1; // Lower speed threshold for sleeping
       particleBody.sleepTimeLimit = 1;  // Time required to enter sleep state
       world.addBody(particleBody);
       particleBodiesRef.current.push(particleBody);
-    }// Set gravity for the world
-    // Animation loop
-    
-    let startTime = 1;
-    const animate = (time) => {
+  }
+
+  // const instancedMesh = new THREE.InstancedMesh(particleGeometry, particleMaterial, particleCount);
+  // scene.add(instancedMesh);
+
+  // Initialize matrix and Cannon bodies for each particle
+  // const tempMatrix = new THREE.Matrix4();
+  // // Create sand particles in both Three.js and Cannon.js
+  // for (let i = 0; i < particleCount; i++) {
+  //     // Three.js particle
+  //     const geometry = new THREE.SphereGeometry(0.2, 16, 16);
+  //     const material = new THREE.MeshStandardMaterial({ color: randomHexColor() });
+  //     const mesh = new THREE.Mesh(geometry, material);
+  //     mesh.position.set(
+  //         (Math.random() - 0.5) * 10,
+  //         Math.random() * 10 + 10,
+  //         (Math.random() - 0.5) * 10
+  //     );
+  //     const x = (Math.random() - 0.5) * 10;
+  //     const y = Math.random() * 10 + 10;
+  //     const z = (Math.random() - 0.5) * 10;
+
+  //     // Set position in the instanced mesh matrix
+  //     tempMatrix.setPosition(x, y, z);
+  //     instancedMesh.setMatrixAt(i, tempMatrix);
+
+  //     scene.add(mesh);
+  //     sandParticlesRef.current.push(mesh);
+
+  //     // Cannon.js body for physics
+  //     // Create corresponding Cannon.js body
+  //     const shape = new CANNON.Sphere(0.2);
+  //     const particleBody = new CANNON.Body({
+  //         mass: 0.1,
+  //         position: new CANNON.Vec3(x, y, z),
+  //     });
+  //     particleBody.addShape(shape);
+  //     world.addBody(particleBody);
+  //     particleBodiesRef.current.push(particleBody);
+  // }
+
+  // Animation loop
+  let startTime = Date.now(); // Move this outside `animate`
+
+  const animate = () => {
       requestAnimationFrame(animate);
-      const elapsedTime = (Date.now() - startTime) / 1000; // Convert to seconds
-      const speed = 5; // Speed factor
-      const totalPoints = cameraPathPoints.length;
+      // const elapsedTime = (Date.now() - startTime) / 1000; // Convert to seconds
+      // const speed = 5; // Speed factor
+      // const totalPoints = cameraPathPoints.length;
 
       // Step the physics world forward
-      world.step(0.01 / 60);
+      world.step(timeStep);
 
       // Sync Three.js meshes with Cannon.js bodies
       sandParticlesRef.current.forEach((mesh, i) => {
@@ -258,6 +314,17 @@ const PerlinShader = ({ width = window.innerWidth, height = window.innerHeight, 
           mesh.position.copy(body.position);
           mesh.quaternion.copy(body.quaternion);
       });
+
+      // Calculate the index of the current point in the camera path
+      // const pointIndex = Math.floor(elapsedTime / speed) % totalPoints;
+      // const nextPointIndex = (pointIndex + 1) % totalPoints;
+
+      // // Interpolate between the current and next point
+      // const t = (elapsedTime % speed) / speed; // Value between 0 and 1 over 'speed' seconds
+      // const currentPoint = cameraPathPoints[pointIndex];
+      // const nextPoint = cameraPathPoints[nextPointIndex];
+      // camera.position.lerpVectors(currentPoint, nextPoint, t);
+      // camera.lookAt(scene.position); // Ensure the camera looks at the center of the scene
 
       // Update shader time
       noiseShader.uniforms.time.value = time * 0.001; // Update time uniform
@@ -280,9 +347,11 @@ const PerlinShader = ({ width = window.innerWidth, height = window.innerHeight, 
     // Cleanup on component unmount
     return () => {
       window.removeEventListener('resize', handleResize);
+      // Clean up the world and scene on unmount
+      sandParticlesRef.current.forEach(mesh => scene.remove(mesh));
       renderer.dispose();
     };
-  }, [width, height]);
+  }, [width, height, particleCount]);
 
   return <canvas ref={canvasRef} className="galaxial-animation" />;
 };

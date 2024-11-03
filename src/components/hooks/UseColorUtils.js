@@ -2,6 +2,7 @@ import { useCallback } from 'react';
 
 const useColorUtils = () => {
     // Generate a random hex color
+
     const randomHexColor = useCallback(() => {
         return `#${Math.floor(Math.random() * 16777215).toString(16)}`;
     }, []);
@@ -19,3 +20,24 @@ const useColorUtils = () => {
 };
 
 export default useColorUtils;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    // const randomHexColor = useCallback(() => {
+    //     return `${Math.floor(Math.random(0xFFFFFF) * 0xFFFFFF)}`;
+    // }, []);

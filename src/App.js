@@ -15,6 +15,9 @@ import BouncingSpheres from './components/physics_graphics/BouncingSpheres';
 import PhysicsAnimations from './components/physics_graphics/PhysicsAnimations';
 import { LoadedModels } from './components/loaded_models/LoadedModelTextures';
 import { SpinningBox } from './components/loaded_models/LoadedModelTextures';
+import ServicesGraphics from './components/layout/ServiceGraphics';
+import AboutGraphics from './components/layout/AboutGraphics';
+import MusicGraphics from './components/layout/MusicGraphics';
 
 // Array of background images
 
@@ -27,13 +30,15 @@ function App() {
         <Route exact path='/Landing' element={ <LandingBackground/> } />
         <Route exact path='/About' element={ <About /> } />
         <Route exact path='/Contact' element={ <Contact /> } />
-        <Route exact path='/Services' element={ <Services /> } />
+        <Route exact path='/Services' element={ <ServicesGraphics /> } />
         <Route exact path='/Merchandise' element={ <Merchandise /> } />
+        <Route exact path='/Visuals' element={ <AboutGraphics /> } />
         <Route exact path='/LoadedModels' element={ <LoadedModels /> } />
         <Route exact path='/BouncingSpheres' element={ <BouncingSpheres /> } />
         <Route exact path='/SpinningBox' element={ <SpinningBox /> } />
         <Route exact path='/PhysicsAnimations' element={ <PhysicsAnimations /> } />
         <Route exact path='/Music' element={ <MusicBackground /> } />
+        <Route exact path='/MusicGraphics' element={ <MusicGraphics /> } />
         <Route exact path='/ImageCarousel' element={ <Biography /> } />
         <Route exact path='/ImageCarousel' element={ <ImageCarousel /> } />
         <Route exact path='/BackgroundCarousel' element={ <BackgroundCarousel /> } />

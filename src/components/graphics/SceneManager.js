@@ -3,10 +3,11 @@ import * as CANNON from "cannon-es";import stars from '../../galaxy_imgs/stars.j
 import nebula from '../../galaxy_imgs/nebula.jpg';
 
 export class SceneManager {
-    constructor(width, height, groundColor = 0x00ff00) { // Default ground color can be passed
+    constructor(scene, world, width, height, groundColor = 0x00ff00) { // Default ground color can be passed
         // Initialize scene, camera, and renderer
-        this.scene = new THREE.Scene();
+        this.scene = scene;
         this.camera = new THREE.PerspectiveCamera(75, width / height, 0.1, 1000);
+        this.camera.position.set(0, 5, 15);
         this.renderer = new THREE.WebGLRenderer({ antialias: true });
 
         // Set up background textures for the cube environment
@@ -22,7 +23,7 @@ export class SceneManager {
         this.renderer.setSize(width, height);
 
         // Physics world setup
-        this.world = new CANNON.World();
+        this.world = world;
         this.world.broadphase = new CANNON.NaiveBroadphase();
         this.world.solver.iterations = 10;
 
@@ -31,7 +32,7 @@ export class SceneManager {
         this.world.addBody(this.physicsGround);
 
         // Set up the ground with a configurable color
-        this.ground = this.createPlaneGround(groundColor);
+        this.ground = this.createPlaneGround(this.groundColor);
         this.scene.add(this.ground);
 
         // Initialize arrays to keep track of resources for cleanup

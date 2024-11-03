@@ -15,6 +15,7 @@ import SphereAnimationScene from '../physics_graphics/SphereAnimationScene';
 import NoisePlane from '../surface_shaders/NoisePlane';
 import NoiseShaderMaterial from '../surface_shaders/NoiseShaderMaterial';
 import FallingSand from '../physics_graphics/FallingSand';
+import GalaxialFallingSandPlane from '../physics_graphics/GalaxialFallingSandPlane';
 import FallingInstancedSand from '../physics_graphics/FallingInstancedSands';
 import PerlinShader from '../surface_shaders/PerlinShader';
 import NoiseShader from '../surface_shaders/NoiseShader';
@@ -22,9 +23,10 @@ import NoiseShader from '../surface_shaders/NoiseShader';
 const Landing = () => {
     return (
         <div id="showcase">
-            <NoiseShader />
+            {/* <NoiseShader /> */}
+            <GalaxialFallingSandPlane />
             {/* <NoiseShaderMaterial /> */}
-            {/* <PerlinShader />
+            {/*
             <FallingSand />
             <PhysicsAnimations /> */}
             {/* <SphereAnimationScene /> */}
@@ -43,10 +45,12 @@ const Landing = () => {
                 </div>
                 <div className='phone-state'>
                     <HeaderLinks />
-                    <Link to="/about" className="btn party-lights">
-                        Read More
+                    <Link to="/visuals" className="btn party-lights">
+                        Visuals
                     </Link>
                 </div>
+            
+            <PerlinShader />
             </div>
             <MusicBackground />
             <About />

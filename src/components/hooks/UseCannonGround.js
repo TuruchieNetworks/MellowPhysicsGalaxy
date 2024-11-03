@@ -23,7 +23,7 @@ import blue_stage from '../../img/blue_stage_entrance.avif';
 import guitar_boy from '../../img/dark-greece.avif';
 import concert_lights from '../../img/bright-concert-lights.avif';
 
-const textureLoader = new THREE.TextureLoader();export const useCannonGround = () => {
+export const useCannonGround = () => {
   return useMemo(() => {
     // Create a CANNON plane body
     const groundShape = new CANNON.Plane();
@@ -33,6 +33,39 @@ const textureLoader = new THREE.TextureLoader();export const useCannonGround = (
     });
     groundBody.addShape(groundShape);
     // groundBody.position.set(0, 0, 0);
+
+    // Create a THREE.js plane mesh
+    const groundGeometry = new THREE.PlaneGeometry(20, 20);
+    const groundMaterial = new THREE.MeshPhongMaterial({ color: 0x00aa00 * Math.random(0x00aa00) });
+    const groundMesh = new THREE.Mesh(groundGeometry, groundMaterial);
+    groundMesh.rotation.x = -Math.PI / 2; // Rotate to horizontal
+    groundMesh.position.y = 0; // Adjust position to align with physics
+    groundMesh.receiveShadow = true; // Enable shadows for the ground
+
+    const groundPhysMat = new CANNON.Material();
+    const spherePhysMat = new CANNON.Material();
+
+    const groundSphereContactMat = new CANNON.ContactMaterial(
+        groundPhysMat,
+        spherePhysMat,
+        { restitution: 0.9 }
+    );
+
+
+    return { groundBody, groundMesh, groundSphereContactMat };
+  }, []);
+};
+
+export const useCannonUnderground = () => {
+  return useMemo(() => {
+    // Create a CANNON plane body
+    const groundShape = new CANNON.Plane();
+    const underGroundBody = new CANNON.Body({
+      mass: 0, // Static body
+      position: new CANNON.Vec3(0, -1, 0)
+    });
+    underGroundBody.addShape(groundShape);
+    // underGroundBody.position.set(0, 0, 0);
 
     // Create a THREE.js plane mesh
     const groundGeometry = new THREE.PlaneGeometry(20, 20);
@@ -52,7 +85,7 @@ const textureLoader = new THREE.TextureLoader();export const useCannonGround = (
     );
 
 
-    return { groundBody, groundMesh, groundSphereContactMat };
+    return { underGroundBody, groundMesh, groundSphereContactMat };
   }, []);
 };
 

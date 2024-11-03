@@ -21,7 +21,7 @@ const images = [
     vasil_guitar
 ];
 
-const Services = () => {
+const ServicesGraphics = () => {
     const intervalRef = useRef(null); // to hold the interval reference
     const { idx, changeImage } = useCarouselImages(images);
     const videoRef = useRef(null); // Create a reference for the video element
@@ -70,4 +70,4 @@ const Services = () => {
     );
 };
 
-export default Services;
+export default ServicesGraphics;

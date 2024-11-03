@@ -7,6 +7,10 @@ import useColorUtils from '../hooks/UseColorUtils';
 import useShaderUtils from '../hooks/UseShaderUtils';
 import { LightAxisUtilHelper } from '../graphics/LightAxisUtilHelper';
 import { Lighting } from '../graphics/Lighting';
+import { Mixer } from '../graphics/Mixer';
+import { Plane } from '../graphics/Plane';
+import { Gravity } from '../graphics/Gravity';
+import { MomentumPhysics } from '../graphics/MomentumPhysics';
 
 const NoiseShader = ({ width = window.innerWidth, height = window.innerHeight, particleCount = 500 }) => {
     const canvasRef = useRef();
@@ -53,8 +57,8 @@ const NoiseShader = ({ width = window.innerWidth, height = window.innerHeight, p
 
                 for (int i = -1; i <= 1; i++) {
                     for (int j = -1; j <= 1; j++) {
-                        float aij = 0.1; // base value
-                        float bij = 1.7; // variation
+                        float aij = 0.0; // base value
+                        float bij = 1.0; // variation
                         float cij = 0.51; // adjust
                         float dij = 0.33; // noise contribution
 
@@ -67,32 +71,11 @@ const NoiseShader = ({ width = window.innerWidth, height = window.innerHeight, p
         `,
     };
 
-    // Create a cube geometry
-    // Apply convolution shader as background material
-    const noiseMaterial = new THREE.ShaderMaterial({
-        uniforms: noisePlane().uniforms,
-        vertexShader: noisePlane().vertexShader,
-        fragmentShader: noisePlane().fragmentShader,
-    });
-
-    const sawMaterial = new THREE.ShaderMaterial({
-        uniforms: sawPlane().uniforms,
-        vertexShader: sawPlane().vertexShader,
-        fragmentShader: sawPlane().fragmentShader,
-    });
-
-    // Apply convolution shader as background material
-    const convolutionMaterial = new THREE.ShaderMaterial({
-        uniforms: convolutionPlane().uniforms,
-        vertexShader: convolutionPlane().vertexShader,
-        fragmentShader: convolutionPlane().fragmentShader,
-    });
-
     // Create a camera path with yet another color
     const cameraPathPoints = [
-        new THREE.Vector3(60, 5, -35),
-        new THREE.Vector3(-10, 20, 30),
-        new THREE.Vector3(-20, 30, -30),
+        new THREE.Vector3(60, 15, -35),
+        new THREE.Vector3(-40, 20, 60),
+        new THREE.Vector3(20, 30, 80),
     ];
 
     const timeStep = 1 / 60;
@@ -100,6 +83,9 @@ const NoiseShader = ({ width = window.innerWidth, height = window.innerHeight, p
     useEffect(() => {
         const scene = sceneRef.current;
         const world = worldRef.current;
+
+        // Set gravity for the world
+        world.gravity.set(0, -9.81, 0);
 
         // Set up camera
         const camera = new THREE.PerspectiveCamera(75, width / height, 0.1, 1000);
@@ -116,6 +102,20 @@ const NoiseShader = ({ width = window.innerWidth, height = window.innerHeight, p
         const cubeTextureLoader = new THREE.CubeTextureLoader();
         scene.background = cubeTextureLoader.load([stars, stars, stars, stars, nebula, nebula]);
 
+        // Create a cube geometry
+        // Apply convolution shader as background material
+        const noiseMaterial = new THREE.ShaderMaterial({
+            uniforms: noisePlane().uniforms,
+            vertexShader: noisePlane().vertexShader,
+            fragmentShader: noisePlane().fragmentShader,
+        });
+
+        const sawMaterial = new THREE.ShaderMaterial({
+            uniforms: sawPlane().uniforms,
+            vertexShader: sawPlane().vertexShader,
+            fragmentShader: sawPlane().fragmentShader,
+        });
+
         // Apply starry shader as background material
         const starryMaterial = new THREE.ShaderMaterial({
             uniforms: {
@@ -125,6 +125,50 @@ const NoiseShader = ({ width = window.innerWidth, height = window.innerHeight, p
             fragmentShader: starryBackgrounds().fragmentShader,
             side: THREE.BackSide // Inside of large sphere
         });
+
+        // Apply convolution shader as background material
+        const convolutionMaterial = new THREE.ShaderMaterial({
+            uniforms: convolutionPlane().uniforms,
+            vertexShader: convolutionPlane().vertexShader,
+            fragmentShader: convolutionPlane().fragmentShader,
+        });
+
+        // const backgroundCubeGeometry = new THREE.BoxGeometry(500, 500, 500);
+        // const backgroundCube = new THREE.Mesh(backgroundCubeGeometry, starryMaterial);
+
+        const backgroundCubeGeometry = new THREE.BoxGeometry(500, 500, 500);
+        const backgroundCube = new THREE.Mesh(backgroundCubeGeometry, convolutionMaterial);
+      
+        // Add the cube to the scene
+        backgroundRef.current = backgroundCube;
+        scene.add(backgroundCube);
+
+
+        // Large sphere for background
+        // const backgroundSphere = new THREE.Mesh(new THREE.SphereGeometry(500, 32, 32), starryMaterial);
+        // backgroundRef.current = backgroundSphere;
+        // scene.add(backgroundSphere);
+        
+        // Create materials for each face of the cube
+        const cubeMaterials = [
+            new THREE.MeshBasicMaterial({ map: stars }),  // Right side (stars for now)
+            new THREE.MeshBasicMaterial({ map: starryMaterial }),  // Left side (stars for now)
+            new THREE.MeshBasicMaterial({ map: stars }),  // Top side (starry texture)
+            new THREE.MeshBasicMaterial({ map: starryMaterial }),  // Bottom side (starry texture)
+            new THREE.MeshBasicMaterial({ map: nebula }), // Front side (nebula texture)
+            new THREE.MeshBasicMaterial({ map: nebula }), // Back side (nebula texture)
+        ];
+
+        // // Create a box geometry with six materials
+        // const backgroundCubeGeometry = new THREE.BoxGeometry(500, 500, 500);
+        // const backgroundCube = new THREE.Mesh(backgroundCubeGeometry, cubeMaterials);
+        
+        // // Set the cube to render on the inside
+        // backgroundCube.materials.forEach(mat => mat.side = THREE.BackSide);
+        
+        // // Add the cube to the scene
+        // backgroundRef.current = backgroundCube;
+        // scene.add(backgroundCube);
 
         // Fog
         scene.fog = new THREE.Fog(0xFFFFFF, 0, 200);
@@ -159,32 +203,31 @@ const NoiseShader = ({ width = window.innerWidth, height = window.innerHeight, p
         helpers.addOrbitControls(); // Add orbit controls
 
         // Create plane geometry and material
-        const geo = new THREE.PlaneGeometry(20, 20, 32, 32); // Increase the size of the plane
+        const geo = new THREE.PlaneGeometry(60, 60, 60); // Increase the size of the plane
         const mat = new THREE.ShaderMaterial({
             uniforms: noiseShader.uniforms,
             vertexShader: noiseShader.vertexShader,
             fragmentShader: noiseShader.fragmentShader,
-        });    
-        
-        // const cplane = new Plane(scene, 60, 60, randomHexColor(), 1, THREE.DoubleSide); // The last parameter is thickness
-        // cplane.setRotation(-0.5 * Math.PI, 0, 0);
+        });
 
         const plane = new THREE.Mesh(geo, mat); // Apply the shader material to the plane
         plane.rotation.x = -Math.PI / 2; // Rotate the plane to face upwards
-        scene.add(plane); // Add the plane to the scene // Add the plane geometry to the scene
+        scene.add(plane); // Add the plane to the scene 
+
+        // Add the plane geometry to the scene
         const planeGeometry = new THREE.PlaneGeometry(60, 60, 60);
         const planeMaterial = new THREE.MeshPhongMaterial({
             color: randomHexColor(),
             side: THREE.DoubleSide
         });
 
-        const planePad = new THREE.Mesh(planeGeometry, sawMaterial)
+        const planePad = new THREE.Mesh(planeGeometry, noiseShader);
         planePad.rotation.x = -Math.PI / 2;
         planePad.receiveShadow = true;
         scene.add(planePad);
 
         const boxPhysMat = new CANNON.Material();
-        // const groundPhysMat = new CANNON.Material();
+        const groundPhysMat = new CANNON.Material();
         const canonBoxBody = new CANNON.Body({
             mass: 1,
             position: new CANNON.Vec3(1, 20, 0),
@@ -199,7 +242,7 @@ const NoiseShader = ({ width = window.innerWidth, height = window.innerHeight, p
         // Instanced mesh setup
         const particleGeometry = new THREE.SphereGeometry(0.2, 16, 16);
         const particleMaterial = new THREE.MeshStandardMaterial({ color: randomHexColor() });
-        
+
         // Correct the ground body instantiation
         // Step 1: Define materials for particles and ground
         const sandMaterial = new CANNON.Material("sandMaterial");
@@ -208,7 +251,7 @@ const NoiseShader = ({ width = window.innerWidth, height = window.innerHeight, p
         // Step 2: Set up contact materials for particle-ground and particle-particle interactions
         const groundContactMaterial = new CANNON.ContactMaterial(sandMaterial, groundMaterial, {
             friction: 0.3,     // Ground friction
-            restitution: 0.1   // Minimal bounciness on ground
+            restitution: 10.1   // Minimal bounciness on ground
         });
         const particleContactMaterial = new CANNON.ContactMaterial(sandMaterial, sandMaterial, {
             friction: 0.2,     // Friction between particles
@@ -231,9 +274,6 @@ const NoiseShader = ({ width = window.innerWidth, height = window.innerHeight, p
         groundBody.quaternion.setFromEuler(-Math.PI / 2, 0, 0); // Rotate to lie flat
         world.addBody(groundBody);
 
-        // Set gravity for the world
-        world.gravity.set(0, -9.81, 0);
-
         // // Step 4: Create an InstancedMesh for particles
         // const geometry = new THREE.SphereGeometry(0.2, 16, 16);
         // const material = new THREE.MeshStandardMaterial({ color: randomHexColor() });
@@ -245,7 +285,22 @@ const NoiseShader = ({ width = window.innerWidth, height = window.innerHeight, p
         for (let i = 0; i < particleCount; i++) {
             // Three.js particle
             const geometry = new THREE.SphereGeometry(0.2, 16, 16);
-            const material = new THREE.MeshStandardMaterial({ color: randomHexColor() });
+            // const mvaterial = new THREE.MeshStandardMaterial({ color: randomHexColor() });
+            // Declare material before using the ternary operator
+
+            let material;
+            if (i % 2 === 0) {
+                material = new THREE.ShaderMaterial({
+                    uniforms: noiseShader.uniforms,
+                    vertexShader: noiseShader.vertexShader,
+                    fragmentShader: noiseShader.fragmentShader,
+                });
+            } 
+            if (i % 2 === 1) {
+                material = new THREE.MeshStandardMaterial({ color: randomHexColor() });
+            }
+
+
             const mesh = new THREE.Mesh(geometry, material);
             mesh.position.set(
                 (Math.random() - 0.5) * 10,
@@ -362,10 +417,11 @@ const NoiseShader = ({ width = window.innerWidth, height = window.innerHeight, p
         // Cleanup on component unmount
         return () => {
             // Clean up the world and scene on unmount
+            // scene.remove(backgroundSphere);
             sandParticlesRef.current.forEach(mesh => scene.remove(mesh));
             renderer.dispose();
         };
-    }, [width, height, particleCount]);
+    }, [width, height, particleCount, starryBackgrounds]);
 
     return <canvas ref={canvasRef} className="galaxial-animation" />;
 };
