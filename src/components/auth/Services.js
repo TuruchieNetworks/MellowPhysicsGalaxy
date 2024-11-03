@@ -41,7 +41,7 @@ const Services = () => {
             style={{
                 backgroundImage: `url(${images[idx]})`,
                 transition: 'background-image 0.5s ease-in-out',
-                height: '100vh',
+                // height: '100vh',
                 backgroundSize: 'cover', 
                 backgroundPosition: 'center',
             }}

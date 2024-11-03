@@ -140,4 +140,69 @@ export class Geometry {
         });
         this.geometries = []; // Clear the array
     }
+    
+    meshDispose() {
+        // Dispose of spheres
+        this.spheres.forEach(sphere => {
+            this.scene.remove(sphere);
+            sphere.geometry.dispose();
+            sphere.material.dispose();
+        });
+        this.spheres = [];
+    
+        // Dispose of boxes
+        this.boxes.forEach(box => {
+            this.scene.remove(box);
+            box.geometry.dispose();
+            box.material.dispose();
+        });
+        this.boxes = [];
+    
+        // Dispose of GLTF models
+        this.gltfModels.forEach(model => {
+            model.traverse(child => {
+                if (child.isMesh) {
+                    child.geometry.dispose();
+                    if (Array.isArray(child.material)) {
+                        child.material.forEach(mat => mat.dispose());
+                    } else if (child.material) {
+                        child.material.dispose();
+                    }
+                }
+            });
+            this.scene.remove(model);
+        });
+        this.gltfModels = [];
+    
+        // Dispose of FBX models
+        this.fbxModels.forEach(model => {
+            model.traverse(child => {
+                if (child.isMesh) {
+                    child.geometry.dispose();
+                    if (Array.isArray(child.material)) {
+                        child.material.forEach(mat => mat.dispose());
+                    } else if (child.material) {
+                        child.material.dispose();
+                    }
+                }
+            });
+            this.scene.remove(model);
+        });
+        this.fbxModels = [];
+    
+        // Dispose of textures loaded with TextureLoader
+        this.textureLoader.cache.forEach(texture => {
+            texture.dispose();
+        });
+        this.textureLoader.cache.clear();
+    
+        // Remove any additional references
+        this.geometries.forEach(mesh => {
+            this.scene.remove(mesh);
+            mesh.geometry.dispose();
+            mesh.material.dispose();
+        });
+        this.geometries = [];
+    }
+    
 }
