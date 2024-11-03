@@ -53,7 +53,7 @@ const Music = () => {
             // backgroundPosition: 'center',
         }}
         >
-        <PhysicsAnimations />
+        
             <div className="container showcase-container imageCover">
                 <div className='flex-carousel'>
                     <div className='showcase-container'>
