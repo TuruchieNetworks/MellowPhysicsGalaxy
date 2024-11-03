@@ -51,7 +51,7 @@ const MusicGraphics = ({ currentBackground, handlePrev, handleNext }) => {
         }}
         >
         <PhysicsAnimations />
-        <FallingSand />
+    
         <Music />
         </div>
     );
