@@ -68,9 +68,7 @@ const AboutGraphics = ({ currentBackground, handlePrev, handleNext }) => {
                 </Link>
             </div>
             
-                <HeaderLinks />
-             
-                <PhysicsAnimations/>
+                
             
         </div>
     );
