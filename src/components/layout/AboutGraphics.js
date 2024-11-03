@@ -68,7 +68,14 @@ const AboutGraphics = ({ currentBackground, handlePrev, handleNext }) => {
                 </Link>
             <FallingSand />
             </div>
-            <div className='profileShowcase'>
+            <div className='profileShowcase' style={{
+                backgroundImage: `url(${images[idx]})`,
+                width: '100vw',
+                // height: '100vh',
+                backgroundSize: 'cover',
+                backgroundPosition: 'center',
+                transition: 'background-image 0.5s ease-in-out'
+            }}>
                 <HeaderLinks />
                 <Link to="/visuals" className="btn party-lights">
                     Visuals

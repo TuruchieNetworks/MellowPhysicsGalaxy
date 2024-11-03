@@ -1,7 +1,12 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import '../../App.css';
 import '../../styles/PlayerAnimations.css';
+import blue_concert from '../../img/blue_concert.jpg';
+import globe_concert from '../../img/globe_concert.jpg';
+import metal_blocks from '../../img/metal_blocks.jpg';
+import vasil_guitar from '../../img/vasil_guitar.jpg';
+import landing_dj from '../../img/landing_dj.jpg';
 import ImageCarousel from '../carousels/ImageCarousel';
 import BackgroundCarousel from '../carousels/BackgroundCarousel';
 import MusicBackground from '../backgroundVideos/MusicBackground';
@@ -20,15 +25,23 @@ import FallingInstancedSand from '../physics_graphics/FallingInstancedSands';
 import PerlinShader from '../surface_shaders/PerlinShader';
 import NoiseShader from '../surface_shaders/NoiseShader';
 
+const images = [
+    landing_dj,
+    blue_concert,
+    globe_concert,
+    metal_blocks,
+    vasil_guitar
+];
+
 const Landing = () => {
+    const [idx, setIdx] = useState(0); // current index of the image
     return (
         <div id="showcase">
             {/* <NoiseShader /> */}
             <GalaxialFallingSandPlane />
             {/* <NoiseShaderMaterial /> */}
             {/*
-            <FallingSand />
-            <PhysicsAnimations /> */}
+            <FallingSand />*/}
             {/* <SphereAnimationScene /> */}
             {/* <div className="galaxial-animations"></div> */}
             <div className="container showcase-container imageCover">
@@ -49,16 +62,25 @@ const Landing = () => {
                         Visuals
                     </Link>
                 </div>
-            
-            <PerlinShader />
+
+                <PerlinShader />
             </div>
-            <MusicBackground />
-            <About />
-            {/* <PerlinShader /> */}
-            <BackgroundCarousel />
-            {/* <FallingInstancedSand /> */}
-            {/* <VideoBackground/> */}
-            <PhysicsAnimations />
+            <div className='profileShowcase' style={{
+                backgroundImage: `url(${images[idx]})`,
+                width: '100vw',
+                // height: '100vh',
+                backgroundSize: 'cover',
+                backgroundPosition: 'center',
+                transition: 'background-image 0.5s ease-in-out'
+            }}>
+                {/* <MusicBackground /> */}
+                <About />
+                {/* <PerlinShader /> */}
+                <BackgroundCarousel />
+                {/* <FallingInstancedSand /> */}
+                {/* <VideoBackground/> */}
+                <PhysicsAnimations />
+            </div>
         </div>
     );
 };

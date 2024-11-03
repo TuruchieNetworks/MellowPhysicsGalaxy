@@ -12,6 +12,7 @@ import metal_blocks from '../../img/metal_blocks.jpg';
 import vasil_guitar from '../../img/vasil_guitar.jpg';
 import FallingSand from '../physics_graphics/FallingSand';
 import PerlinShader from '../surface_shaders/PerlinShader';
+import PhysicsAnimations from '../physics_graphics/PhysicsAnimations';
 
 const images = [
     landing_dj,
@@ -66,6 +67,7 @@ const About = ({ currentBackground, handlePrev, handleNext }) => {
                     Read More
                 </Link>
                 </div>
+                <PhysicsAnimations /> 
             </div>
             <PerlinShader />
         </div>

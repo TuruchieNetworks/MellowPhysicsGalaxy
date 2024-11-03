@@ -247,9 +247,9 @@ const GalaxialFallingSandPlane = ({ height = window.innerHeight, width = window.
         // const cplane = new Plane(scene, 60, 60, randomHexColor(), 1, THREE.DoubleSide); // The last parameter is thickness
         // cplane.setRotation(-0.5 * Math.PI, 0, 0);
 
-        const starPlane = new THREE.Mesh(geo, mat); // Apply the shader material to the plane
-        starPlane.rotation.x = -Math.PI / 2; // Rotate the plane to face upwards
-        scene.add(starPlane); // Add the plane to the scene // Add the plane geometry to the scene
+        // const starPlane = new THREE.Mesh(geo, mat); // Apply the shader material to the plane
+        // starPlane.rotation.x = -Math.PI / 2; // Rotate the plane to face upwards
+        // scene.add(starPlane); // Add the plane to the scene // Add the plane geometry to the scene
         // const starPlaneGeometry = new THREE.PlaneGeometry(60, 60, 60);
         // const starPlaneMaterial = new THREE.MeshPhongMaterial({
         //     color: randomHexColor(),
