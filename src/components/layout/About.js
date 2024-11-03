@@ -48,7 +48,7 @@ const About = ({ currentBackground, handlePrev, handleNext }) => {
             transition: 'background-image 0.5s ease-in-out'
         }}
         >
-        <FallingSand />
+        
             <div className="container showcase-container imageCover">
                 <div className='flex-carousel'>
                     <div className='showcase-container'>
@@ -67,10 +67,7 @@ const About = ({ currentBackground, handlePrev, handleNext }) => {
                     Read More
                 </Link>
                 </div>
-            </div>
-        
-                <PhysicsAnimations /> 
-            <PerlinShader />
+            </div
         </div>
     );
 };
