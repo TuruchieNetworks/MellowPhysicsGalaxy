@@ -49,7 +49,7 @@ const AboutGraphics = ({ currentBackground, handlePrev, handleNext }) => {
                 backgroundPosition: 'center',
                 transition: 'background-image 0.5s ease-in-out'
             }}
-        >
+        ><FallingSand />
             <div className='flex-carousel'>
                 <div className='showcase-container'>
                     <ImageCarousel />
@@ -67,11 +67,11 @@ const AboutGraphics = ({ currentBackground, handlePrev, handleNext }) => {
                     Visuals
                 </Link>
             </div>
-            <FallingSand />
+            
                 <HeaderLinks />
              
                 <PhysicsAnimations/>
-            <About />
+            
         </div>
     );
 };
