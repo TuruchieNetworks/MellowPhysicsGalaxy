@@ -5,20 +5,27 @@ import ImageCarousel from '../carousels/ImageCarousel';
 import HeaderLinks from '../headers/HeaderLinks';
 import useCarouselImages from '../hooks/UseCarouselImages';
 import Biography from '../layout/Bio'; 
-import metal_blocks from '../../img/metal_blocks.jpg';
-import globe_concert from '../../img/globe_concert.jpg';
-import landing_dj from '../../img/landing_dj.jpg';
 import blue_concert from '../../img/blue_concert.jpg';
+import globe_concert from '../../img/globe_concert.jpg';
+import metal_blocks from '../../img/metal_blocks.jpg';
 import vasil_guitar from '../../img/vasil_guitar.jpg';
+import crowd_angle from '../../img/angle_outdoor_concerts.jpg';
+import bright_stage from '../../img/tube_concerts.avif';
+import blue_stage from '../../img/blue_stage_entrance.avif';
+import guitar_boy from '../../img/dark-greece.avif';
+import concert_lights from '../../img/bright-concert-lights.avif';
 import PerlinShader from '../surface_shaders/PerlinShader';
-
 // Array of background images
 const images = [
-    landing_dj,
-    metal_blocks,
     globe_concert,
+    metal_blocks,
+    vasil_guitar,
+    concert_lights,
+    crowd_angle,
+    blue_stage,
+    guitar_boy,
     blue_concert,
-    vasil_guitar
+    bright_stage
 ];
 
 const Services = () => {

@@ -45,6 +45,10 @@ const Landing = () => {
             {/* <SphereAnimationScene /> */}
             {/* <div className="galaxial-animations"></div> */}
             <div className="container showcase-container imageCover">
+            <HeaderLinks />
+            <Link to="/visuals" className="btn party-lights">
+            Visuals
+            </Link>
                 <div className='flex-carousel'>
                     <div className='showcase-container'>
                         <ImageCarousel />
@@ -62,9 +66,9 @@ const Landing = () => {
                         Visuals
                     </Link>
                 </div>
-
-                <PerlinShader />
             </div>
+
+            <PhysicsAnimations />
             <div className='profileShowcase' style={{
                 backgroundImage: `url(${images[idx]})`,
                 width: '100vw',
@@ -79,7 +83,7 @@ const Landing = () => {
                 <BackgroundCarousel />
                 {/* <FallingInstancedSand /> */}
                 {/* <VideoBackground/> */}
-                <PhysicsAnimations />
+            <PerlinShader />
             </div>
         </div>
     );
