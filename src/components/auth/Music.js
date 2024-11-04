@@ -16,6 +16,7 @@ import guitar_boy from '../../img/dark-greece.avif';
 import concert_lights from '../../img/bright-concert-lights.avif';
 import PhysicsAnimations from '../physics_graphics/PhysicsAnimations';
 import GalaxialFallingSandPlane from '../physics_graphics/GalaxialFallingSandPlane';
+import MusicBackground from '../backgroundVideos/MusicBackground';
 
 const images = [
     globe_concert,
@@ -45,15 +46,14 @@ const Music = () => {
         <div
             id="showcase"
             style={{
-            backgroundImage: `url(${images[idx]})`,
-            transition: 'background-image 0.5s ease-in-out',
-            width: '100vw',
-            height: '100vh',
-            // backgroundSize: 'cover', 
-            // backgroundPosition: 'center',
-        }}
+                backgroundImage: `url(${images[idx]})`,
+                transition: 'background-image 0.5s ease-in-out',
+                width: '100vw',
+                height: '100vh',
+                // backgroundSize: 'cover', 
+                // backgroundPosition: 'center',
+            }}
         >
-        
             <div className="container showcase-container imageCover">
                 <div className='flex-carousel'>
                     <div className='showcase-container'>
@@ -67,13 +67,15 @@ const Music = () => {
                     <Biography />
                 </div>
                 <div className='phone-state'>
-                <HeaderLinks />
-                <Link to="/about" className="btn party-lights">
-                    Read More
-                </Link>
+                    <HeaderLinks />
+                    <Link to="/about" className="btn party-lights">
+                        Read More
+                    </Link>
                 </div>
             </div>
-            <GalaxialFallingSandPlane/>
+            <PhysicsAnimations />
+            <MusicBackground />
+            <GalaxialFallingSandPlane />
         </div>
     );
 };

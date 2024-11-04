@@ -67,9 +67,8 @@ const AboutGraphics = ({ currentBackground, handlePrev, handleNext }) => {
                     Visuals
                 </Link>
             </div>
-            
-                
-            
+            <FallingSand />
+            <About />
         </div>
     );
 };

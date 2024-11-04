@@ -50,8 +50,6 @@ const MusicGraphics = ({ currentBackground, handlePrev, handleNext }) => {
             transition: 'background-image 0.5s ease-in-out'
         }}
         >
-        <PhysicsAnimations />
-    
         <Music />
         </div>
     );

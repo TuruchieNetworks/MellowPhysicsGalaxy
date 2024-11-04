@@ -67,7 +67,14 @@ const About = ({ currentBackground, handlePrev, handleNext }) => {
                     Read More
                 </Link>
                 </div>
+<<<<<<< HEAD
             </div
+=======
+            </div>
+                <PhysicsAnimations /> 
+        {/* <FallingSand />
+            <PerlinShader /> */}
+>>>>>>> 070d2e2 (Adjusted Contents For Load Time)
         </div>
     );
 };
