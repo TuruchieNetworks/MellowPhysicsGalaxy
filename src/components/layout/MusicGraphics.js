@@ -37,7 +37,6 @@ const MusicGraphics = ({ currentBackground, handlePrev, handleNext }) => {
         }
     }, []); // Empty dependency array to run once on mount
 
-
     return (
         <div
             id="showcase"

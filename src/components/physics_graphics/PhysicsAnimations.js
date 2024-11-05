@@ -137,7 +137,7 @@ const PhysicsAnimations = () => {
     // Setup scene, camera, and renderer
     const scene = new THREE.Scene();
     const camera = new THREE.PerspectiveCamera(75, dimensions.width / dimensions.height, 0.1, 1000);
-    camera.position.set(-10, 30, 30);
+    camera.position.set(0, 3, 30);
 
     const renderer = new THREE.WebGLRenderer();
     renderer.setSize(dimensions.width, dimensions.height);
@@ -170,8 +170,8 @@ const PhysicsAnimations = () => {
 
     // Lighting setup
     const light = new Lighting(scene);
-    const ambientLight = light.addAmbientLight({ color: 0x222222, intensity: 0.5, castShadow: true });
-    const spotLight = light.addSpotLight({ color: 0xFFFFFF, intensity: 1, position: { x: -100, y: 100, z: 0 }, angle: 0.2, castShadow: true });
+    light.addAmbientLight({ color: 0x222222, intensity: 0.5, castShadow: true });
+    light.addSpotLight({ color: 0xFFFFFF, intensity: 1, position: { x: -100, y: 100, z: 0 }, angle: 0.2, castShadow: true });
     light.addHemisphereLight({ skyColor: 0xFFFFFF, groundColor: 0x444444, intensity: 0.9, position: { x: 0, y: 50, z: 0 }, castShadow: true });
     const pointLight = light.addPointLight({ color: 0xff0000, intensity: 0.8, position: { x: 20, y: 20, z: 20 }, castShadow: true });
     const directionalLight = light.addDirectionalLight({ color: 0xFFFFFF, intensity: 1, position: { x: 10, y: 20, z: 10 }, castShadow: true });
@@ -639,8 +639,8 @@ const PhysicsAnimations = () => {
       setClickedSpheres((spheres) =>
         spheres.map((sphereData) => {
           const { mesh, velocity } = sphereData;
-          mesh.rotation.x += 0.1;
-          mesh.rotateZ += 0.1;
+          mesh.rotation.x += 0.05;
+          mesh.rotation.z += 0.05;
 
           // Apply gravity effect
           velocity.add(gravity.clone().multiplyScalar(deltaTime));

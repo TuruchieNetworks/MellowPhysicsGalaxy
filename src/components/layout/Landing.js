@@ -22,7 +22,7 @@ import NoiseShaderMaterial from '../surface_shaders/NoiseShaderMaterial';
 import FallingSand from '../physics_graphics/FallingSand';
 import GalaxialFallingSandPlane from '../physics_graphics/GalaxialFallingSandPlane';
 import FallingInstancedSand from '../physics_graphics/FallingInstancedSands';
-import SphereDrops from '../physics_graphics/SphereDropss';
+import SphereDrops from '../physics_graphics/SphereDrops';
 import PerlinShader from '../surface_shaders/PerlinShader';
 import NoiseShader from '../surface_shaders/NoiseShader';
 
@@ -38,7 +38,8 @@ const Landing = () => {
     const [idx, setIdx] = useState(0); // current index of the image
     return (
         <div id="showcase">
-            <SphereDrops /> 
+            {/* <SphereDrops />  */}
+            <PhysicsAnimations />
             {/* <GalaxialFallingSandPlane /> */}
             {/* <NoiseShaderMaterial /> */}
             {/*

@@ -140,7 +140,7 @@ const SphereDrops = () => {
     // Setup scene, camera, and renderer
     const scene = new THREE.Scene();
     const camera = new THREE.PerspectiveCamera(75, dimensions.width / dimensions.height, 0.1, 1000);
-    camera.position.set(-1, 3, 30);
+    camera.position.set(-1, 5, 40);
 
     const renderer = new THREE.WebGLRenderer();
     renderer.setSize(dimensions.width, dimensions.height);

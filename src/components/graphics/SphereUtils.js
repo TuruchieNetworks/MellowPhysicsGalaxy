@@ -91,7 +91,17 @@ class SphereUtils {
 
         const newSphere = this.createSphere(textureURL, mass, velocity);
         this.spheres.push(newSphere);
+
+        // Set a timeout to remove the sphere after 30 seconds
+        const timeoutId = setTimeout(() => {
+            this.scene.remove(newSphere.mesh); // Remove the sphere from the scene
+            this.spheres = this.spheres.filter(s => s.sphereId !== newSphere.sphereId); // Clean up from array
+        }, 60000); // 30 seconds
+
+        // Store the timeout ID in the sphere object to clear it later if necessary
+        newSphere.timeoutId = timeoutId;
     }
+
 
     createSphere(textureURL, mass, velocity) {
         const geometry = new THREE.SphereGeometry(2, 20, 20);
@@ -113,9 +123,10 @@ class SphereUtils {
             mass,
             velocity,
             mesh: sphereMesh,
-            radius: geometry.parameters.radius, // Use sphere geometry radius
+            radius: geometry.parameters.radius,
             position: sphereMesh.position.clone(),
             sphereId: sphereMesh.id,
+            timeoutId: null, // Store timeout ID
         };
     }
 

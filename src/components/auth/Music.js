@@ -16,6 +16,7 @@ import guitar_boy from '../../img/dark-greece.avif';
 import concert_lights from '../../img/bright-concert-lights.avif';
 import PhysicsAnimations from '../physics_graphics/PhysicsAnimations';
 import GalaxialFallingSandPlane from '../physics_graphics/GalaxialFallingSandPlane';
+import SphereDrops from '../physics_graphics/SphereDrops';
 
 const images = [
     globe_concert,
@@ -74,7 +75,7 @@ const Music = () => {
                 </div>
             </div>
             {/* <GalaxialFallingSandPlane/> */}
-            <PhysicsAnimations/>
+            <SphereDrops/>
         </div>
     );
 };
