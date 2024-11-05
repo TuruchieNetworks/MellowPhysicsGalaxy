@@ -2,9 +2,9 @@ import * as THREE from 'three';
 import { useCallback } from 'react';
 
 const useShaderUtils = () => {
-  const starryBackgrounds = useCallback(() => {
-    const starryShader = {
-      vertexShader: `
+    const starryBackgrounds = useCallback(() => {
+        const starryShader = {
+            vertexShader: `
         varying vec3 vWorldPosition;
         void main() {
             vec4 worldPosition = modelMatrix * vec4(position, 1.0);
@@ -12,7 +12,7 @@ const useShaderUtils = () => {
             gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
         }
       `,
-      fragmentShader: `
+            fragmentShader: `
         uniform samplerCube backgroundTexture;
         varying vec3 vWorldPosition;
 
@@ -28,25 +28,25 @@ const useShaderUtils = () => {
             gl_FragColor = vec4(color, 1.0);
         }
       `
-    };
-    return starryShader;
-  }, []);
+        };
+        return starryShader;
+    }, []);
 
-  // Noise Plane
-  const noisePlane = useCallback(() => {
-    const noiseShader = {
-      uniforms: {
-          time: { value: 0.0 },
-          resolution: { value: new THREE.Vector2(window.innerWidth, window.innerHeight) },
-      },
-      vertexShader: `
+    // Noise Plane
+    const noisePlane = useCallback(() => {
+        const noiseShader = {
+            uniforms: {
+                time: { value: 0.0 },
+                resolution: { value: new THREE.Vector2(window.innerWidth, window.innerHeight) },
+            },
+            vertexShader: `
           varying vec2 vUv;
           void main() {
               vUv = uv;
               gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
           }
       `,
-      fragmentShader: `
+            fragmentShader: `
           uniform float time;
           varying vec2 vUv;
 
@@ -80,24 +80,24 @@ const useShaderUtils = () => {
               gl_FragColor = vec4(vec3(value + burst), 1.0); // Change the color based on the shader output
           }
       `,
-    };
-    return noiseShader;
-  }, []);
-  // Noise Plane
-  const sawPlane = useCallback(() => {
-    const sawShader = {
-      uniforms: {
-          time: { value: 0.0 },
-          resolution: { value: new THREE.Vector2(window.innerWidth, window.innerHeight) },
-      },
-      vertexShader: `
+        };
+        return noiseShader;
+    }, []);
+    // Noise Plane
+    const sawPlane = useCallback(() => {
+        const sawShader = {
+            uniforms: {
+                time: { value: 0.0 },
+                resolution: { value: new THREE.Vector2(window.innerWidth, window.innerHeight) },
+            },
+            vertexShader: `
           varying vec2 vUv;
           void main() {
               vUv = uv;
               gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
           }
       `,
-      fragmentShader: `
+            fragmentShader: `
           uniform float time;
           varying vec2 vUv;
 
@@ -131,26 +131,26 @@ const useShaderUtils = () => {
               gl_FragColor = vec4(vec3(value + burst), 1.0); // Change the color based on the shader output
           }
       `,
-    };
-    return sawShader;
-  }, []);
+        };
+        return sawShader;
+    }, []);
 
-  
-  const convolutionPlane = useCallback(() => {
-    const noiseShader = {
-      uniforms: {
-          time: { value: 0.0 },
-          resolution: { value: new THREE.Vector2(window.innerWidth, window.innerHeight) },
-          shapeFactor: { value: 0.5 }, // Control for trapezoidal shape
-      },
-      vertexShader: `
+
+    const convolutionPlane = useCallback(() => {
+        const noiseShader = {
+            uniforms: {
+                time: { value: 0.0 },
+                resolution: { value: new THREE.Vector2(window.innerWidth, window.innerHeight) },
+                shapeFactor: { value: 0.5 }, // Control for trapezoidal shape
+            },
+            vertexShader: `
           varying vec2 vUv;
           void main() {
               vUv = uv;
               gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
           }
       `,
-      fragmentShader: `
+            fragmentShader: `
           uniform float time;
           uniform vec2 resolution;
           uniform float shapeFactor;
@@ -185,11 +185,11 @@ const useShaderUtils = () => {
               gl_FragColor = vec4(color, 0.9); // Final output color
           }
       `,
-    };
-    return noiseShader;
-  }, []);
+        };
+        return noiseShader;
+    }, []);
 
-  return { starryBackgrounds, convolutionPlane, noisePlane, sawPlane };
+    return { starryBackgrounds, convolutionPlane, noisePlane, sawPlane };
 };
 
 export default useShaderUtils;

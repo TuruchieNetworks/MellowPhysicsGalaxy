@@ -11,6 +11,7 @@ import landing_dj from '../../img/landing_dj.jpg';
 import blue_concert from '../../img/blue_concert.jpg';
 import vasil_guitar from '../../img/vasil_guitar.jpg';
 import PerlinShader from '../surface_shaders/PerlinShader';
+import GalaxialFallingSandPlane from '../physics_graphics/GalaxialFallingSandPlane';
 
 // Array of background images
 const images = [
@@ -65,7 +66,8 @@ const ServicesGraphics = () => {
                 </Link>
                 </div>
             </div>
-        <PerlinShader />
+        {/* <PerlinShader /> */}
+        <GalaxialFallingSandPlane/>
         </div>
     );
 };

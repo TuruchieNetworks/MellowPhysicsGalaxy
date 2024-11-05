@@ -17,6 +17,7 @@ import useCarouselImages from '../hooks/UseCarouselImages';
 import HeaderLinks from '../headers/HeaderLinks';
 import Biography from '../layout/Bio';
 import PhysicsAnimations from '../physics_graphics/PhysicsAnimations';
+import MusicBackground from '../backgroundVideos/MusicBackground';
 // Array of background images
 const images = [
     globe_concert,
@@ -79,9 +80,9 @@ const Merchandise = () => {
                 </Link>
                 </div>
             </div>
-        <PhysicsAnimations/>
-        
-        
+        <PhysicsAnimations /> 
+        <MusicBackground />
+        {/* <NoiseShader /> */}
         </div>
     );
 };

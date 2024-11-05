@@ -32,7 +32,7 @@ export const useCannonGround = () => {
       position: new CANNON.Vec3(0, -1, 0)
     });
     groundBody.addShape(groundShape);
-    // groundBody.position.set(0, 0, 0);
+    groundBody.position.set(0, 0, 0);
 
     // Create a THREE.js plane mesh
     const groundGeometry = new THREE.PlaneGeometry(20, 20);
@@ -72,7 +72,7 @@ export const useCannonUnderground = () => {
     const groundMaterial = new THREE.MeshPhongMaterial({ color: 0x00aa00 * Math.random(0x00aa00) });
     const groundMesh = new THREE.Mesh(groundGeometry, groundMaterial);
     groundMesh.rotation.x = -Math.PI / 2; // Rotate to horizontal
-    groundMesh.position.y = -1; // Adjust position to align with physics
+    groundMesh.position.y = 2; // Adjust position to align with physics
     groundMesh.receiveShadow = true; // Enable shadows for the ground
 
     const groundPhysMat = new CANNON.Material();

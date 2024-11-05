@@ -1,28 +1,42 @@
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useRef } from "react";
 import * as THREE from "three";
-import * as CANNON from "cannon-es"; // Import Cannon.js here
+import * as CANNON from "cannon-es";
+
+// Image imports
 import stars from '../../galaxy_imgs/stars.jpg';
 import nebula from '../../galaxy_imgs/nebula.jpg';
+
+// Custom hooks
 import useColorUtils from '../hooks/UseColorUtils';
 import useShaderUtils from '../hooks/UseShaderUtils';
-import { LightAxisUtilHelper } from '../graphics/LightAxisUtilHelper';
-import { Lighting } from '../graphics/Lighting';
 import { useCannonGround, useCannonUnderground } from '../hooks/UseCannonGround';
 
+// Graphics utilities
+import SandParticles from '../graphics/SandParticles';
+import { LightAxisUtilHelper } from '../graphics/LightAxisUtilHelper';
+import { Lighting } from '../graphics/Lighting';
 
 const GalaxialFallingSandPlane = ({ height = window.innerHeight, width = window.innerWidth, particleCount = 500 }) => {
-    const { randomHexColor, randomRgbaColor } = useColorUtils();
+    // Refs for Three.js and Cannon.js essentials
     const canvasRef = useRef();
     const sceneRef = useRef(new THREE.Scene());
-    const worldRef = useRef(new CANNON.World()); // Use CANNON.World()
+    const worldRef = useRef(new CANNON.World());
+
+    // Sand particles and physics bodies references
     const sandParticlesRef = useRef([]);
     const sphereBodiesRef = useRef([]);
     const sphereMeshRef = useRef([]);
     const particleBodiesRef = useRef([]);
-    // const box = useBox();
-    // const multiBox = useMultiBox()
-    const { groundBody } = useCannonGround();
+
+    // Color and shader utilities
+    const { randomHexColor, randomRgbaColor } = useColorUtils();
     const { starryBackgrounds, noisePlane, sawPlane, convolutionPlane } = useShaderUtils();
+    // const sandParticles = useSandParticles();
+
+    // Cannon.js ground physics body
+    const { groundBody } = useCannonGround();
+
+    // Background texture reference
     const backgroundRef = useRef();
 
     const noiseShader = {
@@ -243,18 +257,6 @@ const GalaxialFallingSandPlane = ({ height = window.innerHeight, width = window.
         plane.rotation.x = -0.5 * Math.PI;
         plane.receiveShadow = true;
         plane.receiveShadow = true;
-        
-        // const cplane = new Plane(scene, 60, 60, randomHexColor(), 1, THREE.DoubleSide); // The last parameter is thickness
-        // cplane.setRotation(-0.5 * Math.PI, 0, 0);
-
-        // const starPlane = new THREE.Mesh(geo, mat); // Apply the shader material to the plane
-        // starPlane.rotation.x = -Math.PI / 2; // Rotate the plane to face upwards
-        // scene.add(starPlane); // Add the plane to the scene // Add the plane geometry to the scene
-        // const starPlaneGeometry = new THREE.PlaneGeometry(60, 60, 60);
-        // const starPlaneMaterial = new THREE.MeshPhongMaterial({
-        //     color: randomHexColor(),
-        //     side: THREE.DoubleSide
-        // });
 
         const planePad = new THREE.Mesh(planeGeometry, sawMaterial)
         planePad.rotation.x = -Math.PI / 2;
@@ -313,41 +315,43 @@ const GalaxialFallingSandPlane = ({ height = window.innerHeight, width = window.
         // scene.add(instancedMesh);
 
         // Initialize matrix and Cannon bodies for each particle
-        const tempMatrix = new THREE.Matrix4();
-        // Create sand particles in both Three.js and Cannon.js
-        for (let i = 0; i < particleCount; i++) {
-            // Three.js particle
-            const geometry = new THREE.SphereGeometry(0.2, 16, 16);
-            const material = new THREE.MeshStandardMaterial({ color: randomHexColor() });
-            const mesh = new THREE.Mesh(geometry, material);
-            mesh.position.set(
-                (Math.random() - 0.5) * 10,
-                Math.random() * 10 + 10,
-                (Math.random() - 0.5) * 10
-            );
-            const x = (Math.random() - 0.5) * 10;
-            const y = Math.random() * 10 + 10;
-            const z = (Math.random() - 0.5) * 10;
+        // const tempMatrix = new THREE.Matrix4();
 
-            // Set position in the instanced mesh matrix
-            // tempMatrix.setPosition(x, y, z);
-            // instancedMesh.setMatrixAt(i, tempMatrix);
+        // // Create sand particles in both Three.js and Cannon.js
+        // for (let i = 0; i < particleCount; i++) {
+        //     // Three.js particle
+        //     const geometry = new THREE.SphereGeometry(0.2, 16, 16);
+        //     const material = new THREE.MeshStandardMaterial({ color: randomHexColor() });
+        //     const mesh = new THREE.Mesh(geometry, material);
+        //     mesh.position.set(
+        //         (Math.random() - 0.5) * 10,
+        //         Math.random() * 10 + 10,
+        //         (Math.random() - 0.5) * 10
+        //     );
+        //     const x = (Math.random() - 0.5) * 10;
+        //     const y = Math.random() * 10 + 10;
+        //     const z = (Math.random() - 0.5) * 10;
 
-            scene.add(mesh);
-            sandParticlesRef.current.push(mesh);
+        //     // Set position in the instanced mesh matrix
+        //     // tempMatrix.setPosition(x, y, z);
+        //     // instancedMesh.setMatrixAt(i, tempMatrix);
 
-            // Cannon.js body for physics
-            // Create corresponding Cannon.js body
-            const shape = new CANNON.Sphere(0.2);
-            const particleBody = new CANNON.Body({
-                mass: 13.1,
-                position: new CANNON.Vec3(x, y, z),
-                // type: CANNON.Body.STATIC
-            });
-            particleBody.addShape(shape);
-            world.addBody(particleBody);
-            particleBodiesRef.current.push(particleBody);
-        }
+        //     scene.add(mesh);
+        //     sandParticlesRef.current.push(mesh);
+
+        //     // Cannon.js body for physics
+        //     // Create corresponding Cannon.js body
+        //     const shape = new CANNON.Sphere(0.2);
+        //     const particleBody = new CANNON.Body({
+        //         mass: 13.1,
+        //         position: new CANNON.Vec3(x, y, z),
+        //         // type: CANNON.Body.STATIC
+        //     });
+        //     particleBody.addShape(shape);
+        //     world.addBody(particleBody);
+        //     particleBodiesRef.current.push(particleBody);
+        // }
+        const particles = new SandParticles(scene, world, particleCount);
 
         let startTime = Date.now(); // Move this outside `animate`
 
@@ -359,20 +363,7 @@ const GalaxialFallingSandPlane = ({ height = window.innerHeight, width = window.
 
             // Step the physics world forward
             world.step(timeStep);
-
-            // Sync Three.js meshes with Cannon.js bodies
-            sandParticlesRef.current.forEach((mesh, i) => {
-                const body = particleBodiesRef.current[i];
-                mesh.position.copy(body.position);
-                mesh.quaternion.copy(body.quaternion);
-            });
-
-            // Sync Three.js meshes with Cannon.js bodies
-            sphereMeshRef.current.forEach((mesh, i) => {
-                const body = sphereBodiesRef.current[i];
-                mesh.position.copy(body.position);
-                mesh.quaternion.copy(body.quaternion);
-            });
+            particles.update();
 
             // Calculate the index of the current point in the camera path
             const pointIndex = Math.floor(elapsedTime / speed) % totalPoints;

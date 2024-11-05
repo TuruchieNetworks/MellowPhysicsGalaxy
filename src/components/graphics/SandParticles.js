@@ -2,67 +2,109 @@ import * as THREE from 'three';
 import * as CANNON from 'cannon-es';
 
 export class SandParticles {
-    constructor(particleCount = 100, scene, world, randomColor ) {
-        this.particles = [];
-        this.scene = scene;
-        this.world = world;
-        this.particleCount = particleCount;
-        this.randomColor = randomColor || 0xffffff; // Default color if not specified
+    constructor(scene, world, particleCount = 100) {
+        this.scene = scene;               // Stores the Three.js scene reference
+        this.world = world;               // Stores the Cannon.js world reference
+        this.particleCount = particleCount; // Sets the number of particles, defaulting to 100
+        this.sandParticles = [];          // Initializes an empty array to hold the particle meshes
+        this.particleBodies = [];         // Initializes an empty array to hold the Cannon.js bodies for particles
+
+        // Initialize particles when the class is instantiated
+        this.addParticles();              // Calls the method to create and add particles to the scene and physics world
     }
 
-    // Initialization method to set up dependencies and particles
-    initialize({ particleCount = 100, scene, world, randomColor }) {
-        this.scene = scene;
-        this.world = world;
-        this.particleCount = particleCount;
-        this.randomColor = randomColor;
-
-        this.createParticles();
+    randomHexColor() {
+        return `#${Math.floor(Math.random() * 16777215).toString(16)}`;
     }
 
     // Method to create particles and add them to the scene and physics world
-    createParticles() {
+    addParticles() {
         for (let i = 0; i < this.particleCount; i++) {
-            const x = (Math.random() - 0.5) * 10;
-            const y = Math.random() * 10 + 10;
-            const z = (Math.random() - 0.5) * 10;
-
-            // Three.js particle (instanced)
+            // Create Three.js mesh
             const geometry = new THREE.SphereGeometry(0.2, 16, 16);
-            const material = new THREE.MeshStandardMaterial({ color: this.randomColor });
+            const material = new THREE.MeshStandardMaterial({ color: this.randomHexColor() });
             const mesh = new THREE.Mesh(geometry, material);
+            const x = (Math.random() - 0.5) * 10;
+            const y = Math.random() * 10 + 10; // Start above the ground
+            const z = (Math.random() - 0.5) * 10;
             mesh.position.set(x, y, z);
+
+            this.sandParticles.push(mesh);
             this.scene.add(mesh);
 
-            // Cannon.js particle body
+            // Create Cannon.js body
             const shape = new CANNON.Sphere(0.2);
-            const body = new CANNON.Body({
-                mass: 0.1,
+            const particleBody = new CANNON.Body({
+                mass: 1.0, // Adjust mass for proper falling behavior
                 position: new CANNON.Vec3(x, y, z),
+                linearDamping: 0.5, // Damping to simulate air resistance
             });
-            body.addShape(shape);
-            this.world.addBody(body);
-
-            // Store both mesh and body for updating
-            this.particles.push({ mesh, body });
+            particleBody.addShape(shape);
+            this.particleBodies.push(particleBody);
+            this.world.addBody(particleBody);
         }
     }
 
     // Sync each Three.js mesh with its corresponding Cannon.js body position
     update() {
-        this.particles.forEach(({ mesh, body }) => {
-            mesh.position.copy(body.position);
-        });
+        if (this.sandParticles.length === this.particleBodies.length) {
+            this.sandParticles.forEach((mesh, index) => {
+                const body = this.particleBodies[index]; // Get the corresponding Cannon body
+                if (body) {
+                    // Only copy position if body is defined
+                    mesh.position.copy(body.position);
+                    mesh.quaternion.copy(body.quaternion); // Sync rotation as well if needed
+                } else {
+                    console.warn(`Cannon body not found for mesh at index ${index}`);
+                }
+            });
+        } else {
+            console.warn("Mismatch in the number of sand particles and particle bodies");
+        }
     }
 
     // Optional method to retrieve the particles if needed externally
     getParticles() {
-        return this.particles;
+        return this.sandParticles;
     }
 
+    // Optional method to retrieve the Cannon Bodies if needed externally
+    getParticleBodies() {
+        return this.particleBodies;
+    }
+}
+
+export default SandParticles;
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    // // Initialization method to set up dependencies and particles
+    // initialize({ particleCount = 100, scene, world, randomColor }) {
+    //     this.scene = scene;
+    //     this.world = world;
+    //     this.particleCount = particleCount;
+    //     this.randomColor = randomColor;
+
+    //     this.createParticles();
+    // }
     // constructor() { 
     //     const randomColor = '#' + Math.floor(Math.random() * 16777215).toString(16);  
         
@@ -96,7 +138,3 @@ export class SandParticles {
     // update() {
     //     this.mesh.position.copy(this.body.position);
     // }
-
-}
-
-export default SandParticles;
