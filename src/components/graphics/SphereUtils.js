@@ -96,7 +96,7 @@ class SphereUtils {
         const timeoutId = setTimeout(() => {
             this.scene.remove(newSphere.mesh); // Remove the sphere from the scene
             this.spheres = this.spheres.filter(s => s.sphereId !== newSphere.sphereId); // Clean up from array
-        }, 60000); // 30 seconds
+        }, 30000); // 30 seconds
 
         // Store the timeout ID in the sphere object to clear it later if necessary
         newSphere.timeoutId = timeoutId;
