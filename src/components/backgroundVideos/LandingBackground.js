@@ -44,11 +44,11 @@ const LandingBackground = () => {
         <div className=""
             id="showcase"
             style={{
-                // backgroundImage: `url(${images[idx]})`,
-                // backgroundSize: 'cover', 
-                // backgroundPosition: 'center',
+                backgroundImage: `url(${images[idx]})`,
+                backgroundSize: 'cover', 
+                backgroundPosition: 'center',
                 transition: 'background-image 0.5s ease-in-out',
-                // width: '100vw',
+                width: '100vw',
                 // height: '100vh',
             }}
         >

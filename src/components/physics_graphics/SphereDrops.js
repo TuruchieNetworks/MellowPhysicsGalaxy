@@ -6,9 +6,10 @@ import * as CANNON from 'cannon-es';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { FBXLoader } from 'three/examples/jsm/loaders/FBXLoader.js';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
-import { updatePhysicsField } from '../../components/hooks/UseSphereCollision';
-import { useBox, useMultiBox } from '../../components/hooks/UseBoxGeometry';
-import { useGaussianVelocity, useGaussianMass } from '../../components/hooks/UseGaussianVelocity';
+
+import { updatePhysicsField } from '../hooks/UseSphereCollision';
+import { useBox, useMultiBox } from '../hooks/UseBoxGeometry';
+import { useGaussianVelocity, useGaussianMass } from '../hooks/UseGaussianVelocity';
 
 import sun from '../../galaxy_imgs/sun.jpg';
 import stars from '../../galaxy_imgs/stars.jpg';
@@ -49,21 +50,23 @@ import concert_lights from '../../img/bright-concert-lights.avif';
 //   nebula,
 //   jupiter,
 // ];
-import { Mixer } from '../../components/graphics/Mixer';
-import { Plane } from '../../components/graphics/Plane';
-import { Gravity } from '../../components/graphics/Gravity';
-import { MomentumPhysics } from '../../components/graphics/MomentumPhysics';
+import { Mixer } from '../graphics/Mixer';
+import { Plane } from '../graphics/Plane';
+import { Gravity } from '../graphics/Gravity';
+import { MomentumPhysics } from '../graphics/MomentumPhysics';
 import { BoundingObjects } from '../graphics/BoundingObjects';
+import SphereUtils from '../graphics/SphereUtils'; // Import your SphereUtils class
 import { Lighting } from '../graphics/Lighting';
 import { LightAxisUtilHelper } from '../graphics/LightAxisUtilHelper';
-import { SceneManager } from '../../components/graphics/SceneManager';
-import { Geometry } from '../../components/graphics/Geometry';
-import { Animation } from '../../components/graphics/Animation';
-import { Controls } from '../../components/graphics/Controls';
-import { OrbitingObjects } from '../../components/graphics/OrbitingObjects';
+import { SceneManager } from '../graphics/SceneManager';
+import { Geometry } from '../graphics/Geometry';
+import { Animation } from '../graphics/Animation';
+import { Controls } from '../graphics/Controls';
+import { OrbitingObjects } from '../graphics/OrbitingObjects';
 
-const PhysicsAnimations = () => {
+const SphereDrops = () => {
   const containerRef = useRef(null);
+  const sceneMeshesRef = useRef([]);
   const box = useBox();
   const multiBox = useMultiBox();
   const generateMass = useGaussianMass();
@@ -137,7 +140,7 @@ const PhysicsAnimations = () => {
     // Setup scene, camera, and renderer
     const scene = new THREE.Scene();
     const camera = new THREE.PerspectiveCamera(75, dimensions.width / dimensions.height, 0.1, 1000);
-    camera.position.set(-10, 30, 30);
+    camera.position.set(-1, 3, 30);
 
     const renderer = new THREE.WebGLRenderer();
     renderer.setSize(dimensions.width, dimensions.height);
@@ -244,11 +247,19 @@ const PhysicsAnimations = () => {
     // Create an instance of the Plane class
 
     const plane = new Plane(scene, 30, 30, random_hex_color(), 1, THREE.DoubleSide); // The last parameter is thickness
-    plane.setRotation(-0.5 * Math.PI, 0, 0);
+    plane.setRotation(-0.5 * Math.PI, 0, 0);  
+    
+    // Add meshes to the scene and track them for collisions
+    scene.add(box);
+    sceneMeshesRef.current.push(box); // Track box in collision list
+    
+    scene.add(multiBox);
+    sceneMeshesRef.current.push(multiBox); // Track multiBox
 
     // // Create spheres inside a bounding cube
     const spheres = [];
     const cubeSize = 50;
+
     // const numSpheres = 50;
     // const radius = 0.15;
     // const cubeSize = 50;
@@ -273,8 +284,8 @@ const PhysicsAnimations = () => {
     //   scene.add(sphere);
     // }
 
-    scene.add(box);
-    scene.add(multiBox);
+    // scene.add(box);
+    // scene.add(multiBox);
     // box.position.set(10, 5, 10);
     // multiBox.position.set(-10, 5, 10);
     // box.material.map = textureLoader.load(nebula);
@@ -362,64 +373,64 @@ const PhysicsAnimations = () => {
     const velocity = generateVelocity();
 
  
-    const handleClick = () => {
-      const geo = new THREE.SphereGeometry(2, 20, 20);
-      const mat = new THREE.MeshPhongMaterial({
-          color: random_hex_color(),
-          metalness: 0,
-          roughness: 0,
-      });
+  //   const handleClick = () => {
+  //     const geo = new THREE.SphereGeometry(2, 20, 20);
+  //     const mat = new THREE.MeshPhongMaterial({
+  //         color: random_hex_color(),
+  //         metalness: 0,
+  //         roughness: 0,
+  //     });
 
-      const mesh = new THREE.Mesh(geo, mat);
-      mesh.material.map = textureLoader.load(blue_concert);
-      mesh.castShadow = true;
-      mesh.receiveShadow = true;
-      mesh.position.copy(intersectionPoint);
+  //     const mesh = new THREE.Mesh(geo, mat);
+  //     mesh.material.map = textureLoader.load(blue_concert);
+  //     mesh.castShadow = true;
+  //     mesh.receiveShadow = true;
+  //     mesh.position.copy(intersectionPoint);
 
-      const mass = generateMass();
-      const velocity = generateVelocity();
-      const radius = 0.15; // Assuming you want to keep the radius here
+  //     const mass = generateMass();
+  //     const velocity = generateVelocity();
+  //     const radius = 0.15; // Assuming you want to keep the radius here
 
-      // Update state with the new sphere, including its id
-      setClickedSpheres((prevSpheres) => [
-          ...prevSpheres,
-          { 
-              mesh, 
-              mass, 
-              velocity, 
-              radius, 
-              position: mesh.position.clone(),
-              sphereId: mesh.id // Store the unique sphereId
-          },
-      ]);
-      const boxMesh = new THREE.Mesh(geo, mat);
-      const obj = new THREE.Object3D();
-      obj.add(boxMesh);
+  //     // Update state with the new sphere, including its id
+  //     setClickedSpheres((prevSpheres) => [
+  //         ...prevSpheres,
+  //         { 
+  //             mesh, 
+  //             mass, 
+  //             velocity, 
+  //             radius, 
+  //             position: mesh.position.clone(),
+  //             sphereId: mesh.id // Store the unique sphereId
+  //         },
+  //     ]);
+  //     const boxMesh = new THREE.Mesh(geo, mat);
+  //     const obj = new THREE.Object3D();
+  //     obj.add(boxMesh);
 
-      // Create and store the new mixer
-      const newMixer = new THREE.AnimationMixer(mesh);
-      const action = newMixer.clipAction(clip); // Ensure 'clip' is defined
-      action.play();
+  //     // Create and store the new mixer
+  //     const newMixer = new THREE.AnimationMixer(mesh);
+  //     const action = newMixer.clipAction(clip); // Ensure 'clip' is defined
+  //     action.play();
 
-      // Set the mixer in the global state
-      setMixers((prevMixers) => ({
-          ...prevMixers,
-          [mesh.id]: newMixer, // Use mesh ID as the key
-      }));
+  //     // Set the mixer in the global state
+  //     setMixers((prevMixers) => ({
+  //         ...prevMixers,
+  //         [mesh.id]: newMixer, // Use mesh ID as the key
+  //     }));
 
-      // Add the new sphere to the scene
-      scene.add(mesh);
+  //     // Add the new sphere to the scene
+  //     scene.add(mesh);
 
-      // Clean up after a timeout
-      const timeoutId = setTimeout(() => {
-          scene.remove(mesh);
-          setClickedSpheres((prev) => prev.filter(s => s.mesh !== mesh));
-          setMixers((prev) => {
-              const { [mesh.id]: _, ...rest } = prev; // Remove the mixer safely
-              return rest;
-          });
-      }, 30000);
-  };
+  //     // Clean up after a timeout
+  //     const timeoutId = setTimeout(() => {
+  //         scene.remove(mesh);
+  //         setClickedSpheres((prev) => prev.filter(s => s.mesh !== mesh));
+  //         setMixers((prev) => {
+  //             const { [mesh.id]: _, ...rest } = prev; // Remove the mixer safely
+  //             return rest;
+  //         });
+  //     }, 30000);
+  // };
 
     // for (let i = 0; i < newClickedSpheres.length; i++) {
     //   const geometry = new THREE.SphereGeometry(radius, 32, 32);
@@ -439,8 +450,8 @@ const PhysicsAnimations = () => {
     //   scene.add(sphere);
     // }
 
-    window.addEventListener('mousemove', handleMouseMove);
-    window.addEventListener('click', handleClick);
+    // window.addEventListener('mousemove', handleMouseMove);
+    // window.addEventListener('click', handleClick);
 
     // // Function to handle sphere collision using mass and velocity
     // const handleCollision = (sphereA, sphereB) => {
@@ -608,6 +619,11 @@ const PhysicsAnimations = () => {
   //   };
 
 
+
+// Initialize SphereUtils
+
+    const sphereUtils = new SphereUtils(scene, camera, textureLoader, plane);
+
     const animate = () => {
       requestAnimationFrame(animate);
       // const deltaTime = clock.getDelta();
@@ -622,6 +638,10 @@ const PhysicsAnimations = () => {
   
 
       physics.updatePhysics(deltaTime, 15);
+    
+      // Update spheres in each frame
+      sphereUtils.update();
+
       // clickedPhysics.updatePhysics(deltaTime, 11); 
       // updatePhysics
       // Example: 5 substeps for smoother simulation
@@ -636,42 +656,60 @@ const PhysicsAnimations = () => {
       // });
       // Update each sphere's position based on velocity and gravity
       // Update each sphere's position based on velocity and gravity
-      setClickedSpheres((spheres) =>
-        spheres.map((sphereData) => {
-          const { mesh, velocity } = sphereData;
-          mesh.rotation.x += 0.1;
-          mesh.rotateZ += 0.1;
+      
+      // setClickedSpheres((spheres) =>
+      //   spheres.map((sphereData) => {
+      //     const { mesh, velocity } = sphereData;
+      //     mesh.rotation.x += 0.1;
+      //     mesh.rotateZ += 0.1;
 
-          // Apply gravity effect
-          velocity.add(gravity.clone().multiplyScalar(deltaTime));
+      //     // Apply gravity effect
+      //     velocity.add(gravity.clone().multiplyScalar(deltaTime));
 
-          // Update position based on velocity
-          mesh.position.add(velocity.clone().multiplyScalar(deltaTime));
+      //     // Update position based on velocity
+      //     mesh.position.add(velocity.clone().multiplyScalar(deltaTime));
 
-          // Collision detection and bounce
-          if (mesh.position.y <= 0) {
-            velocity.y *= -0.7; // Apply damping on bounce
-            mesh.position.y = 0; // Reset position to ground level if below
-          }
-          return sphereData;
-        })
-      );
+      //     // Collision detection and bounce
+      //     if (mesh.position.y <= 0) {
+      //       velocity.y *= -0.7; // Apply damping on bounce
+      //       mesh.position.y = 0; // Reset position to ground level if below
+      //     }
+      //     return sphereData;
+      //   })
+      // );
 
       // Update all spheres
-      clickedSpheres.forEach((obj, index) => {
-        const { mesh } = obj;
-        const orbitRadius = (Math.LN2 * index) + ((index * Math.PI2) + (index * Math.E / Math.SQRT1_2));
+      // clickedSpheres.forEach((obj, index) => {
+      //   const { mesh } = obj;
+      //   const orbitRadius = (Math.LN2 * index) + ((index * Math.PI2) + (index * Math.E / Math.SQRT1_2));
         
-        // Calculate the new positions for galaxial motion
-        mesh.position.x = Math.sin(Date.now() * 0.001 + index) * orbitRadius;
-        mesh.position.z = Math.cos(Date.now() * 0.001 + index) * orbitRadius;
-        //animateMeshedObjects(obj, deltaTime);
-      });
+      //   // Calculate the new positions for galaxial motion
+      //   mesh.position.x = Math.sin(Date.now() * 0.001 + index) * orbitRadius;
+      //   mesh.position.z = Math.cos(Date.now() * 0.001 + index) * orbitRadius;
+      //   //animateMeshedObjects(obj, deltaTime);
+      // });
 
       // Update all mixers
       Object.values(mixers).forEach(mixer => mixer.update(deltaTime));
       renderer.render(scene, camera);
     };
+
+    // Handle mouse movements
+    window.addEventListener('mousemove', (event) => {
+        sphereUtils.updateHover(event);
+    });
+    
+    // Handle clicks to create spheres
+    window.addEventListener('click', () => {
+        sphereUtils.handleClick();
+    });
+
+    // Toggle gravity on key press (for example, "G" key)
+    window.addEventListener('keydown', (event) => {
+        if (event.key === 'g') {
+            sphereUtils.toggleGravity();
+        }
+    });
 
     animate();
 
@@ -738,7 +776,8 @@ const PhysicsAnimations = () => {
         }
       }
       window.removeEventListener('resize', handleResize);
-      window.removeEventListener('click', handleClick);
+      window.removeEventListener('click', 
+        sphereUtils.handleClick());
     };
   }, [dimensions.width, dimensions.height, angle, box, multiBox]) //, angle, box, multiBox]); // Dependency array ensures useEffect runs on dimensions change
 
@@ -746,4 +785,4 @@ const PhysicsAnimations = () => {
   //:  'Content Loading...'
 };
 
-export default PhysicsAnimations;
+export default SphereDrops;

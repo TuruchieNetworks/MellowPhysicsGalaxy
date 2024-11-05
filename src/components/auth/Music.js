@@ -73,7 +73,8 @@ const Music = () => {
                 </Link>
                 </div>
             </div>
-            <GalaxialFallingSandPlane/>
+            {/* <GalaxialFallingSandPlane/> */}
+            <PhysicsAnimations/>
         </div>
     );
 };

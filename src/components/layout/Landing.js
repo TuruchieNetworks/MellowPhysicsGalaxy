@@ -22,6 +22,7 @@ import NoiseShaderMaterial from '../surface_shaders/NoiseShaderMaterial';
 import FallingSand from '../physics_graphics/FallingSand';
 import GalaxialFallingSandPlane from '../physics_graphics/GalaxialFallingSandPlane';
 import FallingInstancedSand from '../physics_graphics/FallingInstancedSands';
+import SphereDrops from '../physics_graphics/SphereDropss';
 import PerlinShader from '../surface_shaders/PerlinShader';
 import NoiseShader from '../surface_shaders/NoiseShader';
 
@@ -37,18 +38,23 @@ const Landing = () => {
     const [idx, setIdx] = useState(0); // current index of the image
     return (
         <div id="showcase">
-            {/* <NoiseShader /> */}
-            <GalaxialFallingSandPlane />
+            <SphereDrops /> 
+            {/* <GalaxialFallingSandPlane /> */}
             {/* <NoiseShaderMaterial /> */}
             {/*
+            <NoiseShader />
             <FallingSand />*/}
             {/* <SphereAnimationScene /> */}
             {/* <div className="galaxial-animations"></div> */}
-            <div className="container showcase-container imageCover">
-            <HeaderLinks />
-            <Link to="/visuals" className="btn party-lights">
-            Visuals
-            </Link>
+            <div className="container showcase-container imageCover"
+                style={{
+                    backgroundImage: `url(${images[idx]})`,
+                    transition: 'background-image 0.5s ease-in-out',
+                    width: '100vw',
+                    // height: '100vh',
+                    backgroundSize: 'cover', // Ensure the background covers the whole container
+                    backgroundPosition: 'center', // Position the background image in the center
+                }}>
                 <div className='flex-carousel'>
                     <div className='showcase-container'>
                         <ImageCarousel />
@@ -62,14 +68,21 @@ const Landing = () => {
                 </div>
                 <div className='phone-state'>
                     <HeaderLinks />
-                    <Link to="/visuals" className="btn party-lights">
-                        Visuals
+                    <Link to="/about" className="btn party-lights">
+                        Read More
                     </Link>
                 </div>
             </div>
+            {/* <MusicBackground /> */}
+            <About />
+            {/* <PerlinShader /> */}
+            {/* <BackgroundCarousel /> */}
+            {/* <FallingInstancedSand /> */}
+            {/* <VideoBackground/> */}
+            {/* <PerlinShader /> */}
 
-            <PhysicsAnimations />
-            <div className='profileShowcase' style={{
+            {/* <PhysicsAnimations /> */}
+            {/* <div className='profileShowcase' style={{
                 backgroundImage: `url(${images[idx]})`,
                 width: '100vw',
                 // height: '100vh',
@@ -77,14 +90,7 @@ const Landing = () => {
                 backgroundPosition: 'center',
                 transition: 'background-image 0.5s ease-in-out'
             }}>
-                {/* <MusicBackground /> */}
-                <About />
-                {/* <PerlinShader /> */}
-                <BackgroundCarousel />
-                {/* <FallingInstancedSand /> */}
-                {/* <VideoBackground/> */}
-            <PerlinShader />
-            </div>
+            </div> */}
         </div>
     );
 };

@@ -73,3 +73,35 @@ export const useMultiBox = () => {
     return multiBox;
   }, []);
 };
+
+// // Hook to create a multi-material box with shadows
+// export const useGLTF = () => {
+//   return useMemo(() => {
+   
+//     const assetLoader = new GLTFLoader();
+
+//     assetLoader.load(monkeyUrl, function (gltf) {
+//       const gltfModel = gltf.scene;
+//       setMonkey(gltfModel)
+//       scene.add(gltfModel);
+//       gltfModel.position.set(-12, 4, 10);
+
+//     }, undefined, function (error) {
+//       console.error(error);
+//     });
+
+//     return multiBox;
+//   }, []);
+// };
+
+
+
+// loadFBXModel(url) {
+//     const loader = new FBXLoader();
+//     loader.load(url, (fbx) => {
+//         fbx.position.set(Math.random() * 10 - 5, Math.random() * 10 - 5, Math.random() * 10 - 5);
+//         fbx.castShadow = fbx.receiveShadow = true;
+//         this.scene.add(fbx);
+//         this.fbxModels.push(fbx);
+//     });
+// }

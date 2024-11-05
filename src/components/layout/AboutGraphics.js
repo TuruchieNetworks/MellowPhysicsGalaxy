@@ -49,25 +49,38 @@ const AboutGraphics = ({ currentBackground, handlePrev, handleNext }) => {
                 backgroundPosition: 'center',
                 transition: 'background-image 0.5s ease-in-out'
             }}
-        ><FallingSand />
-            <div className='flex-carousel'>
-                <div className='showcase-container'>
-                    <ImageCarousel />
+        >
+
+            {/* <FallingSand />
+
+            <div className="container showcase-container imageCover"
+                style={{
+                    backgroundImage: `url(${images[idx]})`,
+                    transition: 'background-image 0.5s ease-in-out',
+                    width: '100vw',
+                    // height: '100vh',
+                    backgroundSize: 'cover', // Ensure the background covers the whole container
+                    backgroundPosition: 'center', // Position the background image in the center
+                }}>
+                <div className='flex-carousel'>
+                    <div className='showcase-container'>
+                        <ImageCarousel />
+                    </div>
+                    <div className='pcBio'>
+                        <Biography />
+                    </div>
                 </div>
-                <div className='pcBio'>
+                <div className='phoneBio'>
                     <Biography />
                 </div>
-            </div>
-            <div className='phoneBio'>
-                <Biography />
-            </div>
-            <div className='phone-state'>
-                <HeaderLinks />
-                <Link to="/visuals" className="btn party-lights">
-                    Visuals
-                </Link>
-            </div>
-            <FallingSand />
+                <div className='phone-state'>
+                    <HeaderLinks />
+                    <Link to="/visuals" className="btn party-lights">
+                        Visuals
+                    </Link>
+                </div> 
+            </div>*/}
+            
             <About />
         </div>
     );

@@ -8,7 +8,7 @@ import concert_lights from '../../img/bright-concert-lights.avif';
 import landing_dj from '../../img/landing_dj.jpg';
 import globe_concert from '../../img/globe_concert.jpg';
 import metal_blocks from '../../img/metal_blocks.jpg';
-
+import ImageUtils from './ImageUtils';
 export class Geometry {
     constructor(scene) {
         this.scene = scene;
@@ -17,11 +17,9 @@ export class Geometry {
         this.gltfModels = [];
         this.fbxModels = [];
         this.textureLoader = new THREE.TextureLoader();
+        this.imageUtils = new ImageUtils(); // Create an instance of ImageUtils
 
         this.geometries = []; 
-
-        // Create initial geometries
-        // this.createInitialGeometries();
     }
 
     // createInitialGeometries() {
@@ -98,11 +96,14 @@ export class Geometry {
         const loader = new GLTFLoader();
         loader.load(url, (gltf) => {
             const model = gltf.scene;
-            model.position.set(Math.random() * 10 - 5, Math.random() * 10 - 5, Math.random() * 10 - 5);
+            //model.position.set(Math.random() * 10 - 5, Math.random() * 10 - 5, Math.random() * 10 - 5);
+            model.position.set(-12, 4, 10);
             model.castShadow = model.receiveShadow = true;
             this.scene.add(model);
             this.gltfModels.push(model);
-        });
+        }, undefined, function (error) {
+            console.error(error);
+          });
     }
 
     loadFBXModel(url) {
@@ -115,21 +116,48 @@ export class Geometry {
         });
     }
 
-    update() {
-        this.spheres.forEach(sphere => {
-            sphere.rotation.x += 0.01;
-            sphere.rotation.y += 0.01;
-        });
+    loadMultipleGLTFModels(urls) {
+        urls.forEach(url => this.loadGLTFModel(url));
+    }
 
-        this.boxes.forEach(box => {
-            box.rotation.x += 0.01;
-            box.rotation.y += 0.01;
-        });
-
-        [...this.gltfModels, ...this.fbxModels].forEach(model => {
-            model.rotation.y += 0.01;
+    loadMultipleFBXModels(urls) {
+        const loader = new FBXLoader();
+        urls.forEach(url => {
+            loader.load(url, (fbx) => {
+                fbx.position.set(Math.random() * 10 - 5, Math.random() * 10 - 5, Math.random() * 10 - 5);
+                fbx.castShadow = fbx.receiveShadow = true;
+                this.scene.add(fbx);
+                this.fbxModels.push(fbx);
+            }, undefined, function (error) {
+                console.error(error);
+            });
         });
     }
+
+    update() {
+        // Only update spheres if any exist
+        if (this.spheres.length > 0) {
+            this.spheres.forEach(sphere => {
+                sphere.rotation.x += 0.01;
+                sphere.rotation.y += 0.01;
+            });
+        }
+    
+        // Only update boxes if any exist
+        if (this.boxes.length > 0) {
+            this.boxes.forEach(box => {
+                box.rotation.x += 0.01;
+                box.rotation.y += 0.01;
+            });
+        }
+    
+        // Only update models (GLTF and FBX) if any exist
+        if (this.gltfModels.length > 0 || this.fbxModels.length > 0) {
+            [...this.gltfModels, ...this.fbxModels].forEach(model => {
+                model.rotation.y += 0.01;
+            });
+        }
+    }    
 
     // Implement other methods for creating geometries...
     dispose() {
