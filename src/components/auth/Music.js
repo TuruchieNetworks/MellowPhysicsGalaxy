@@ -75,7 +75,7 @@ const Music = () => {
                 </div>
             </div>
             {/* <GalaxialFallingSandPlane/> */}
-            <SphereDrops/>
+            {/* <SphereDrops/> */}
         </div>
     );
 };

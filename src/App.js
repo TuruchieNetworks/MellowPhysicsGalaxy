@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import './App.css';
 import NavBar from './components/headers/NavBar';
-import About from './components/layout/About';
+import Landing from './components/layout/Landing';
 import Biography from './components/layout/Bio';
 import Contact from './components/auth/Contact';
 import Services from './components/auth/Services';
@@ -27,7 +27,7 @@ function App() {
       <NavBar />
       <Routes>
         <Route exact path='/' element={<Navigate to='/Landing' />} />
-        <Route exact path='/Landing' element={ <LandingBackground/> } />
+        <Route exact path='/Landing' element={ <Landing/> } />
         <Route exact path='/About' element={ <AboutGraphics /> } />
         <Route exact path='/Contact' element={ <Contact /> } />
         <Route exact path='/Services' element={ <ServicesGraphics /> } />

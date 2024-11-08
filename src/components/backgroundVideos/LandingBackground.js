@@ -2,24 +2,24 @@ import React, { useRef, useEffect, useState } from 'react';
 import logo_scene from '../../videos/logo_scene.mp4';
 import '../../styles/VideoBackground.css';
 import Landing from '../layout/Landing';
-import metal_blocks from '../../img/metal_blocks.jpg';
-import globe_concert from '../../img/globe_concert.jpg';
-import landing_dj from '../../img/landing_dj.jpg';
-import blue_concert from '../../img/blue_concert.jpg';
-import vasil_guitar from '../../img/vasil_guitar.jpg';
-// Array of background images
-const images = [
-    landing_dj,
-    metal_blocks,
-    globe_concert,
-    blue_concert,
-    vasil_guitar
-];
+import ImageUtils from '../graphics/ImageUtils';
+import useCarouselImages from '../hooks/UseCarouselImages';
 
+// const images = [
+//     landing_dj,
+//     blue_concert,
+//     globe_concert,
+//     metal_blocks,
+//     vasil_guitar
+// ];
 const LandingBackground = () => {
-    const [idx, setIdx] = useState(0); // current index of the image
+    // const [idx, setIdx] = useState(0); // current index of the image
     const intervalRef = useRef(null); // to hold the interval reference
     const videoRef = useRef(null); // Create a reference for the video element
+    // const [idx, setIdx] = useState(0); // current index of the image
+    const imageUtils = new ImageUtils();
+    const images = imageUtils.getAllConcertImages();
+    const { idx, changeImage } = useCarouselImages(images);
 
     useEffect(() => {
         // Play the video when the component mounts
@@ -30,15 +30,15 @@ const LandingBackground = () => {
         }
     }, []); // Empty dependency array to run once on mount
 
-    useEffect(() => {
-        intervalRef.current = setInterval(run, 2000); // Start the interval
+    // useEffect(() => {
+    //     intervalRef.current = setInterval(run, 2000); // Start the interval
 
-        return () => clearInterval(intervalRef.current); // Cleanup on unmount
-    }, []);
+    //     return () => clearInterval(intervalRef.current); // Cleanup on unmount
+    // }, []);
 
-    const run = () => {
-        setIdx((prevIdx) => (prevIdx + 1) % images.length); // Loop back to the start
-    };
+    // const run = () => {
+    //     setIdx((prevIdx) => (prevIdx + 1) % images.length); // Loop back to the start
+    // };
 
     return (
         <div className=""

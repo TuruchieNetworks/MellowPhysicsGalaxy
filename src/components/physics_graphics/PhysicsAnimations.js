@@ -137,7 +137,7 @@ const PhysicsAnimations = () => {
     // Setup scene, camera, and renderer
     const scene = new THREE.Scene();
     const camera = new THREE.PerspectiveCamera(75, dimensions.width / dimensions.height, 0.1, 1000);
-    camera.position.set(0, 3, 30);
+    camera.position.set(0, 3, 32);
 
     const renderer = new THREE.WebGLRenderer();
     renderer.setSize(dimensions.width, dimensions.height);
@@ -742,7 +742,8 @@ const PhysicsAnimations = () => {
     };
   }, [dimensions.width, dimensions.height, angle, box, multiBox]) //, angle, box, multiBox]); // Dependency array ensures useEffect runs on dimensions change
 
-  return <div ref={containerRef} className="galaxial-animation" style={{ width: '100vw', height: '100vh' }} />
+  return <div ref={containerRef} className="galaxial-animation"/> //style={{ width: '100vw', height: '100vh' }} 
+ 
   //:  'Content Loading...'
 };
 

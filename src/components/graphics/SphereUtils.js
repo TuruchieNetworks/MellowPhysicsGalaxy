@@ -102,7 +102,6 @@ class SphereUtils {
         newSphere.timeoutId = timeoutId;
     }
 
-
     createSphere(textureURL, mass, velocity) {
         const geometry = new THREE.SphereGeometry(2, 20, 20);
         const material = new THREE.MeshPhongMaterial({

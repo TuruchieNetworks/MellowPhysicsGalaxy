@@ -59,6 +59,16 @@ class ImageUtils {
     getAllImages(category) {
         return this.images[category] || []; // Return an empty array if category not found
     }
+
+    // Method to get all images from a specified category
+    getAllConcertImages() {
+        return this.images['concerts'] || []; // Return an empty array if category not found
+    }
+
+    // Method to get all images from a specified category
+    getAllGalaxialImages() {
+        return this.images['galaxies'] || []; // Return an empty array if category not found
+    }
 }
 
 export default ImageUtils;

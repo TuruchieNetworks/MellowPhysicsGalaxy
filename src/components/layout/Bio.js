@@ -3,8 +3,8 @@ import '../../App.css';
 import BioHeader from '../headers/BioHeader';
 const Biography = () => {
     return (
-        <div className='bio-container'>
-            <p style={{ fontSize: '14px' }}>
+        <div className='bio-container over-flow'>
+            <p style={{ fontSize: '14px' }} className='over-flow'>
                 <BioHeader />
 
                 <span className='bio-content'>
