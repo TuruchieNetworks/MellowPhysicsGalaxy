@@ -1,8 +1,22 @@
 import * as THREE from 'three';
 
 export class Lighting {
-    constructor(scene) {
+    constructor(scene, camera, speed = 5) {
         this.scene = scene;
+        this.speed = speed;
+        this.camera = camera;
+        this.cameraPathPoints = [
+            new THREE.Vector3(60, 5, -35),
+            new THREE.Vector3(-10, 20, 30),
+            // new THREE.Vector3(-10, 20, 130),
+            new THREE.Vector3(-20, 30, -30),
+        ];
+        this.fogPathPoints = [
+            new THREE.Vector3(-5, 5, -5),
+            new THREE.Vector3(0, 10, 0),
+            new THREE.Vector3(5, 5, 5),
+        ]
+        this.startTime = Date.now();
     }
 
     // Add an Ambient Light with customizable parameters
@@ -61,6 +75,15 @@ export class Lighting {
         return pathLine;
     }
 
+    // Method to create a path (for example, for a moving object)
+    createCameraPath(color = 0xff0000) {
+        const pathGeometry = new THREE.BufferGeometry().setFromPoints(this.cameraPathPoints);
+        const pathMaterial = new THREE.LineBasicMaterial({ color: color });
+        const pathLine = new THREE.Line(pathGeometry, pathMaterial);
+        this.scene.add(pathLine);
+        return pathLine;
+    }
+
     // Method to create fog based on path coordinates
     createFogFromPath(points, density = 0.01, color = 0xffffff) {
         const fogColor = new THREE.Color(color);
@@ -76,10 +99,34 @@ export class Lighting {
         this.scene.add(fogPathLine);
     }
 
-    // createFog(){
+    createRandomHexColor = () => {
+        return '#' + Math.floor(Math.random() * 16777215).toString(16);
+    }
+
+    createFog(){
             
-    //     // Fog
-    //     this.scene.fog = new THREE.Fog(0xFFFFFF, 0, 200);
-    //     this.scene.fog = new THREE.FogExp2(random_hex_color(), 0.01);
-    // }
+        // Fog
+        this.scene.fog = new THREE.Fog(0xFFFFFF, 0, 200);
+        this.scene.fog = new THREE.FogExp2(this.createRandomHexColor(), 0.01);
+    }
+
+    update() {
+        const elapsedTime = (Date.now() - this.startTime) / 1000; // Convert to seconds
+        const totalPoints = this.cameraPathPoints.length;
+
+        const pointIndex = Math.floor(elapsedTime / this.speed) % totalPoints; 
+        const nextPointIndex = (pointIndex + 1) % totalPoints;
+
+        const t = (elapsedTime % this.speed) / this.speed; // Value between 0 and 1 over 'speed' seconds
+        const currentPoint = this.cameraPathPoints[pointIndex];
+        const nextPoint = this.cameraPathPoints[nextPointIndex];
+
+        // Interpolate between the current and next point
+        this.camera.position.lerpVectors(currentPoint, nextPoint, t);
+        this.camera.lookAt(0, 0, 0); // Ensure the camera looks at the center of the scene
+    }
+
+    reset() {
+        this.startTime = Date.now(); // Reset the timer to allow the path to restart
+    }
 }

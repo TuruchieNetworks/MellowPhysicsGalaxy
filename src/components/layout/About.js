@@ -48,7 +48,7 @@ const About = ({ currentBackground, handlePrev, handleNext }) => {
                 backgroundPosition: 'center', // Position the background image in the center
             }}
         >
-            <FallingSand />
+            {/* <FallingSand /> */}
 
             <div className="container showcase-container imageCover"
             style={{

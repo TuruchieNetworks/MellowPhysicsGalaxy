@@ -13,10 +13,12 @@ import { useCannonGround, useCannonUnderground } from '../hooks/UseCannonGround'
 
 // Graphics utilities
 import SandParticles from '../graphics/SandParticles';
-import { LightAxisUtilHelper } from '../graphics/LightAxisUtilHelper';
 import { Lighting } from '../graphics/Lighting';
+import SphereUtils from '../graphics/SphereUtils';
+import { BoundingObjects } from '../graphics/BoundingObjects';
+import { LightAxisUtilHelper } from '../graphics/LightAxisUtilHelper';
 
-const GalaxialFallingSandPlane = ({ height = window.innerHeight, width = window.innerWidth, particleCount = 500 }) => {
+const GalaxialFallingSandPlane = ({ height = window.innerHeight, width = window.innerWidth, particleCount = 10 }) => {
     // Refs for Three.js and Cannon.js essentials
     const canvasRef = useRef();
     const sceneRef = useRef(new THREE.Scene());
@@ -28,9 +30,12 @@ const GalaxialFallingSandPlane = ({ height = window.innerHeight, width = window.
     const sphereMeshRef = useRef([]);
     const particleBodiesRef = useRef([]);
 
+    let startTime = Date.now();
+    let timeValue = 0.0;
+
     // Color and shader utilities
-    const { randomHexColor, randomRgbaColor } = useColorUtils();
-    const { starryBackgrounds, noisePlane, sawPlane, convolutionPlane } = useShaderUtils();
+    const { randomHexColor, randomRgbaColor } = useColorUtils(timeValue);
+    const { starryBackgrounds, noisePlane, sawPlane, convolutionPlane } = useShaderUtils(timeValue);
     // const sandParticles = useSandParticles();
 
     // Cannon.js ground physics body
@@ -170,7 +175,16 @@ const GalaxialFallingSandPlane = ({ height = window.innerHeight, width = window.
 
         // Cube Scene Textures
         const cubeTextureLoader = new THREE.CubeTextureLoader();
-        scene.background = cubeTextureLoader.load([
+        // scene.background = cubeTextureLoader.load([
+        //     stars,
+        //     stars,
+        //     stars,
+        //     stars,
+        //     nebula,
+        //     nebula
+        // ]);
+
+        const backgroundTexture = cubeTextureLoader.load([
             stars,
             stars,
             stars,
@@ -179,8 +193,22 @@ const GalaxialFallingSandPlane = ({ height = window.innerHeight, width = window.
             nebula
         ]);
 
+        // Create materials
+        // const starryMaterial = new THREE.ShaderMaterial({
+        //     uniforms: {
+        //         backgroundTexture: { value: backgroundTexture },
+        //     },
+        //     vertexShader: starryBackgrounds().vertexShader,
+        //     fragmentShader: starryBackgrounds().fragmentShader,
+        // });
+
+        // Create a mesh for the starry background
+        // const starryMesh = new THREE.Mesh(new THREE.BoxGeometry(500, 500, 500), sawMaterial);
+        // scene.add(starryMesh);
+        scene.background = backgroundTexture
+
         // Fog
-        scene.fog = new THREE.Fog(0xFFFFFF, 0, 200);
+        scene.fog = new THREE.Fog(0xFFFFFF * Math.random(0xFFFFFF), 0, 200);
         scene.fog = new THREE.FogExp2(randomHexColor(), 0.01);
 
         // Configure world gravity
@@ -207,6 +235,7 @@ const GalaxialFallingSandPlane = ({ height = window.innerHeight, width = window.
         scene.add(canonSphereParticle);
 
         groundBody.addShape(new CANNON.Plane()); // Add plane shape to ground body
+
         world.addBody(groundBody);
         groundBody.quaternion.setFromEuler(-Math.PI / 2, 0, 0);
 
@@ -239,18 +268,14 @@ const GalaxialFallingSandPlane = ({ height = window.innerHeight, width = window.
 
         // Add the plane geometry to the scene
         const planeGeometry = new THREE.PlaneGeometry(30, 30, 30);
-        const planeMaterial = new THREE.MeshPhongMaterial({
-            color: 0xffffff,
-            side: THREE.DoubleSide
-        });
+        const planeMaterial = new THREE.ShaderMaterial(convolutionMaterial);
+        const starPlaneMaterial = new THREE.ShaderMaterial(noiseMaterial);
+        // const convolutionPlaneMaterial = new THREE.ShaderMaterial(convolutionMaterial); 
 
         // Create plane geometry and material
-        const geo = new THREE.PlaneGeometry(20, 20, 32, 32); // Increase the size of the plane
-        const mat = new THREE.ShaderMaterial({
-            uniforms: noiseShader.uniforms,
-            vertexShader: noiseShader.vertexShader,
-            fragmentShader: noiseShader.fragmentShader,
-        });    
+        const geo = new THREE.PlaneGeometry(20, 20, 32, 32);
+        // Increase the size of the plane
+        const mat = new THREE.ShaderMaterial(sawMaterial);
 
         const plane = new THREE.Mesh(planeGeometry, planeMaterial);
         scene.add(plane);
@@ -258,7 +283,7 @@ const GalaxialFallingSandPlane = ({ height = window.innerHeight, width = window.
         plane.receiveShadow = true;
         plane.receiveShadow = true;
 
-        const planePad = new THREE.Mesh(planeGeometry, sawMaterial)
+        const planePad = new THREE.Mesh(planeGeometry, mat)
         planePad.rotation.x = -Math.PI / 2;
         planePad.receiveShadow = true;
         scene.add(planePad);
@@ -283,20 +308,35 @@ const GalaxialFallingSandPlane = ({ height = window.innerHeight, width = window.
             mass: 0.1, // Small mass for realistic sand behavior
             position: new CANNON.Vec3(sphere.position.x, sphere.position.y, sphere.position.z),
         });
+
         sphParticleBody.addShape(sphbody); // Add the sphere shape
         world.addBody(sphParticleBody);
         sphereBodiesRef.current.push(sphParticleBody);
 
-        const ambientLight = new THREE.AmbientLight(0x333333);
-        scene.add(ambientLight);
+        // const ambientLight = new THREE.AmbientLight(0x333333);
+        // scene.add(ambientLight);
 
-        const directionalLight = new THREE.DirectionalLight(0xFFFFFF, 0.8);
-        scene.add(directionalLight);
-        directionalLight.position.set(-30, 50, 0);
-        directionalLight.castShadow = true;
+        // const directionalLight = new THREE.DirectionalLight(0xFFFFFF, 0.8);
+        // scene.add(directionalLight);
+        // directionalLight.position.set(-30, 50, 0);
+        // directionalLight.castShadow = true;
 
-        const dLightHelper = new THREE.DirectionalLightHelper(directionalLight, 5);
-        scene.add(dLightHelper);
+        // Lighting setup
+        const light = new Lighting(scene, camera);
+        const directionalLight = light.addDirectionalLight({ color: 0xFFFFFF, intensity: 1, position: { x: -30, y: 50, z: 0 }, castShadow: true });
+
+        light.addAmbientLight({ color: 0x333333, intensity: 0.5, castShadow: true });
+        light.addSpotLight({ color: 0xFFFFFF, intensity: 1, position: { x: -100, y: 100, z: 0 }, angle: 0.2, castShadow: true });
+        light.addHemisphereLight({ skyColor: 0xFFFFFF, groundColor: 0x444444, intensity: 0.9, position: { x: 0, y: 50, z: 0 }, castShadow: true });
+        light.addPointLight({ color: 0xff0000, intensity: 0.8, position: { x: 20, y: 20, z: 20 }, castShadow: true });
+
+        // Optionally, add a path for an object or animation
+        // const points = [new THREE.Vector3(0, 0, 0), new THREE.Vector3(10, 0, 0)];
+        // light.createPath(points, randomHexColor())
+        light.createCameraPath(randomHexColor());
+
+        // const dLightHelper = new THREE.DirectionalLightHelper(directionalLight, 5);
+        // scene.add(dLightHelper);
         // Initialize helpers
         const helpers = new LightAxisUtilHelper(scene, camera, renderer);
         // // Add helpers to the scene
@@ -307,9 +347,28 @@ const GalaxialFallingSandPlane = ({ height = window.innerHeight, width = window.
         helpers.addDirectionalLightHelper(directionalLight);
         helpers.addOrbitControls(); // Add orbit controls
 
-        // Instanced mesh setup
-        const particleGeometry = new THREE.SphereGeometry(0.2, 16, 16);
-        const particleMaterial = new THREE.MeshStandardMaterial({ color: randomHexColor() });
+        // Bounding Box
+        // const boundingObjects = new BoundingObjects(scene, 50, 0.25, 50);
+        // // console.log('Bounding Objects:', boundingObjects);
+        // // console.log('Spheres:', clickedSpheres);
+
+        // // Now create objectsWithPhysics
+
+        // const objectsWithPhysics = boundingObjects.spheres?.map(sphereObj => ({
+        //     mesh: sphereObj.mesh,
+        //     velocity: sphereObj.velocity,
+        //     mass: sphereObj.mass
+        // })) || [];
+        // scene.add(objectsWithPhysics)
+
+        // boundingObjects.addSphere(3); // Initialize bounding objects
+
+        // // Create the cube boundary
+        // boundingObjects.createBoundaryBox()
+
+        // // Instanced mesh setup
+        // const particleGeometry = new THREE.SphereGeometry(0.2, 16, 16);
+        // const particleMaterial = new THREE.MeshStandardMaterial({ color: randomHexColor() });
 
         // const instancedMesh = new THREE.InstancedMesh(particleGeometry, particleMaterial, particleCount);
         // scene.add(instancedMesh);
@@ -351,33 +410,69 @@ const GalaxialFallingSandPlane = ({ height = window.innerHeight, width = window.
         //     world.addBody(particleBody);
         //     particleBodiesRef.current.push(particleBody);
         // }
-        const particles = new SandParticles(scene, world, particleCount);
 
-        let startTime = Date.now(); // Move this outside `animate`
+        const particles = new SandParticles(scene, world, particleCount);
+        const sphereUtils = new SphereUtils(scene, camera, textureLoader, planePad);
+
+        // Handle mouse movements
+        window.addEventListener('mousemove', (event) => {
+            sphereUtils.updateHover(event);
+        });
+
+        // Handle clicks to create spheres
+        window.addEventListener('click', () => {
+            sphereUtils.handleClick();
+        });
+
+        // Toggle gravity on key press (for example, "G" key)
+        window.addEventListener('keydown', (event) => {
+            if (event.key === 'a' || event.key === 'l') {
+                sphereUtils.handleClick();
+            }
+            if (event.key === 'g') {
+                sphereUtils.toggleGravity();
+            }
+        });
 
         const animate = (time) => {
             requestAnimationFrame(animate);
-            const elapsedTime = (Date.now() - startTime) / 1000; // Convert to seconds
-            const speed = 5; // Speed factor
-            const totalPoints = cameraPathPoints.length;
+
+            startTime++;
+            timeValue++;
+
+            // const elapsedTime = (Date.now() - startTime) / 1000; // Convert to seconds
+            // const speed = 5; // Speed factor
+            // const totalPoints = cameraPathPoints.length;
 
             // Step the physics world forward
             world.step(timeStep);
+
+            // Update Camera
+            light.update()
+
+            // Update spheres in each frame
             particles.update();
+            sphereUtils.update();
 
-            // Calculate the index of the current point in the camera path
-            const pointIndex = Math.floor(elapsedTime / speed) % totalPoints;
-            const nextPointIndex = (pointIndex + 1) % totalPoints;
+            // Update bounding balls
+            // boundingObjects.updateProperties(100, 0.2); // Update to 100 spheres with a radius of 0.2
 
-            // Interpolate between the current and next point
-            const t = (elapsedTime % speed) / speed; // Value between 0 and 1 over 'speed' seconds
-            const currentPoint = cameraPathPoints[pointIndex];
-            const nextPoint = cameraPathPoints[nextPointIndex];
-            camera.position.lerpVectors(currentPoint, nextPoint, t);
-            camera.lookAt(scene.position); // Ensure the camera looks at the center of the scene
+            // // Calculate the index of the current point in the camera path
+            // const pointIndex = Math.floor(elapsedTime / speed) % totalPoints;
+            // const nextPointIndex = (pointIndex + 1) % totalPoints;
 
-            // Update shader time
-            noiseShader.uniforms.time.value = time * 0.001; // Update time uniform
+            // // Interpolate between the current and next point
+            // const t = (elapsedTime % speed) / speed; // Value between 0 and 1 over 'speed' seconds
+            // const currentPoint = cameraPathPoints[pointIndex];
+            // const nextPoint = cameraPathPoints[nextPointIndex];
+            // camera.position.lerpVectors(currentPoint, nextPoint, t);
+            // camera.lookAt(scene.position); // Ensure the camera looks at the center of the scene
+
+            // Update Noise shader time
+            noiseShader.uniforms.time.value = time * 0.001;
+
+            // Update Saw shader time
+            sawMaterial.uniforms.time.value = time * 0.1; // Update time uniform
 
             // Render the scene
             renderer.render(scene, camera);
@@ -388,6 +483,7 @@ const GalaxialFallingSandPlane = ({ height = window.innerHeight, width = window.
             // Clean up the world and scene on unmount
             sandParticlesRef.current.forEach(mesh => scene.remove(mesh));
             renderer.dispose();
+            light.reset()
         };
     }, [width, height, particleCount]);
 

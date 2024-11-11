@@ -9,9 +9,24 @@ export class BoundingObjects {
     this.gravity = gravity;
     this.dampingFactor = dampingFactor;
     this.scene = scene;
+    this.cubeSize = cubeSize;
 
     this.createSpheres();
   }
+
+  createRandomHexColor = () => {
+      return '#' + Math.floor(Math.random() * 16777215).toString(16);
+  }
+
+  createBoundaryBox() {
+    const boundaryGeom = new THREE.BoxGeometry(this.cubeSize, this.cubeSize, this.cubeSize);
+    const boundaryMat = new THREE.MeshPhongMaterial({
+      color: this.createRandomHexColor(),
+      wireframe: true,
+    });
+    const boundary = new THREE.Mesh(boundaryGeom, boundaryMat);
+    this.scene.add(boundary);
+  };
 
   createSpheres() {
     // Clear existing spheres if any
@@ -66,3 +81,4 @@ export class BoundingObjects {
     });
   }
 }
+export default BoundingObjects

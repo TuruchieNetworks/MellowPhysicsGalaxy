@@ -213,7 +213,6 @@ const PhysicsAnimations = () => {
 
     // Create bounding objects
     const boundingObjects = new BoundingObjects(scene, 50, 0.25, 50);
-    boundingObjects.updateProperties(100, 0.2); // Update to 100 spheres with a radius of 0.2
     // console.log('Bounding Objects:', boundingObjects);
     // console.log('Spheres:', clickedSpheres);
 
@@ -248,7 +247,6 @@ const PhysicsAnimations = () => {
 
     // // Create spheres inside a bounding cube
     const spheres = [];
-    const cubeSize = 50;
     // const numSpheres = 50;
     // const radius = 0.15;
     // const cubeSize = 50;
@@ -280,6 +278,7 @@ const PhysicsAnimations = () => {
     // box.material.map = textureLoader.load(nebula);
 
     // Create the cube boundary
+    const cubeSize = 50;
     const boundaryGeom = new THREE.BoxGeometry(cubeSize, cubeSize, cubeSize);
     const boundaryMat = new THREE.MeshPhongMaterial({
       color: random_hex_color(),
@@ -287,6 +286,7 @@ const PhysicsAnimations = () => {
     });
     const boundary = new THREE.Mesh(boundaryGeom, boundaryMat);
     scene.add(boundary);
+    boundingObjects.updateProperties(100, 0.2); // Update to 100 spheres with a radius of 0.2
 
     // camera.position.z = 10;
     // Create a keyframe track for galaxial motion

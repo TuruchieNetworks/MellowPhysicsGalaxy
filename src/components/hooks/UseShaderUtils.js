@@ -33,10 +33,10 @@ const useShaderUtils = () => {
     }, []);
 
     // Noise Plane
-    const noisePlane = useCallback(() => {
+    const noisePlane = useCallback((timeValue = 0.0) => {
         const noiseShader = {
             uniforms: {
-                time: { value: 0.0 },
+                time: timeValue,
                 resolution: { value: new THREE.Vector2(window.innerWidth, window.innerHeight) },
             },
             vertexShader: `
@@ -77,64 +77,91 @@ const useShaderUtils = () => {
                   }
               }
 
-              gl_FragColor = vec4(vec3(value + burst), 1.0); // Change the color based on the shader output
+            //   gl_FragColor = vec4(vec3(value + burst), 1.0); // Change the color based on the shader output
+
+                vec3 noiseColor = vec3(burst, value, 0.0);
+
+                // gl_FragColor = vec4(vec3(value + burst), 1.0); // Change the color based on the shader output 
+                gl_FragColor = vec4(noiseColor, 1.0);
           }
       `,
         };
         return noiseShader;
     }, []);
+
     // Noise Plane
-    const sawPlane = useCallback(() => {
+    const sawPlane = useCallback((timeValue = 0.0) => {
         const sawShader = {
             uniforms: {
-                time: { value: 0.0 },
+                time: { value: timeValue },
                 resolution: { value: new THREE.Vector2(window.innerWidth, window.innerHeight) },
+                shapeFactor: { value: 0.5 }, // Control for trapezoidal shape
             },
             vertexShader: `
-          varying vec2 vUv;
-          void main() {
-              vUv = uv;
-              gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
-          }
-      `,
+                varying vec2 vUv;
+                void main() {
+                    vUv = uv;
+                    gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+                }
+            `,
+
             fragmentShader: `
-          uniform float time;
-          varying vec2 vUv;
+                uniform float time;
+                varying vec2 vUv;
 
-          float noise(float x, float z) {
-              return fract(sin(dot(vec2(x, z) + time, vec2(12.9898, 78.233))) * 43758.5453);
-          }
+                float noise(float x, float z) {
+                return fract(sin(dot(vec2(x, z) + time, vec2(12.9898, 78.233))) * 43758.5453);
+                }
 
-          float S(float t) {
-              return smoothstep(0.0, 1.0, t);
-          }
+                float S(float t) {
+                return smoothstep(0.0, 1.0, t);
+            }
 
-          void main() {
-              vec2 uv = vUv * 10.0; // Scale the UV coordinates
-              float x = uv.x;
-              float z = uv.y;
+            void main() {
+                vec2 uv = vUv * 10.0; // Scale the UV coordinates
+                float x = uv.x;
+                float z = uv.y;
 
-              float burst = noise(x, z);
-              float value = 0.0;
+                // note: set up basic colors
+                vec3 black = vec3(0.0);
+                vec3 white = vec3(1.0);
+                vec3 red = vec3(${timeValue}, 0.0, 0.0);
+                vec3 blue = vec3(0.65, 0.85, 1.0);
+                vec3 orange = vec3(0.9, 0.6, 0.3);
+                vec3 color = red;
 
-              for (int i = -1; i <= 1; i++) {
-                  for (int j = -1; j <= 1; j++) {
-                      float aij = 0.0; // base value
-                      float bij = 1.0; // variation
-                      float cij = 0.51; // adjust
-                      float dij = 0.33; // noise contribution
+                float burst = noise(x, z);
+                float value = 0.2;
+                
+                // color = vec3(uv, 0.0);
 
-                      value += aij + (bij - aij) * S(x - float(i)) + (aij - bij - cij + dij) * S(x - float(i)) * S(z - float(j));
-                  }
-              }
+                /*vec2 uv = gl_FragCoord.xy / vUv;
+                uv = uv - 0.5;
+                uv = uv * vUv / 100.0;
+                */
 
-              gl_FragColor = vec4(vec3(value + burst), 1.0); // Change the color based on the shader output
-          }
-      `,
-        };
-        return sawShader;
+                for (int i = -1; i <= 1; i++) {
+                    for (int j = -1; j <= 1; j++) {
+                        float aij = 0.0; // base value
+                        float bij = 1.0; // variation
+                        float cij = 0.51; // adjust
+                        float dij = 0.33; // noise contribution
+
+                        value += aij + (bij - aij) * S(x - float(i)) + (aij - bij - cij + dij) * S(x - float(i)) * S(z - float(j));
+                    }
+                }
+                vec3 noiseColor = vec3(burst, value, burst + value);
+
+                // gl_FragColor = vec4(vec3(value + burst), 1.0); // Change the color based on the shader output 
+                gl_FragColor = vec4(noiseColor, ${timeValue});
+            }
+        `,
+    };
+    return sawShader;
     }, []);
 
+
+    // gl_FragColor = vec4(vec3(value + burst), 1.0); // Change the color based on the shader output
 
     const convolutionPlane = useCallback(() => {
         const noiseShader = {

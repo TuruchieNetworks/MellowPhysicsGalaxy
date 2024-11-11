@@ -51,7 +51,7 @@ const AboutGraphics = ({ currentBackground, handlePrev, handleNext }) => {
             }}
         >
 
-            {/* <FallingSand />
+            <FallingSand />
 
             <div className="container showcase-container imageCover"
                 style={{
@@ -79,9 +79,9 @@ const AboutGraphics = ({ currentBackground, handlePrev, handleNext }) => {
                         Visuals
                     </Link>
                 </div> 
-            </div>*/}
+            </div>
             
-            <About />
+            {/* <About /> */}
         </div>
     );
 };

@@ -7,6 +7,8 @@ import useColorUtils from '../hooks/UseColorUtils';
 import useShaderUtils from '../hooks/UseShaderUtils';
 import { LightAxisUtilHelper } from '../graphics/LightAxisUtilHelper';
 import { Lighting } from '../graphics/Lighting';
+import SphereUtils from '../graphics/SphereUtils';
+import BoundingObjects from '../graphics/BoundingObjects';
 
 const NoiseShader = ({ width = window.innerWidth, height = window.innerHeight, particleCount = 500 }) => {
     const canvasRef = useRef();
@@ -96,6 +98,9 @@ const NoiseShader = ({ width = window.innerWidth, height = window.innerHeight, p
     ];
 
     const timeStep = 1 / 60;
+    // const time = 0.0;
+    const timeValue = 0.1;
+    // const speed = 5;
 
     useEffect(() => {
         const scene = sceneRef.current;
@@ -134,7 +139,7 @@ const NoiseShader = ({ width = window.innerWidth, height = window.innerHeight, p
         // scene.background = textureLoader.load(stars);
 
         // Lighting setup
-        const light = new Lighting(scene);
+        const light = new Lighting(scene, camera);
         light.addAmbientLight({ color: randomHexColor(), intensity: 0.5, castShadow: true });
         light.addSpotLight({ color: randomRgbaColor(), intensity: 1, position: { x: -100, y: 100, z: 0 }, angle: 0.2, castShadow: true });
         light.addHemisphereLight({ skyColor: 0xFFFFFF, groundColor: 0x444444, intensity: 0.9, position: { x: 0, y: 50, z: 0 }, castShadow: true });
@@ -234,6 +239,24 @@ const NoiseShader = ({ width = window.innerWidth, height = window.innerHeight, p
         // Set gravity for the world
         world.gravity.set(0, -9.81, 0);
 
+        const boundingObjects = new BoundingObjects(scene, 50, 0.25, 50);
+        // console.log('Bounding Objects:', boundingObjects);
+        // console.log('Spheres:', clickedSpheres);
+
+        // Now create objectsWithPhysics
+
+        const objectsWithPhysics = boundingObjects.spheres?.map(sphereObj => ({
+            mesh: sphereObj.mesh,
+            velocity: sphereObj.velocity,
+            mass: sphereObj.mass
+        })) || [];
+        scene.add(objectsWithPhysics)
+
+        boundingObjects.addSphere(3); // Initialize bounding objects
+
+        // Create the cube boundary
+        boundingObjects.createBoundaryBox()
+
         // // Step 4: Create an InstancedMesh for particles
         // const geometry = new THREE.SphereGeometry(0.2, 16, 16);
         // const material = new THREE.MeshStandardMaterial({ color: randomHexColor() });
@@ -312,14 +335,35 @@ const NoiseShader = ({ width = window.innerWidth, height = window.innerHeight, p
 
         // Animation loop
         let startTime = Date.now(); // Move this outside `animate`
+        const sphereUtils = new SphereUtils(scene, camera, textureLoader, planePad);
+        // Handle mouse movements
+        window.addEventListener('mousemove', (event) => {
+            sphereUtils.updateHover(event);
+        });
+
+        // Handle clicks to create spheres
+        window.addEventListener('click', () => {
+            sphereUtils.handleClick();
+        });
+
+        // Toggle gravity on key press (for example, "G" key)
+        window.addEventListener('keydown', (event) => {
+            if (event.key === 'a' || event.key === 'l') {
+                sphereUtils.handleClick();
+            }
+            if (event.key === 'g') {
+                sphereUtils.toggleGravity();
+            }
+        });
 
         const animate = (time) => {
             requestAnimationFrame(animate);
-            const elapsedTime = (Date.now() - startTime) / 1000; // Convert to seconds
-            const speed = 5; // Speed factor
-            const totalPoints = cameraPathPoints.length;
+            // const elapsedTime = (Date.now() - startTime) / 1000; // Convert to seconds
+            // const speed = 5; // Speed factor
+            // const totalPoints = cameraPathPoints.length;
 
             // Step the physics world forward
+
             world.step(timeStep);
 
             // Sync Three.js meshes with Cannon.js bodies
@@ -329,16 +373,32 @@ const NoiseShader = ({ width = window.innerWidth, height = window.innerHeight, p
                 mesh.quaternion.copy(body.quaternion);
             });
 
-            // Calculate the index of the current point in the camera path
-            const pointIndex = Math.floor(elapsedTime / speed) % totalPoints;
-            const nextPointIndex = (pointIndex + 1) % totalPoints;
+            startTime++;
+            timeValue++;
 
-            // Interpolate between the current and next point
-            const t = (elapsedTime % speed) / speed; // Value between 0 and 1 over 'speed' seconds
-            const currentPoint = cameraPathPoints[pointIndex];
-            const nextPoint = cameraPathPoints[nextPointIndex];
-            camera.position.lerpVectors(currentPoint, nextPoint, t);
-            camera.lookAt(scene.position); // Ensure the camera looks at the center of the scene
+            // const elapsedTime = (Date.now() - startTime) / 1000; // Convert to seconds
+            // const speed = 5; // Speed factor
+            // const totalPoints = cameraPathPoints.length;
+
+            // Step the physics world forward
+            world.step(timeStep);
+
+            // Update spheres in each frame
+            sphereUtils.update();
+
+            // Update Camera
+            light.update()
+
+            // // Calculate the index of the current point in the camera path
+            // const pointIndex = Math.floor(elapsedTime / speed) % totalPoints;
+            // const nextPointIndex = (pointIndex + 1) % totalPoints;
+
+            // // Interpolate between the current and next point
+            // const t = (elapsedTime % speed) / speed; // Value between 0 and 1 over 'speed' seconds
+            // const currentPoint = cameraPathPoints[pointIndex];
+            // const nextPoint = cameraPathPoints[nextPointIndex];
+            // camera.position.lerpVectors(currentPoint, nextPoint, t);
+            // camera.lookAt(scene.position); // Ensure the camera looks at the center of the scene
 
             // Update shader time
             noiseShader.uniforms.time.value = time * 0.001; // Update time uniform

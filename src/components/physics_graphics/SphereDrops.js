@@ -13,49 +13,14 @@ import { useGaussianVelocity, useGaussianMass } from '../hooks/UseGaussianVeloci
 
 import sun from '../../galaxy_imgs/sun.jpg';
 import stars from '../../galaxy_imgs/stars.jpg';
-import mars from '../../galaxy_imgs/mars.jpg';
-import earth from '../../galaxy_imgs/earth.jpg';
-import saturn from '../../galaxy_imgs/saturn.jpg';
-import venus from '../../galaxy_imgs/venus.jpg';
 import nebula from '../../galaxy_imgs/nebula.jpg';
-import jupiter from '../../galaxy_imgs/jupiter.jpg';
-import sceneGLTF from '../../GLTFs/scene.gltf';
 import monkeyUrl from '../../GLTFs/monkey.glb';
-import DancingTwerk from '../../FBXs/DancingTwerk.fbx';
-import blue_concert from '../../img/blue_concert.jpg';
-import landing_dj from '../../img/landing_dj.jpg';
-import globe_concert from '../../img/globe_concert.jpg';
-import metal_blocks from '../../img/metal_blocks.jpg';
-import vasil_guitar from '../../img/vasil_guitar.jpg';
-import crowd_angle from '../../img/angle_outdoor_concerts.jpg';
-import bright_stage from '../../img/tube_concerts.avif';
-import blue_stage from '../../img/blue_stage_entrance.avif';
-import guitar_boy from '../../img/dark-greece.avif';
-import concert_lights from '../../img/bright-concert-lights.avif';
-
-// const images = [
-//   globe_concert,
-//   metal_blocks,
-//   vasil_guitar,
-//   concert_lights,
-//   crowd_angle,
-//   blue_stage,
-//   guitar_boy,
-//   blue_concert,
-//   bright_stage,
-//   sun,
-//   stars,
-//   mars,
-//   earth,
-//   nebula,
-//   jupiter,
-// ];
 import { Mixer } from '../graphics/Mixer';
 import { Plane } from '../graphics/Plane';
 import { Gravity } from '../graphics/Gravity';
 import { MomentumPhysics } from '../graphics/MomentumPhysics';
 import { BoundingObjects } from '../graphics/BoundingObjects';
-import SphereUtils from '../graphics/SphereUtils'; // Import your SphereUtils class
+import SphereUtils from '../graphics/SphereUtils';
 import { Lighting } from '../graphics/Lighting';
 import { LightAxisUtilHelper } from '../graphics/LightAxisUtilHelper';
 import { SceneManager } from '../graphics/SceneManager';
@@ -86,13 +51,6 @@ const SphereDrops = () => {
     new THREE.Vector3(-5, 5, -5),
     new THREE.Vector3(0, 10, 0),
     new THREE.Vector3(5, 5, 5),
-  ];
-
-  // Create a camera path with yet another color
-  const cameraPathPoints = [
-    new THREE.Vector3(0, 5, 10),
-    new THREE.Vector3(0, 0, 0),
-    new THREE.Vector3(10, 0, -10),
   ];
 
   const dampingFactor = 0.99; // Damping factor for velocity
@@ -212,30 +170,6 @@ const SphereDrops = () => {
       console.error(error);
     });
 
-    //const boundingObjects = new BoundingObjects(scene);// Update the number of spheres and their radius
-
-    // Create bounding objects
-    const boundingObjects = new BoundingObjects(scene, 50, 0.25, 50);
-    boundingObjects.updateProperties(100, 0.2); // Update to 100 spheres with a radius of 0.2
-    // console.log('Bounding Objects:', boundingObjects);
-    // console.log('Spheres:', clickedSpheres);
-
-    // Now create objectsWithPhysics
-    const objectsWithPhysics = boundingObjects.spheres?.map(sphereObj => ({
-      mesh: sphereObj.mesh,
-      velocity: sphereObj.velocity,
-      mass: sphereObj.mass
-    })) || [];
-
-    // const clickedObjectsWithPhysics = clickedSpheres?.map(sphereObj => ({
-    //   mesh: sphereObj.mesh,
-    //   velocity: sphereObj.velocity,
-    //   mass: sphereObj.mass
-    // })) || [];
-
-    // // If you need to dynamically add spheres later
-
-    boundingObjects.addSphere(3);// Initialize bounding objects
     // const gravityInstance = new Gravity(new THREE.Vector3(0, -0.1, 0));
 
     // Create physics with gravity instance
@@ -289,15 +223,6 @@ const SphereDrops = () => {
     // box.position.set(10, 5, 10);
     // multiBox.position.set(-10, 5, 10);
     // box.material.map = textureLoader.load(nebula);
-
-    // Create the cube boundary
-    const boundaryGeom = new THREE.BoxGeometry(cubeSize, cubeSize, cubeSize);
-    const boundaryMat = new THREE.MeshPhongMaterial({
-      color: random_hex_color(),
-      wireframe: true,
-    });
-    const boundary = new THREE.Mesh(boundaryGeom, boundaryMat);
-    scene.add(boundary);
 
     // camera.position.z = 10;
     // Create a keyframe track for galaxial motion
@@ -624,6 +549,37 @@ const SphereDrops = () => {
 
     const sphereUtils = new SphereUtils(scene, camera, textureLoader, plane);
 
+    //const boundingObjects = new BoundingObjects(scene);// Update the number of spheres and their radius
+
+    // Create bounding objects
+    const boundingObjects = new BoundingObjects(scene, 50, 0.25, 50);
+    // console.log('Bounding Objects:', boundingObjects);
+    // console.log('Spheres:', clickedSpheres);
+
+    // Now create objectsWithPhysics
+    
+    const objectsWithPhysics = boundingObjects.spheres?.map(sphereObj => ({
+      mesh: sphereObj.mesh,
+      velocity: sphereObj.velocity,
+      mass: sphereObj.mass
+    })) || [];
+
+    // const clickedObjectsWithPhysics = clickedSpheres?.map(sphereObj => ({
+    //   mesh: sphereObj.mesh,
+    //   velocity: sphereObj.velocity,
+    //   mass: sphereObj.mass
+    // })) || [];
+
+    // // If you need to dynamically add spheres later
+
+    boundingObjects.addSphere(3);// Initialize bounding objects
+
+    // Create the cube boundary
+    boundingObjects.createBoundaryBox()
+
+    // const boundary = new THREE.Mesh(boundaryGeom, boundaryMat);
+    // scene.add(boundary);
+
     const animate = () => {
       requestAnimationFrame(animate);
       // const deltaTime = clock.getDelta();
@@ -641,6 +597,9 @@ const SphereDrops = () => {
     
       // Update spheres in each frame
       sphereUtils.update();
+
+      // Update bounding balls
+      boundingObjects.updateProperties(100, 0.2); // Update to 100 spheres with a radius of 0.2
 
       // clickedPhysics.updatePhysics(deltaTime, 11); 
       // updatePhysics
