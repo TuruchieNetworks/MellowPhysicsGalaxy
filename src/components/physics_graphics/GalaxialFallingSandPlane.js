@@ -345,7 +345,7 @@ const GalaxialFallingSandPlane = ({ height = window.innerHeight, width = window.
         // helpers.addHemisphereLightHelper(light);
         helpers.addShadowCameraHelper(directionalLight);
         helpers.addDirectionalLightHelper(directionalLight);
-        helpers.addOrbitControls(); // Add orbit controls
+        // helpers.addOrbitControls(); // Add orbit controls
 
         // Bounding Box
         // const boundingObjects = new BoundingObjects(scene, 50, 0.25, 50);

@@ -161,7 +161,7 @@ const NoiseShader = ({ width = window.innerWidth, height = window.innerHeight, p
         // helpers.addHemisphereLightHelper(light);
         helpers.addShadowCameraHelper(directionalLight);
         helpers.addDirectionalLightHelper(directionalLight);
-        helpers.addOrbitControls(); // Add orbit controls
+        // helpers.addOrbitControls(); // Add orbit controls
 
         // Create plane geometry and material
         const geo = new THREE.PlaneGeometry(20, 20, 32, 32); // Increase the size of the plane
@@ -202,8 +202,8 @@ const NoiseShader = ({ width = window.innerWidth, height = window.innerHeight, p
         //   scene.add(groundMesh);
 
         // Instanced mesh setup
-        const particleGeometry = new THREE.SphereGeometry(0.2, 16, 16);
-        const particleMaterial = new THREE.MeshStandardMaterial({ color: randomHexColor() });
+        // const particleGeometry = new THREE.SphereGeometry(0.2, 16, 16);
+        // const particleMaterial = new THREE.MeshStandardMaterial({ color: randomHexColor() });
         
         // Correct the ground body instantiation
         // Step 1: Define materials for particles and ground
@@ -245,14 +245,14 @@ const NoiseShader = ({ width = window.innerWidth, height = window.innerHeight, p
 
         // Now create objectsWithPhysics
 
-        const objectsWithPhysics = boundingObjects.spheres?.map(sphereObj => ({
-            mesh: sphereObj.mesh,
-            velocity: sphereObj.velocity,
-            mass: sphereObj.mass
-        })) || [];
-        scene.add(objectsWithPhysics)
+        // const objectsWithPhysics = boundingObjects.spheres?.map(sphereObj => ({
+        //     mesh: sphereObj.mesh,
+        //     velocity: sphereObj.velocity,
+        //     mass: sphereObj.mass
+        // })) || [];
+        // scene.add(objectsWithPhysics)
 
-        boundingObjects.addSphere(3); // Initialize bounding objects
+        // boundingObjects.addSphere(3); // Initialize bounding objects
 
         // Create the cube boundary
         boundingObjects.createBoundaryBox()
