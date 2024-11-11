@@ -6,16 +6,16 @@ export class Lighting {
         this.speed = speed;
         this.camera = camera;
         this.cameraPathPoints = [
-            new THREE.Vector3(60, 5, -35),
-            new THREE.Vector3(-10, 20, 30),
-            // new THREE.Vector3(-10, 20, 130),
-            new THREE.Vector3(-20, 30, -30),
+            new THREE.Vector3(60, 10, -135),
+            new THREE.Vector3(-20, 2, 80),
+            new THREE.Vector3(100, 20, -30),
         ];
         this.fogPathPoints = [
-            new THREE.Vector3(-5, 5, -5),
-            new THREE.Vector3(0, 10, 0),
-            new THREE.Vector3(5, 5, 5),
-        ]
+            new THREE.Vector3(60, 5, -135),
+            new THREE.Vector3(-30, 2, 80),
+            // new THREE.Vector3(-10, 20, 130),
+            new THREE.Vector3(20, 13, -30),
+        ];
         this.startTime = Date.now();
     }
 

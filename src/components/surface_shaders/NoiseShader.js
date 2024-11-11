@@ -10,7 +10,7 @@ import { Lighting } from '../graphics/Lighting';
 import SphereUtils from '../graphics/SphereUtils';
 import BoundingObjects from '../graphics/BoundingObjects';
 
-const NoiseShader = ({ width = window.innerWidth, height = window.innerHeight, particleCount = 500 }) => {
+const NoiseShader = ({ width = window.innerWidth, height = window.innerHeight, particleCount = 50 }) => {
     const canvasRef = useRef();
     const cameraRef = useRef();
     const sandParticlesRef = useRef([]);
@@ -99,7 +99,6 @@ const NoiseShader = ({ width = window.innerWidth, height = window.innerHeight, p
 
     const timeStep = 1 / 60;
     // const time = 0.0;
-    const timeValue = 0.1;
     // const speed = 5;
 
     useEffect(() => {
@@ -119,17 +118,17 @@ const NoiseShader = ({ width = window.innerWidth, height = window.innerHeight, p
 
         // Set up background
         const cubeTextureLoader = new THREE.CubeTextureLoader();
-        scene.background = cubeTextureLoader.load([stars, stars, stars, stars, nebula, nebula]);
+        scene.background = cubeTextureLoader.load([stars, stars, stars, stars, nebula, convolutionMaterial]);
 
         // Apply starry shader as background material
-        const starryMaterial = new THREE.ShaderMaterial({
-            uniforms: {
-                backgroundTexture: { value: cubeTextureLoader }
-            },
-            vertexShader: starryBackgrounds().vertexShader,
-            fragmentShader: starryBackgrounds().fragmentShader,
-            side: THREE.BackSide // Inside of large sphere
-        });
+        // const starryMaterial = new THREE.ShaderMaterial({
+        //     uniforms: {
+        //         backgroundTexture: { value: cubeTextureLoader }
+        //     },
+        //     vertexShader: starryBackgrounds().vertexShader,
+        //     fragmentShader: starryBackgrounds().fragmentShader,
+        //     side: THREE.BackSide // Inside of large sphere
+        // });
 
         // Fog
         scene.fog = new THREE.Fog(0xFFFFFF, 0, 200);
@@ -174,7 +173,7 @@ const NoiseShader = ({ width = window.innerWidth, height = window.innerHeight, p
         // const cplane = new Plane(scene, 60, 60, randomHexColor(), 1, THREE.DoubleSide); // The last parameter is thickness
         // cplane.setRotation(-0.5 * Math.PI, 0, 0);
 
-        const plane = new THREE.Mesh(geo, mat); // Apply the shader material to the plane
+        const plane = new THREE.Mesh(geo, convolutionMaterial); // Apply the shader material to the plane
         plane.rotation.x = -Math.PI / 2; // Rotate the plane to face upwards
         scene.add(plane); // Add the plane to the scene // Add the plane geometry to the scene
         const planeGeometry = new THREE.PlaneGeometry(60, 60, 60);
@@ -245,14 +244,14 @@ const NoiseShader = ({ width = window.innerWidth, height = window.innerHeight, p
 
         // Now create objectsWithPhysics
 
-        // const objectsWithPhysics = boundingObjects.spheres?.map(sphereObj => ({
-        //     mesh: sphereObj.mesh,
-        //     velocity: sphereObj.velocity,
-        //     mass: sphereObj.mass
-        // })) || [];
-        // scene.add(objectsWithPhysics)
+        const objectsWithPhysics = boundingObjects.spheres?.map(sphereObj => ({
+            mesh: sphereObj.mesh,
+            velocity: sphereObj.velocity,
+            mass: sphereObj.mass
+        })) || [];
+        scene.add(objectsWithPhysics)
 
-        // boundingObjects.addSphere(3); // Initialize bounding objects
+        boundingObjects.addSphere(3); // Initialize bounding objects
 
         // Create the cube boundary
         boundingObjects.createBoundaryBox()
@@ -356,6 +355,7 @@ const NoiseShader = ({ width = window.innerWidth, height = window.innerHeight, p
             }
         });
 
+        let timeValue;
         const animate = (time) => {
             requestAnimationFrame(animate);
             // const elapsedTime = (Date.now() - startTime) / 1000; // Convert to seconds
@@ -374,7 +374,7 @@ const NoiseShader = ({ width = window.innerWidth, height = window.innerHeight, p
             });
 
             startTime++;
-            timeValue++;
+            timeValue = 0.1;
 
             // const elapsedTime = (Date.now() - startTime) / 1000; // Convert to seconds
             // const speed = 5; // Speed factor
@@ -385,6 +385,7 @@ const NoiseShader = ({ width = window.innerWidth, height = window.innerHeight, p
 
             // Update spheres in each frame
             sphereUtils.update();
+            boundingObjects.updateSpheres();
 
             // Update Camera
             light.update()

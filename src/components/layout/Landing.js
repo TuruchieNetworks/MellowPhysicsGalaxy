@@ -9,6 +9,7 @@ import ImageUtils from '../graphics/ImageUtils';
 import useCarouselImages from '../hooks/UseCarouselImages';
 import MusicBackground from '../backgroundVideos/MusicBackground';
 import GalaxialFallingSandPlane from '../physics_graphics/GalaxialFallingSandPlane';
+import NoiseShader from '../surface_shaders/NoiseShader';
 
 // const images = [
 //     landing_dj,
@@ -43,11 +44,11 @@ const Landing = () => {
                 backgroundSize: 'cover', // Ensure the background covers the whole container
                 backgroundPosition: 'center', // Position the background image in the center
             }}>
-            <GalaxialFallingSandPlane />
+            <NoiseShader />
             {/*
             <SphereDrops />
-            <NoiseShader />
             <FallingSand />
+            <GalaxialFallingSandPlane />
             <NoiseShaderMaterial /> 
             <PhysicsAnimations />
             <SphereAnimationScene />
