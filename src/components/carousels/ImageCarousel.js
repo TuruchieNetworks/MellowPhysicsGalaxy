@@ -2,14 +2,13 @@ import React, { useEffect, useRef, useState } from 'react';
 import '../../styles/ImageCarousel.css';
 import CarouselButton from './CarouselButton';
 import useCarousel from '../hooks/UseCarousel';
-import blue_concert from '../../img/blue_concert.jpg';
+import purple_crowd from '../../img/purple_crowd.jpg';
 import globe_concert from '../../img/globe_concert.jpg';
 import metal_blocks from '../../img/metal_blocks.jpg';
 import vasil_guitar from '../../img/vasil_guitar.jpg';
 import crowd_angle from '../../img/angle_outdoor_concerts.jpg';
-import bright_stage from '../../img/tube_concerts.avif';
 import blue_stage from '../../img/blue_stage_entrance.avif';
-import guitar_boy from '../../img/dark-greece.avif';
+import bright_purple_stage from '../../img/bright_purple_stage.jpg';
 import concert_lights from '../../img/bright-concert-lights.avif';
 
 const images = [
@@ -19,9 +18,9 @@ const images = [
     concert_lights,
     crowd_angle,
     blue_stage,
-    guitar_boy,
-    blue_concert,
-    bright_stage
+    bright_purple_stage,
+    metal_blocks,
+    purple_crowd
 ];
 
 

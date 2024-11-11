@@ -1,15 +1,20 @@
 import React, { useEffect, useRef } from 'react';
 import * as THREE from 'three';
 import * as CANNON from "cannon-es";
+import monkeyUrl from '../../GLTFs/monkey.glb';
 import stars from '../../galaxy_imgs/stars.jpg';
 import nebula from '../../galaxy_imgs/nebula.jpg';
 import useColorUtils from '../hooks/UseColorUtils';
-import { LightAxisUtilHelper } from '../graphics/LightAxisUtilHelper';
+import SphereUtils  from '../graphics/SphereUtils';
+import BoundingObjects from '../graphics/BoundingObjects';
 import { Lighting } from '../graphics/Lighting';
-import { Mixer } from '../../components/graphics/Mixer';
-import { Plane } from '../../components/graphics/Plane';
-import { Gravity } from '../../components/graphics/Gravity';
-import { MomentumPhysics } from '../../components/graphics/MomentumPhysics';
+import { Geometry } from '../graphics/Geometry';
+import { LightAxisUtilHelper } from '../graphics/LightAxisUtilHelper';
+import { useBox, useMultiBox } from '../../components/hooks/UseBoxGeometry';
+// import { Mixer } from '../../components/graphics/Mixer';
+// import { Plane } from '../../components/graphics/Plane';
+// import { Gravity } from '../../components/graphics/Gravity';
+// import { MomentumPhysics } from '../../components/graphics/MomentumPhysics';
 
 const PerlinShader = ({ width = window.innerWidth, height = window.innerHeight, particleCount = 200}) => {
   const canvasRef = useRef();
@@ -19,6 +24,11 @@ const PerlinShader = ({ width = window.innerWidth, height = window.innerHeight, 
   const sceneRef = useRef(new THREE.Scene());
   const worldRef = useRef(new CANNON.World());
   const { randomHexColor, randomRgbaColor } = useColorUtils();
+  const box = useBox();
+  const multiBox = useMultiBox();
+
+  const time = 1;
+  let timeValue;
 
   const noiseShader = {
     uniforms: {
@@ -57,25 +67,27 @@ const PerlinShader = ({ width = window.innerWidth, height = window.innerHeight, 
                         float aij = 0.0; // base value
                         float bij = 1.6; // variation
                         float cij = 0.4; // adjust
-                        float dij = 0.2; // noise contribution
+                        float dij = 0.3; // noise contribution
 
                         value += aij + (bij - aij) * S(x - float(i)) + (aij - bij - cij + dij) * S(x - float(i)) * S(z - float(j));
                     }
                 }
+                vec3 noiseColor = vec3(burst, value, burst + value);
 
-                gl_FragColor = vec4(vec3(value + burst), 1.0); // Change the color based on the shader output
+                // gl_FragColor = vec4(vec3(value + burst), 1.0); // Change the color based on the shader output 
+                gl_FragColor = vec4(noiseColor, 0.1);
+
+                // gl_FragColor = vec4(vec3(value + burst), 1.0); // Change the color based on the shader output
             }
         `,
   };
 
-  // Create a camera path with yet another color
-  const cameraPathPoints = [
-    new THREE.Vector3(0, 5, 10),
-    new THREE.Vector3(0, 0, 0),
-    new THREE.Vector3(10, 0, -10),
-  ];
-
-  const time = 1;
+  // // Create a camera path with yet another color
+  // const cameraPathPoints = [
+  //   new THREE.Vector3(0, 5, 10),
+  //   new THREE.Vector3(0, 0, 0),
+  //   new THREE.Vector3(10, 0, -10),
+  // ];
   const timeStep = 1 / 60;
   useEffect(() => {
     const scene = sceneRef.current;
@@ -95,18 +107,18 @@ const PerlinShader = ({ width = window.innerWidth, height = window.innerHeight, 
 
     // Set up background
     const cubeTextureLoader = new THREE.CubeTextureLoader();
-    scene.background = cubeTextureLoader.load([stars, stars, stars, stars, nebula, nebula]);
+    scene.background = cubeTextureLoader.load([stars, stars, stars, stars, nebula, noiseShader]);
 
     // Fog
     scene.fog = new THREE.Fog(0xFFFFFF, 0, 200);
     scene.fog = new THREE.FogExp2(randomHexColor(), 0.01);
 
-    // const textureLoader = new THREE.TextureLoader();
-    //textureLoader.load(nebula);
+    const textureLoader = new THREE.TextureLoader();
+    // textureLoader.load(nebula);
     // scene.background = textureLoader.load(stars);
 
     // Lighting setup
-    const light = new Lighting(scene);
+    const light = new Lighting(scene, camera);
     light.addAmbientLight({ color: randomHexColor(), intensity: 0.5, castShadow: true });
     light.addSpotLight({ color: randomRgbaColor(), intensity: 1, position: { x: -100, y: 100, z: 0 }, angle: 0.2, castShadow: true });
     light.addHemisphereLight({ skyColor: 0xFFFFFF, groundColor: 0x444444, intensity: 0.9, position: { x: 0, y: 50, z: 0 }, castShadow: true });
@@ -117,7 +129,7 @@ const PerlinShader = ({ width = window.innerWidth, height = window.innerHeight, 
     // Optionally, add a path for an object or animation
     // const points = [new THREE.Vector3(0, 0, 0), new THREE.Vector3(10, 0, 0)];
     // light.createPath(points, randomRgbaColor())
-    light.createPath(cameraPathPoints, randomHexColor());
+    // light.createPath(cameraPathPoints, randomHexColor());
 
     // Initialize helpers
     const helpers = new LightAxisUtilHelper(scene, camera, renderer);
@@ -298,33 +310,58 @@ const PerlinShader = ({ width = window.innerWidth, height = window.innerHeight, 
 
   // Animation loop
   let startTime = Date.now(); // Move this outside `animate`
+  const sphereUtils = new SphereUtils(scene, camera, textureLoader, planePad);  
+  const boundingObjects = new BoundingObjects(scene, 50, 0.25, 50);
+  boundingObjects.createBoundaryBox(50, 50, 50)
+
+  // Boxes
+  scene.add(box);
+  scene.add(multiBox);
+
+  const classGeometry = new Geometry(scene);
+  classGeometry.loadFBXModel();
+  classGeometry.loadGLTFModel();
+
+  // Handle mouse movements
+  window.addEventListener('mousemove', (event) => {
+      sphereUtils.updateHover(event);
+  });
+
+  // Handle clicks to create spheres
+  window.addEventListener('click', () => {
+      sphereUtils.handleClick();
+  });
+
+  // Toggle gravity on key press (for example, "G" key)
+  window.addEventListener('keydown', (event) => {
+      if (event.key === 'a' || event.key === 'l') {
+          sphereUtils.handleClick();
+      }
+      if (event.key === 'g') {
+          sphereUtils.toggleGravity();
+      }
+  });
+
 
   const animate = () => {
       requestAnimationFrame(animate);
-      // const elapsedTime = (Date.now() - startTime) / 1000; // Convert to seconds
-      // const speed = 5; // Speed factor
-      // const totalPoints = cameraPathPoints.length;
 
       // Step the physics world forward
       world.step(timeStep);
 
+      light.update();
+      sphereUtils.update();
+      boundingObjects.updateSpheres();
+
       // Sync Three.js meshes with Cannon.js bodies
       sandParticlesRef.current.forEach((mesh, i) => {
           const body = particleBodiesRef.current[i];
+          mesh.rotation.x += 0.11;
+          mesh.rotation.y += 0.11;
+          mesh.rotation.z += 0.11;
           mesh.position.copy(body.position);
           mesh.quaternion.copy(body.quaternion);
       });
-
-      // Calculate the index of the current point in the camera path
-      // const pointIndex = Math.floor(elapsedTime / speed) % totalPoints;
-      // const nextPointIndex = (pointIndex + 1) % totalPoints;
-
-      // // Interpolate between the current and next point
-      // const t = (elapsedTime % speed) / speed; // Value between 0 and 1 over 'speed' seconds
-      // const currentPoint = cameraPathPoints[pointIndex];
-      // const nextPoint = cameraPathPoints[nextPointIndex];
-      // camera.position.lerpVectors(currentPoint, nextPoint, t);
-      // camera.lookAt(scene.position); // Ensure the camera looks at the center of the scene
 
       // Update shader time
       noiseShader.uniforms.time.value = time * 0.001; // Update time uniform
@@ -350,6 +387,8 @@ const PerlinShader = ({ width = window.innerWidth, height = window.innerHeight, 
       // Clean up the world and scene on unmount
       sandParticlesRef.current.forEach(mesh => scene.remove(mesh));
       renderer.dispose();
+      classGeometry.dispose();
+      // classGeometry.meshDispose();
     };
   }, [width, height, particleCount]);
 

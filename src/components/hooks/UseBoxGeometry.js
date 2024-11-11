@@ -1,30 +1,32 @@
 import { useMemo } from 'react';
 import * as THREE from 'three';
+import { FBXLoader } from 'three/examples/jsm/loaders/FBXLoader.js';
+import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 
-import sun from '../../galaxy_imgs/sun.jpg';
+// Galaxial Images
 import stars from '../../galaxy_imgs/stars.jpg';
-import mars from '../../galaxy_imgs/mars.jpg';
-import earth from '../../galaxy_imgs/earth.jpg';
-import saturn from '../../galaxy_imgs/saturn.jpg';
-import venus from '../../galaxy_imgs/venus.jpg';
 import nebula from '../../galaxy_imgs/nebula.jpg';
-import jupiter from '../../galaxy_imgs/jupiter.jpg';
-import monkeyUrl from '../../GLTFs/monkey.glb';
-import DancingTwerk from '../../FBXs/DancingTwerk.fbx';
-import blue_concert from '../../img/blue_concert.jpg';
-import landing_dj from '../../img/landing_dj.jpg';
-import globe_concert from '../../img/globe_concert.jpg';
-import metal_blocks from '../../img/metal_blocks.jpg';
-import vasil_guitar from '../../img/vasil_guitar.jpg';
-import crowd_angle from '../../img/angle_outdoor_concerts.jpg';
+// Concert Images
 import bright_stage from '../../img/tube_concerts.avif';
-import blue_stage from '../../img/blue_stage_entrance.avif';
-import guitar_boy from '../../img/dark-greece.avif';
 import concert_lights from '../../img/bright-concert-lights.avif';
-
+import crowd_angle from '../../img/angle_outdoor_concerts.jpg';
+import DancingTwerk from '../../FBXs/DancingTwerk.fbx';
+import monkeyUrl from '../../GLTFs/monkey.glb';
+// import sun from '../../galaxy_imgs/sun.jpg';
+// import mars from '../../galaxy_imgs/mars.jpg';
+// import earth from '../../galaxy_imgs/earth.jpg';
+// import saturn from '../../galaxy_imgs/saturn.jpg';
+// import venus from '../../galaxy_imgs/venus.jpg';
+// import jupiter from '../../galaxy_imgs/jupiter.jpg';
+// import blue_concert from '../../img/blue_concert.jpg';
+// import landing_dj from '../../img/landing_dj.jpg';
+// import globe_concert from '../../img/globe_concert.jpg';
+// import metal_blocks from '../../img/metal_blocks.jpg';
+// import vasil_guitar from '../../img/vasil_guitar.jpg';
+// import blue_stage from '../../img/blue_stage_entrance.avif';
+// import guitar_boy from '../../img/dark-greece.avif';
 
 const textureLoader = new THREE.TextureLoader();
-
 // Hook to create a single-material box with shadows
 export const useBox = () => {
   return useMemo(() => {
@@ -75,33 +77,33 @@ export const useMultiBox = () => {
 };
 
 // // Hook to create a multi-material box with shadows
-// export const useGLTF = () => {
-//   return useMemo(() => {
-   
-//     const assetLoader = new GLTFLoader();
+export const useGLTF = (url = monkeyUrl) => {
+  return useMemo(() => {
+    const loader = new GLTFLoader();
+        loader.load(url, (gltf) => {
+            const model = gltf.scene;
+            //model.position.set(Math.random() * 10 - 5, Math.random() * 10 - 5, Math.random() * 10 - 5);
+            model.position.set(-12, 4, 10);
+            model.castShadow = model.receiveShadow = true;
+            this.scene.add(model);
+            this.gltfModels.push(model);
+        }, undefined, function (error) {
+            console.error(error);
+          });
 
-//     assetLoader.load(monkeyUrl, function (gltf) {
-//       const gltfModel = gltf.scene;
-//       setMonkey(gltfModel)
-//       scene.add(gltfModel);
-//       gltfModel.position.set(-12, 4, 10);
-
-//     }, undefined, function (error) {
-//       console.error(error);
-//     });
-
-//     return multiBox;
-//   }, []);
-// };
-
+    return loader;
+  }, []);
+};
 
 
-// loadFBXModel(url) {
-//     const loader = new FBXLoader();
-//     loader.load(url, (fbx) => {
-//         fbx.position.set(Math.random() * 10 - 5, Math.random() * 10 - 5, Math.random() * 10 - 5);
-//         fbx.castShadow = fbx.receiveShadow = true;
-//         this.scene.add(fbx);
-//         this.fbxModels.push(fbx);
-//     });
-// }
+
+export const loadFBXModel = (url = DancingTwerk) => {
+    const loader = new FBXLoader();
+    loader.load(url, (fbx) => {
+        fbx.position.set(Math.random() * 10 - 5, Math.random() * 10 - 5, Math.random() * 10 - 5);
+        fbx.castShadow = fbx.receiveShadow = true;
+        this.scene.add(fbx);
+        this.fbxModels.push(fbx);
+    });
+    return loader;    
+}

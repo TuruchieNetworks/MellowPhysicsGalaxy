@@ -6,12 +6,16 @@ import saturn from '../../galaxy_imgs/saturn.jpg';
 import venus from '../../galaxy_imgs/venus.jpg';
 import nebula from '../../galaxy_imgs/nebula.jpg';
 import jupiter from '../../galaxy_imgs/jupiter.jpg';
-import blue_concert from '../../img/blue_concert.jpg';
+
+// Concert Images
 import landing_dj from '../../img/landing_dj.jpg';
+import blue_landing from '../../img/blue_landing.jpg';
 import globe_concert from '../../img/globe_concert.jpg';
 import metal_blocks from '../../img/metal_blocks.jpg';
 import vasil_guitar from '../../img/vasil_guitar.jpg';
 import crowd_angle from '../../img/angle_outdoor_concerts.jpg';
+import purple_crowd from '../../img/purple_crowd.jpg';
+import angle_outdoor_concerts from '../../img/angle_outdoor_concerts.jpg';
 import bright_stage from '../../img/tube_concerts.avif';
 import blue_stage from '../../img/blue_stage_entrance.avif';
 import guitar_boy from '../../img/dark-greece.avif';
@@ -22,15 +26,18 @@ class ImageUtils {
         this.images = {
             concerts: [
                 landing_dj,
-                blue_concert,
+                blue_landing,
                 globe_concert,
                 metal_blocks,
                 vasil_guitar,
-                concert_lights,
                 crowd_angle,
-                blue_stage,
-                guitar_boy,
-                bright_stage,
+                purple_crowd,
+                angle_outdoor_concerts
+                // concert_lights,
+                // crowd_angle,
+                // blue_stage,
+                // guitar_boy,
+                // bright_stage,
             ],
             galaxies: [
                 sun,

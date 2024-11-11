@@ -5,26 +5,37 @@ import ImageCarousel from '../carousels/ImageCarousel';
 import HeaderLinks from '../headers/HeaderLinks';
 import useCarouselImages from '../hooks/UseCarouselImages';
 import Biography from '../layout/Bio'; 
-import metal_blocks from '../../img/metal_blocks.jpg';
-import globe_concert from '../../img/globe_concert.jpg';
-import landing_dj from '../../img/landing_dj.jpg';
-import blue_concert from '../../img/blue_concert.jpg';
-import vasil_guitar from '../../img/vasil_guitar.jpg';
 import PerlinShader from '../surface_shaders/PerlinShader';
 import GalaxialFallingSandPlane from '../physics_graphics/GalaxialFallingSandPlane';
+import ImageUtils from '../graphics/ImageUtils';
+import MusicBackground from '../backgroundVideos/MusicBackground';
+import NoiseShader from '../surface_shaders/NoiseShader';
 
-// Array of background images
-const images = [
-    landing_dj,
-    metal_blocks,
-    globe_concert,
-    blue_concert,
-    vasil_guitar
-];
+// const images = [
+//     landing_dj,
+//     blue_concert,
+//     globe_concert,
+//     metal_blocks,
+//     vasil_guitar
+// ];
+// import BackgroundCarousel from '../carousels/BackgroundCarousel';
+// import VideoBackground from '../backgroundVideos/VideoBackground';
+// import PhysicsAnimations from '../physics_graphics/PhysicsAnimations';
+// import NoisePlane from '../surface_shaders/NoisePlane';
+// import NoiseShaderMaterial from '../surface_shaders/NoiseShaderMaterial';
+// import FallingSand from '../physics_graphics/FallingSand';
+// import FallingInstancedSand from '../physics_graphics/FallingInstancedSands';
+// import SphereDrops from '../physics_graphics/SphereDrops';
+// import PerlinShader from '../surface_shaders/PerlinShader';
+// import NoiseShader from '../surface_shaders/NoiseShader';
+
+
 
 const ServicesGraphics = () => {
-    const intervalRef = useRef(null); // to hold the interval reference
-    const { idx, changeImage } = useCarouselImages(images);
+    const intervalRef = useRef(null); // to hold the interval reference    
+    const imageUtils = new ImageUtils();
+    const images = imageUtils.getAllConcertImages();
+    const { idx} = useCarouselImages(images);
     const videoRef = useRef(null); // Create a reference for the video element
 
     useEffect(() => {
@@ -37,7 +48,8 @@ const ServicesGraphics = () => {
     }, []); // Empty dependency array to run once on mount
 
     return (
-        <div className="video-background App"
+        // <div className="video-background App"
+        <div
             id="showcase"
             style={{
                 backgroundImage: `url(${images[idx]})`,
@@ -47,7 +59,16 @@ const ServicesGraphics = () => {
                 backgroundPosition: 'center',
             }}
         >
-            <div className="container showcase-container imageCover">
+        <PerlinShader />
+        <backgroundImage/>
+            <div className="container showcase-container imageCover"
+            style={{
+                backgroundImage: `url(${images[idx]})`,
+                transition: 'background-image 0.5s ease-in-out',
+                // height: '100vh',
+                backgroundSize: 'cover', 
+                backgroundPosition: 'center',
+            }}>
                 <div className='flex-carousel'>
                     <div className='showcase-container'>
                         <ImageCarousel />
@@ -66,8 +87,7 @@ const ServicesGraphics = () => {
                 </Link>
                 </div>
             </div>
-        {/* <PerlinShader /> */}
-        <GalaxialFallingSandPlane/>
+        {/* <GalaxialFallingSandPlane/> */}
         </div>
     );
 };

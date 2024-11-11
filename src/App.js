@@ -13,7 +13,7 @@ import BouncingSpheres from './components/physics_graphics/BouncingSpheres';
 import PhysicsAnimations from './components/physics_graphics/PhysicsAnimations';
 import { LoadedModels } from './components/loaded_models/LoadedModelTextures';
 import { SpinningBox } from './components/loaded_models/LoadedModelTextures';
-import ServicesGraphics from './components/layout/ServiceGraphics';
+import Services from './components/auth/Services';
 import AboutGraphics from './components/layout/AboutGraphics';
 import MusicGraphics from './components/layout/MusicGraphics';
 import GalaxialFallingSandPlane from './components/physics_graphics/GalaxialFallingSandPlane';
@@ -29,7 +29,7 @@ function App() {
         <Route exact path='/Landing' element={ <Landing/> } />
         <Route exact path='/About' element={ <AboutGraphics /> } />
         <Route exact path='/Contact' element={ <Contact /> } />
-        <Route exact path='/Services' element={ <ServicesGraphics /> } />
+        <Route exact path='/Services' element={ <Services /> } />
         <Route exact path='/Merchandise' element={ <Merchandise /> } />
         <Route exact path='/Visuals' element={ <GalaxialFallingSandPlane /> } />
         <Route exact path='/Music' element={ <MusicGraphics /> } />

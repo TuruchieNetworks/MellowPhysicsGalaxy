@@ -15,6 +15,7 @@ import blue_stage from '../../img/blue_stage_entrance.avif';
 import guitar_boy from '../../img/dark-greece.avif';
 import concert_lights from '../../img/bright-concert-lights.avif';
 import PerlinShader from '../surface_shaders/PerlinShader';
+import ServicesGraphics from '../layout/ServiceGraphics';
 // Array of background images
 const images = [
     globe_concert,
@@ -43,7 +44,7 @@ const Services = () => {
     }, []); // Empty dependency array to run once on mount
 
     return (
-        <div className="video-background App"
+        <div className=""
             id="showcase"
             style={{
                 backgroundImage: `url(${images[idx]})`,
@@ -53,26 +54,7 @@ const Services = () => {
                 backgroundPosition: 'center',
             }}
         >
-            <div className="container showcase-container imageCover">
-                <div className='flex-carousel'>
-                    <div className='showcase-container'>
-                        <ImageCarousel />
-                    </div>
-                    <div className='pcBio'>
-                        <Biography />
-                    </div>
-                </div>
-                <div className='phoneBio'>
-                    <Biography />
-                </div>
-                <div className='phone-state'>
-                <HeaderLinks />
-                <Link to="/about" className="btn party-lights">
-                    Read More
-                </Link>
-                </div>
-            </div>
-        <PerlinShader />
+        <ServicesGraphics />
         </div>
     );
 };

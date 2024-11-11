@@ -60,7 +60,16 @@ const Contact = () => {
         <PerlinShader />
         <PhysicsAnimations /> 
         */}
-            <div className="container showcase-container imageCover">
+        <GalaxialFallingSandPlane />
+            <div className="container showcase-container imageCover"
+            style={{
+                width: '100vw',
+                // height: '100vh',
+                backgroundSize: 'cover', 
+                backgroundPosition: 'center',
+                backgroundImage: `url(${images[idx]})`,
+                transition: 'background-image 0.5s ease-in-out',
+            }}>
                 <div className='flex-carousel'>
                     <div className='showcase-container'>
                         <ImageCarousel />
@@ -74,7 +83,6 @@ const Contact = () => {
                     Read More
                 </Link>
             </div>
-        <GalaxialFallingSandPlane />
         </div>
     );
 };

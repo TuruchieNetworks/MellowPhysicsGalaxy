@@ -6,31 +6,46 @@ import * as CANNON from 'cannon-es';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { FBXLoader } from 'three/examples/jsm/loaders/FBXLoader.js';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
-import { updatePhysicsField } from '../../components/hooks/UseSphereCollision';
+// import { updatePhysicsField } from '../../components/hooks/UseSphereCollision';
+
+// Graphics
+import { Mixer } from '../../components/graphics/Mixer';
+import { Plane } from '../../components/graphics/Plane';
+import { MomentumPhysics } from '../../components/graphics/MomentumPhysics';
+import { BoundingObjects } from '../graphics/BoundingObjects';
+import { Lighting } from '../graphics/Lighting';
+import { LightAxisUtilHelper } from '../graphics/LightAxisUtilHelper';
 import { useBox, useMultiBox } from '../../components/hooks/UseBoxGeometry';
 import { useGaussianVelocity, useGaussianMass } from '../../components/hooks/UseGaussianVelocity';
 
-import sun from '../../galaxy_imgs/sun.jpg';
-import stars from '../../galaxy_imgs/stars.jpg';
-import mars from '../../galaxy_imgs/mars.jpg';
-import earth from '../../galaxy_imgs/earth.jpg';
-import saturn from '../../galaxy_imgs/saturn.jpg';
-import venus from '../../galaxy_imgs/venus.jpg';
-import nebula from '../../galaxy_imgs/nebula.jpg';
-import jupiter from '../../galaxy_imgs/jupiter.jpg';
-import sceneGLTF from '../../GLTFs/scene.gltf';
+// Images
 import monkeyUrl from '../../GLTFs/monkey.glb';
-import DancingTwerk from '../../FBXs/DancingTwerk.fbx';
+import stars from '../../galaxy_imgs/stars.jpg';
+import nebula from '../../galaxy_imgs/nebula.jpg';
 import blue_concert from '../../img/blue_concert.jpg';
-import landing_dj from '../../img/landing_dj.jpg';
-import globe_concert from '../../img/globe_concert.jpg';
-import metal_blocks from '../../img/metal_blocks.jpg';
-import vasil_guitar from '../../img/vasil_guitar.jpg';
-import crowd_angle from '../../img/angle_outdoor_concerts.jpg';
-import bright_stage from '../../img/tube_concerts.avif';
-import blue_stage from '../../img/blue_stage_entrance.avif';
-import guitar_boy from '../../img/dark-greece.avif';
-import concert_lights from '../../img/bright-concert-lights.avif';
+// import { Gravity } from '../../components/graphics/Gravity';
+// import { SceneManager } from '../../components/graphics/SceneManager';
+// import { Geometry } from '../../components/graphics/Geometry';
+// import { Animation } from '../../components/graphics/Animation';
+// import { Controls } from '../../components/graphics/Controls';
+// import { OrbitingObjects } from '../../components/graphics/OrbitingObjects';
+// import sun from '../../galaxy_imgs/sun.jpg';
+// import mars from '../../galaxy_imgs/mars.jpg';
+// import earth from '../../galaxy_imgs/earth.jpg';
+// import saturn from '../../galaxy_imgs/saturn.jpg';
+// import venus from '../../galaxy_imgs/venus.jpg';
+// import jupiter from '../../galaxy_imgs/jupiter.jpg';
+// import sceneGLTF from '../../GLTFs/scene.gltf';
+// import DancingTwerk from '../../FBXs/DancingTwerk.fbx';
+// import landing_dj from '../../img/landing_dj.jpg';
+// import globe_concert from '../../img/globe_concert.jpg';
+// import metal_blocks from '../../img/metal_blocks.jpg';
+// import vasil_guitar from '../../img/vasil_guitar.jpg';
+// import crowd_angle from '../../img/angle_outdoor_concerts.jpg';
+// import bright_stage from '../../img/tube_concerts.avif';
+// import blue_stage from '../../img/blue_stage_entrance.avif';
+// import guitar_boy from '../../img/dark-greece.avif';
+// import concert_lights from '../../img/bright-concert-lights.avif';
 
 // const images = [
 //   globe_concert,
@@ -49,18 +64,6 @@ import concert_lights from '../../img/bright-concert-lights.avif';
 //   nebula,
 //   jupiter,
 // ];
-import { Mixer } from '../../components/graphics/Mixer';
-import { Plane } from '../../components/graphics/Plane';
-import { Gravity } from '../../components/graphics/Gravity';
-import { MomentumPhysics } from '../../components/graphics/MomentumPhysics';
-import { BoundingObjects } from '../graphics/BoundingObjects';
-import { Lighting } from '../graphics/Lighting';
-import { LightAxisUtilHelper } from '../graphics/LightAxisUtilHelper';
-import { SceneManager } from '../../components/graphics/SceneManager';
-import { Geometry } from '../../components/graphics/Geometry';
-import { Animation } from '../../components/graphics/Animation';
-import { Controls } from '../../components/graphics/Controls';
-import { OrbitingObjects } from '../../components/graphics/OrbitingObjects';
 
 const PhysicsAnimations = () => {
   const containerRef = useRef(null);

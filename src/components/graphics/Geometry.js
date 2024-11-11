@@ -9,13 +9,15 @@ import landing_dj from '../../img/landing_dj.jpg';
 import globe_concert from '../../img/globe_concert.jpg';
 import metal_blocks from '../../img/metal_blocks.jpg';
 import ImageUtils from './ImageUtils';
+import monkeyUrl from '../../GLTFs/monkey.glb';
+import DancingTwerk from '../../FBXs/DancingTwerk.fbx';
 export class Geometry {
     constructor(scene) {
         this.scene = scene;
         this.spheres = [];
         this.boxes = [];
-        this.gltfModels = [];
-        this.fbxModels = [];
+        this.gltfModels = [monkeyUrl];
+        this.fbxModels = [DancingTwerk];
         this.textureLoader = new THREE.TextureLoader();
         this.imageUtils = new ImageUtils(); // Create an instance of ImageUtils
 
@@ -92,27 +94,31 @@ export class Geometry {
         }
     }
 
-    loadGLTFModel(url) {
+    loadGLTFModel(url = monkeyUrl) {
         const loader = new GLTFLoader();
         loader.load(url, (gltf) => {
             const model = gltf.scene;
             //model.position.set(Math.random() * 10 - 5, Math.random() * 10 - 5, Math.random() * 10 - 5);
             model.position.set(-12, 4, 10);
             model.castShadow = model.receiveShadow = true;
+            model.castShadow = true;
+            model.receiveShadow = true;
             this.scene.add(model);
             this.gltfModels.push(model);
         }, undefined, function (error) {
             console.error(error);
-          });
+        });
     }
 
-    loadFBXModel(url) {
+    loadFBXModel(url = DancingTwerk) {
         const loader = new FBXLoader();
         loader.load(url, (fbx) => {
             fbx.position.set(Math.random() * 10 - 5, Math.random() * 10 - 5, Math.random() * 10 - 5);
             fbx.castShadow = fbx.receiveShadow = true;
             this.scene.add(fbx);
             this.fbxModels.push(fbx);
+        }, undefined, function (error) {
+            console.error(error);
         });
     }
 
@@ -151,12 +157,12 @@ export class Geometry {
             });
         }
     
-        // Only update models (GLTF and FBX) if any exist
-        if (this.gltfModels.length > 0 || this.fbxModels.length > 0) {
-            [...this.gltfModels, ...this.fbxModels].forEach(model => {
-                model.rotation.y += 0.01;
-            });
-        }
+        // // Only update models (GLTF and FBX) if any exist
+        // if (this.gltfModels.length > 0 || this.fbxModels.length > 0) {
+        //     [...this.gltfModels, ...this.fbxModels].forEach(model => {
+        //         model.rotation.y += 0.01;
+        //     });
+        // }
     }    
 
     // Implement other methods for creating geometries...
