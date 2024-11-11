@@ -8,19 +8,20 @@ import nebula from '../../galaxy_imgs/nebula.jpg';
 import { useCannonBox } from '../hooks/UseCannonGeometry';
 import { useCannonGround, useCannonUnderground } from '../hooks/UseCannonGround';
 import { LightAxisUtilHelper } from '../graphics/LightAxisUtilHelper';
+import { useBox, useMultiBox } from '../../components/hooks/UseBoxGeometry';
 
 
 const FallingSandPlane = ({ height = window.innerHeight, width = window.innerWidth, particleCount = 500 }) => {
-    const { randomHexColor, randomRgbaColor } = useColorUtils();
+    const { randomHexColor } = useColorUtils();
     const canvasRef = useRef();
     const sceneRef = useRef(new THREE.Scene());
-    const worldRef = useRef(new CANNON.World()); // Use CANNON.World()
+    const worldRef = useRef(new CANNON.World());
     const sandParticlesRef = useRef([]);
     const sphereBodiesRef = useRef([]);
     const sphereMeshRef = useRef([]);
     const particleBodiesRef = useRef([]);
-    // const box = useBox();
-    // const multiBox = useMultiBox()
+    const box = useBox();
+    const multiBox = useMultiBox();
     const { groundBody } = useCannonGround();
 
     // Define your box boundaries (min and max coordinates)
@@ -245,6 +246,9 @@ const FallingSandPlane = ({ height = window.innerHeight, width = window.innerWid
             world.addBody(particleBody);
             particleBodiesRef.current.push(particleBody);
         }
+
+        scene.add(box);
+        scene.add(multiBox);
 
         // Animation loop
         const animate = () => {

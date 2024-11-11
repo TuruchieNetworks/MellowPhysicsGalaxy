@@ -9,17 +9,20 @@ import { LightAxisUtilHelper } from '../graphics/LightAxisUtilHelper';
 import { Lighting } from '../graphics/Lighting';
 import SphereUtils from '../graphics/SphereUtils';
 import BoundingObjects from '../graphics/BoundingObjects';
+import { useBox, useMultiBox } from '../../components/hooks/UseBoxGeometry';
 
 const NoiseShader = ({ width = window.innerWidth, height = window.innerHeight, particleCount = 50 }) => {
     const canvasRef = useRef();
     const cameraRef = useRef();
+    const backgroundRef = useRef();
     const sandParticlesRef = useRef([]);
     const particleBodiesRef = useRef([]);
     const sceneRef = useRef(new THREE.Scene());
     const worldRef = useRef(new CANNON.World());
     const { randomHexColor, randomRgbaColor } = useColorUtils();
     const { starryBackgrounds, noisePlane, sawPlane, convolutionPlane } = useShaderUtils();
-    const backgroundRef = useRef();
+    const box = useBox();
+    const multiBox = useMultiBox();
 
     const noiseShader = {
         uniforms: {
@@ -173,7 +176,7 @@ const NoiseShader = ({ width = window.innerWidth, height = window.innerHeight, p
         // const cplane = new Plane(scene, 60, 60, randomHexColor(), 1, THREE.DoubleSide); // The last parameter is thickness
         // cplane.setRotation(-0.5 * Math.PI, 0, 0);
 
-        const plane = new THREE.Mesh(geo, convolutionMaterial); // Apply the shader material to the plane
+        const plane = new THREE.Mesh(geo, sawMaterial, 1, THREE.DoubleSide); // Apply the shader material to the plane
         plane.rotation.x = -Math.PI / 2; // Rotate the plane to face upwards
         scene.add(plane); // Add the plane to the scene // Add the plane geometry to the scene
         const planeGeometry = new THREE.PlaneGeometry(60, 60, 60);
@@ -182,7 +185,7 @@ const NoiseShader = ({ width = window.innerWidth, height = window.innerHeight, p
             side: THREE.DoubleSide
         });
 
-        const planePad = new THREE.Mesh(planeGeometry, sawMaterial)
+        const planePad = new THREE.Mesh(planeGeometry, planeMaterial)
         planePad.rotation.x = -Math.PI / 2;
         planePad.receiveShadow = true;
         scene.add(planePad);
@@ -254,7 +257,10 @@ const NoiseShader = ({ width = window.innerWidth, height = window.innerHeight, p
         boundingObjects.addSphere(3); // Initialize bounding objects
 
         // Create the cube boundary
-        boundingObjects.createBoundaryBox()
+        // boundingObjects.createBoundaryBox()
+
+        scene.add(box);
+        scene.add(multiBox);
 
         // // Step 4: Create an InstancedMesh for particles
         // const geometry = new THREE.SphereGeometry(0.2, 16, 16);
@@ -334,7 +340,7 @@ const NoiseShader = ({ width = window.innerWidth, height = window.innerHeight, p
 
         // Animation loop
         let startTime = Date.now(); // Move this outside `animate`
-        const sphereUtils = new SphereUtils(scene, camera, textureLoader, planePad);
+        const sphereUtils = new SphereUtils(scene, camera, textureLoader, plane);
         // Handle mouse movements
         window.addEventListener('mousemove', (event) => {
             sphereUtils.updateHover(event);
