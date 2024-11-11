@@ -9,6 +9,9 @@ export class Lighting {
             new THREE.Vector3(60, 10, -135),
             new THREE.Vector3(-20, 2, 80),
             new THREE.Vector3(100, 20, -30),
+            new THREE.Vector3(60, 44, -95),
+            new THREE.Vector3(-20, 2, 80),
+            new THREE.Vector3(100, 20, -30),
         ];
         this.fogPathPoints = [
             new THREE.Vector3(60, 5, -135),
