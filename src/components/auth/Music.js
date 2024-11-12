@@ -36,8 +36,15 @@ const Music = () => {
             backgroundPosition: 'center',
         }}
         >
-            <GalaxialFallingSandPlane/>
-            <div className="container showcase-container imageCover">
+            <div className="container showcase-container imageCover"
+                style={{
+                backgroundImage: `url(${images[idx]})`,
+                transition: 'background-image 0.5s ease-in-out',
+                width: '100vw',
+                height: '100vh',
+                backgroundSize: 'cover', 
+                backgroundPosition: 'center',
+            }}>
                 <div className='flex-carousel'>
                     <div className='showcase-container'>
                         <ImageCarousel />

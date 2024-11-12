@@ -11,7 +11,7 @@ import SphereUtils from '../graphics/SphereUtils';
 import BoundingObjects from '../graphics/BoundingObjects';
 import { useBox, useMultiBox } from '../../components/hooks/UseBoxGeometry';
 
-const NoiseShader = ({ width = window.innerWidth, height = window.innerHeight, particleCount = 50 }) => {
+const NoiseShader = ({ width = window.innerWidth, height = window.innerHeight, particleCount = 30 }) => {
     const canvasRef = useRef();
     const cameraRef = useRef();
     const backgroundRef = useRef();
@@ -272,29 +272,37 @@ const NoiseShader = ({ width = window.innerWidth, height = window.innerHeight, p
         // Step 5: Create sand particles with assigned material and interaction properties
         for (let i = 0; i < particleCount; i++) {
             // Three.js particle
-            const geometry = new THREE.SphereGeometry(0.2, 16, 16);
-            const material = new THREE.MeshStandardMaterial({ color: randomHexColor() });
+            const geometry = new THREE.SphereGeometry(1.6, 16, 16);
+            const material = mat;
+            // const material = new THREE.MeshStandardMaterial({ color: randomHexColor() });
+           
             const mesh = new THREE.Mesh(geometry, material);
             mesh.position.set(
                 (Math.random() - 0.5) * 10,
                 Math.random() * 10 + 10,
                 (Math.random() - 0.5) * 10
             );
+            const x = (Math.random() - 0.5) * 10;
+            const y = Math.random() * 10 + 10;
+            const z = (Math.random() - 0.5) * 10;
+
             scene.add(mesh);
             sandParticlesRef.current.push(mesh);
 
             // Cannon.js body for physics
-            const body = new CANNON.Sphere(0.2);
+            const body = new CANNON.Sphere(1.6);
             const particleBody = new CANNON.Body({
-                mass: 0.1, // Small mass for realistic sand behavior
+                mass: 13.1,
+                // position: new CANNON.Vec3(x, y, z),
+                // mass: 0.1, // Small mass for realistic sand behavior
                 position: new CANNON.Vec3(mesh.position.x, mesh.position.y, mesh.position.z),
-                material: sandMaterial // Assign the sand material for particle interactions
+                // material: sandMaterial // Assign the sand material for particle interactions
             });
 
             particleBody.addShape(body);
             particleBody.allowSleep = true;  // Allow particles to sleep when at rest
-            particleBody.sleepSpeedLimit = 0.1; // Lower speed threshold for sleeping
-            particleBody.sleepTimeLimit = 1;  // Time required to enter sleep state
+            particleBody.sleepSpeedLimit = 3.1; // Lower speed threshold for sleeping
+            particleBody.sleepTimeLimit = 3;  // Time required to enter sleep state
             world.addBody(particleBody);
             particleBodiesRef.current.push(particleBody);
         }

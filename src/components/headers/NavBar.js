@@ -41,7 +41,7 @@ const NavBar = () => {
                                 </Link>
                             </li>
                             <li>
-                                <Link to="/musicGraphics">
+                                <Link to="/visuals">
                                     <span className="fas fa-phone" onClick={handleMenuClick}> Visuals</span>
                                 </Link>
                             </li>

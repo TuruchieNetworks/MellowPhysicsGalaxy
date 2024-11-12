@@ -29,6 +29,7 @@ class SphereUtils {
 
         // Spheres and animations
         this.spheres = [];
+        this.sphereMeshes = []
         this.gravityEnabled = false;
         this.gravity = new THREE.Vector3(0, -9.81, 0); // Gravity vector
         this.cubeSize = cubeSize; //|| 100; // Default cube size for wall collision boundary
@@ -91,6 +92,7 @@ class SphereUtils {
 
         const newSphere = this.createSphere(textureURL, mass, velocity);
         this.spheres.push(newSphere);
+        this.sphereMeshes.push(newSphere.mesh);
 
         // Set a timeout to remove the sphere after 30 seconds
         const timeoutId = setTimeout(() => {
@@ -129,32 +131,36 @@ class SphereUtils {
         };
     }
 
-    checkWallCollision(sphere) {
+    checkWallCollision() {
         const halfCube = this.cubeSize / 2;
-        const { x, y, z } = sphere.mesh.position;
+        this.spheres.forEach(sphere => {
+            const { x, y, z } = sphere.mesh.position;
 
-        // Check collisions in each axis and reverse velocity if collision occurs
-        if (x - sphere.radius < -halfCube || x + sphere.radius > halfCube) {
-            sphere.velocity.x *= -1;
-        }
-        if (y - sphere.radius < -halfCube || y + sphere.radius > halfCube) {
-            sphere.velocity.y *= -1;
-        }
-        if (z - sphere.radius < -halfCube || z + sphere.radius > halfCube) {
-            sphere.velocity.z *= -1;
-        }
+            // Check collisions in each axis and reverse velocity if collision occurs
+            if (x - sphere.radius < -halfCube || x + sphere.radius > halfCube) {
+                sphere.velocity.x *= -1;
+            }
+            if (y - sphere.radius < -halfCube || y + sphere.radius > halfCube) {
+                sphere.velocity.y *= -1;
+            }
+            if (z - sphere.radius < -halfCube || z + sphere.radius > halfCube) {
+                sphere.velocity.z *= -1;
+            }
+        });
     }
 
     // Adjust the ground collision method to reflect velocity and include bounce damping
-    checkGroundCollision(sphere) {
+    checkGroundCollision() {
         // Assuming ground plane is at y = 0
-        if (sphere.mesh.position.y - sphere.radius <= 0) {
-            sphere.mesh.position.y = sphere.radius; // Set sphere above the ground
-            sphere.velocity.y *= -0.8; // Reflect velocity on collision with ground (bounce)
-            // Apply damping to simulate energy loss
-            sphere.velocity.x *= 0.98; // Damping factor for x velocity
-            sphere.velocity.z *= 0.98; // Damping factor for z velocity
-        }
+        this.spheres.forEach(sphere => {
+            if (sphere.mesh.position.y - sphere.radius <= 0) {
+                sphere.mesh.position.y = sphere.radius; // Set sphere above the ground
+                sphere.velocity.y *= -0.8; // Reflect velocity on collision with ground (bounce)
+                // Apply damping to simulate energy loss
+                sphere.velocity.x *= 0.98; // Damping factor for x velocity
+                sphere.velocity.z *= 0.98; // Damping factor for z velocity
+            }
+        });
     }
 
     handleSphereCollision(sphereA, sphereB) {
@@ -246,8 +252,6 @@ class SphereUtils {
                 }
             });
 
-            // Check collisions with other scene meshes
-            this.handleSceneMeshCollision(sphere);
             this.handlePlaneCollision(sphere); // Handle plane collision
         });
     }
@@ -255,6 +259,7 @@ class SphereUtils {
     // Central update method to be called each frame
     update() {
         this.updateSpheres();
+        this.handlePlaneCollision();
     }
 
     // Toggle gravity on or off

@@ -31,7 +31,7 @@ function App() {
         <Route exact path='/Contact' element={ <Contact /> } />
         <Route exact path='/Services' element={ <Services /> } />
         <Route exact path='/Merchandise' element={ <Merchandise /> } />
-        <Route exact path='/Visuals' element={ <GalaxialFallingSandPlane /> } />
+        <Route exact path='/Visuals' element={ <PhysicsAnimations /> } />
         <Route exact path='/Music' element={ <MusicGraphics /> } />
         <Route exact path='/LoadedModels' element={ <LoadedModels /> } />
         <Route exact path='/BouncingSpheres' element={ <BouncingSpheres /> } />
