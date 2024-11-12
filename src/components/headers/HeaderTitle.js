@@ -5,7 +5,7 @@ const HeaderTitle = () => {
     <div className='headerTitle'>
             <h2 className="party-lights spreader">
                 <div className="bright-cover type-writer ">
-                    <span className="spreader">Mellow Graphics</span>🎶 
+                    <span className="spreader">Mellow Graphics And More </span>🎶 
                     <span className="fas fa-drum"></span>
                 </div>
             </h2>
