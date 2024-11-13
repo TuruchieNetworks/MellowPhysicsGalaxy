@@ -17,6 +17,7 @@ import Services from './components/auth/Services';
 import AboutGraphics from './components/layout/AboutGraphics';
 import MusicGraphics from './components/layout/MusicGraphics';
 import GalaxialFallingSandPlane from './components/physics_graphics/GalaxialFallingSandPlane';
+import NoisePartices from './components/physics_graphics/NoiseParticles';
 
 // Array of background images
 
@@ -31,7 +32,7 @@ function App() {
         <Route exact path='/Contact' element={ <Contact /> } />
         <Route exact path='/Services' element={ <Services /> } />
         <Route exact path='/Merchandise' element={ <Merchandise /> } />
-        <Route exact path='/Visuals' element={ <PhysicsAnimations /> } />
+        <Route exact path='/Visuals' element={ <NoisePartices /> } />
         <Route exact path='/Music' element={ <MusicGraphics /> } />
         <Route exact path='/LoadedModels' element={ <LoadedModels /> } />
         <Route exact path='/BouncingSpheres' element={ <BouncingSpheres /> } />

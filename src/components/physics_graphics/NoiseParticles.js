@@ -12,7 +12,7 @@ import Shaders from "../graphics/Shaders";
 import SandParticles from "../graphics/SandParticles";
 
 
-const FallingSand = ({ height = window.innerHeight, width = window.innerWidth, particleCount = 500 }) => {
+const NoisePartices = ({ height = window.innerHeight, width = window.innerWidth, particleCount = 500 }) => {
     const { randomHexColor, randomRgbaColor } = useColorUtils();
     const canvasRef = useRef();
     const sceneRef = useRef(new THREE.Scene());
@@ -124,9 +124,9 @@ const FallingSand = ({ height = window.innerHeight, width = window.innerWidth, p
         //     mass: 0, // Set mass to 0 for static bodies
         //     position: new CANNON.Vec3(0, -1, 0)
         // });
-        underGroundBody.addShape(new CANNON.Plane()); // Add plane shape to ground body
-        world.addBody(underGroundBody);
-        underGroundBody.quaternion.setFromEuler(-Math.PI / 2, 0, 0);
+        groundBody.addShape(new CANNON.Plane()); // Add plane shape to ground body
+        world.addBody(groundBody);
+        groundBody.quaternion.setFromEuler(-Math.PI / 2, 0, 0);
 
 
         const boxPhysMat = new CANNON.Material();
@@ -311,7 +311,7 @@ const FallingSand = ({ height = window.innerHeight, width = window.innerWidth, p
                 mesh.quaternion.copy(body.quaternion);
             });
             shader.update();
-            // sandParticles.update();
+            sandParticles.update();
             shader.shaderMaterials().sawMaterial.uniforms.time.value = time * 0.001
 
             // Render the scene
@@ -329,4 +329,4 @@ const FallingSand = ({ height = window.innerHeight, width = window.innerWidth, p
     return <canvas ref={canvasRef} className="galaxial-animation" />;
 };
 
-export default FallingSand;
+export default NoisePartices;

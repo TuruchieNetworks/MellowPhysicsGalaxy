@@ -1,16 +1,24 @@
 import * as THREE from 'three';
 import * as CANNON from 'cannon-es';
+import Shaders from './Shaders';
 
 export class SandParticles {
-    constructor(scene, world, particleCount = 100) {
-        this.scene = scene;               // Stores the Three.js scene reference
-        this.world = world;               // Stores the Cannon.js world reference
-        this.particleCount = particleCount; // Sets the number of particles, defaulting to 100
-        this.sandParticles = [];          // Initializes an empty array to hold the particle meshes
-        this.particleBodies = [];         // Initializes an empty array to hold the Cannon.js bodies for particles
+    constructor(scene, world, material = new Shaders(), particleCount = 100) {
+        this.scene = scene;
+        this.world = world; 
+        this.material = material;
+        this.particleCount = particleCount;
+
+        // Initializes an empty array to hold the particle meshes
+        this.sandParticles = [];
+        this.noiseParticles = []; 
+
+        // Initializes an empty array to hold the Cannon.js bodies for particles
+        this.particleBodies = [];
+        this.noiseParticleBodies = []; 
 
         // Initialize particles when the class is instantiated
-        this.addParticles();              // Calls the method to create and add particles to the scene and physics world
+        //this.addParticles();  // Calls the method to create and add particles to the scene and physics world
     }
 
     randomHexColor() {
@@ -39,9 +47,52 @@ export class SandParticles {
                 position: new CANNON.Vec3(x, y, z),
                 linearDamping: 0.5, // Damping to simulate air resistance
             });
+
+            particleBody.allowSleep = true;  // Allow particles to sleep when at rest
+            particleBody.sleepSpeedLimit = 3.1; // Lower speed threshold for sleeping
+            particleBody.sleepTimeLimit = 3;  //
+
             particleBody.addShape(shape);
             this.particleBodies.push(particleBody);
             this.world.addBody(particleBody);
+        }
+    }
+
+    // Method to create the particles
+    createNoiseParticles() {
+        for (let i = 0; i < this.particleCount; i++) {
+            // Create Three.js particle
+            const geometry = new THREE.SphereGeometry(1.6, 16, 16);
+            const material = this.material;
+            const mesh = new THREE.Mesh(geometry, material);
+            mesh.castShadow = true;
+
+            // Set random position
+            mesh.position.set(
+                (Math.random() - 0.5) * 10,
+                Math.random() * 10 + 10,
+                (Math.random() - 0.5) * 10
+            );
+
+            // Add particle mesh to the scene
+            this.scene.add(mesh);
+            this.noiseParticles.push(mesh);
+
+            // Create Cannon.js physics body
+            const body = new CANNON.Sphere(1.6);
+            const particleBody = new CANNON.Body({
+                mass: 13.1,
+                position: new CANNON.Vec3(mesh.position.x, mesh.position.y, mesh.position.z),
+            });
+
+            particleBody.addShape(body);
+            particleBody.allowSleep = true;  // Allow particles to sleep when at rest
+            particleBody.sleepSpeedLimit = 3.1; // Lower speed threshold for sleeping
+            particleBody.sleepTimeLimit = 3;  // Time required to enter sleep state
+
+            // Add the particle body to the world
+            this.world.addBody(particleBody);
+            this.noiseParticleBodies.push(particleBody);
         }
     }
 
@@ -60,6 +111,13 @@ export class SandParticles {
             });
         } else {
             console.warn("Mismatch in the number of sand particles and particle bodies");
+        }
+
+        for (let i = 0; i < this.noiseParticles.length; i++) {
+          const mesh = this.noiseParticles[i];
+          const body = this.noiseParticleBodies[i];
+    
+          mesh.position.copy(body.position);  // Sync mesh with physics body position
         }
     }
 

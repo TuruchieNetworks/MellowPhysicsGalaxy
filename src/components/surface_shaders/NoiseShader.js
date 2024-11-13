@@ -4,14 +4,16 @@ import * as CANNON from "cannon-es";
 import stars from '../../galaxy_imgs/stars.jpg';
 import nebula from '../../galaxy_imgs/nebula.jpg';
 import useColorUtils from '../hooks/UseColorUtils';
-import useShaderUtils from '../hooks/UseShaderUtils';
+// import useShaderUtils from '../hooks/UseShaderUtils';
 import { LightAxisUtilHelper } from '../graphics/LightAxisUtilHelper';
 import { Lighting } from '../graphics/Lighting';
 import SphereUtils from '../graphics/SphereUtils';
 import BoundingObjects from '../graphics/BoundingObjects';
 import { useBox, useMultiBox } from '../../components/hooks/UseBoxGeometry';
+import Shaders from '../graphics/Shaders';
+import SandParticles from '../graphics/SandParticles';
 
-const NoiseShader = ({ width = window.innerWidth, height = window.innerHeight, particleCount = 30 }) => {
+const NoiseShader = ({ width = window.innerWidth, height = window.innerHeight, particleCount = 40 }) => {
     const canvasRef = useRef();
     const cameraRef = useRef();
     const backgroundRef = useRef();
@@ -20,13 +22,18 @@ const NoiseShader = ({ width = window.innerWidth, height = window.innerHeight, p
     const sceneRef = useRef(new THREE.Scene());
     const worldRef = useRef(new CANNON.World());
     const { randomHexColor, randomRgbaColor } = useColorUtils();
-    const { starryBackgrounds, noisePlane, sawPlane, convolutionPlane } = useShaderUtils();
+    // const { starryBackgrounds, noisePlane, sawPlane, convolutionPlane } = useShaderUtils();
     const box = useBox();
     const multiBox = useMultiBox();
 
+    let time = 0.1;
+    let shapeFactor = 0.5;
+    let deltaTime = 1 / 60;
+    const timeStep = 1 / 60;
+
     const noiseShader = {
         uniforms: {
-            time: { value: 0.0 },
+            time: { value: time },
             resolution: { value: new THREE.Vector2(window.innerWidth, window.innerHeight) },
         },
         vertexShader: `
@@ -39,6 +46,12 @@ const NoiseShader = ({ width = window.innerWidth, height = window.innerHeight, p
         fragmentShader: `
             uniform float time;
             varying vec2 vUv;
+            
+            // https://iquilezles.org/articles/distfunctions2d/
+            float sdfCircle(vec2 p, float r) {
+            // note: sqrt(pow(p.x, 2.0) + pow(p.y, 2.0)) - r;
+            return length(p) - r;
+            }
 
             float noise(float x, float z) {
                 return fract(sin(dot(vec2(x, z) + time, vec2(12.9898, 78.233))) * 43758.5453);
@@ -52,6 +65,19 @@ const NoiseShader = ({ width = window.innerWidth, height = window.innerHeight, p
                 vec2 uv = vUv * 10.0; // Scale the UV coordinates
                 float x = uv.x;
                 float z = uv.y;
+
+                // vec2 uv = gl_FragCoord.xy / u_resolution;
+                // uv = uv - 0.5;
+                // uv = uv * u_resolution / 100.0;
+
+                // note: set up basic colors
+                vec3 black = vec3(0.0);
+                vec3 white = vec3(1.0);
+                vec3 red = vec3(1.0, 0.0, 0.0);
+                vec3 blue = vec3(0.65, 0.85, 1.0);
+                vec3 orange = vec3(0.9, 0.6, 0.3);
+                vec3 color = black;
+                color = vec3(uv.x, uv.y, 0.0);
 
                 float burst = noise(x, z);
                 float value = 0.0;
@@ -67,42 +93,52 @@ const NoiseShader = ({ width = window.innerWidth, height = window.innerHeight, p
                     }
                 }
 
-                gl_FragColor = vec4(vec3(value + burst), 1.0); // Change the color based on the shader output
+                vec3 noiseColor = vec3(value + burst);
+                vec3 axialNoiseColor = vec3((value * value) + (burst + burst));
+                
+                // note: draw circle sdf
+                float radius = 2.5;
+                // radius = 3.0;
+                vec2 center = vec2(0.0, 0.0);
+                // center = vec2(sin(2.0 * time), 0.0);
+                float distanceToCircle = sdfCircle(uv - center, radius);
+                color = distanceToCircle > 0.0 ? noiseColor : axialNoiseColor;
+
+                // note: adding a black outline to the circle
+                // color = color * exp(distanceToCircle);
+                // color = color * exp(2.0 * distanceToCircle);
+                // color = color * exp(-2.0 * abs(distanceToCircle));
+                color = color * (1.0 - exp(-2.0 * abs(distanceToCircle)));
+                // color = color * (1.0 - exp(-5.0 * abs(distanceToCircle)));
+                // color = color * (1.0 - exp(-5.0 * abs(distanceToCircle)));
+
+                // note: adding waves
+                // color = color * 0.8 + color * 0.2;
+                // color = color * 0.8 + color * 0.2 * sin(distanceToCircle);
+                // color = color * 0.8 + color * 0.2 * sin(50.0 * distanceToCircle);
+                color = color * 0.8 + color * 0.2 * sin(50.0 * distanceToCircle - 4.0 * time);
+
+                // note: adding white border to the circle
+                // color = mix(white, color, step(0.1, distanceToCircle));
+                // color = mix(white, color, step(0.1, abs(distanceToCircle)));
+                //color = mix(white, color, smoothstep(0.0, 0.1, abs(distanceToCircle)));
+
+                // note: thumbnail?
+                // color = mix(white, color, abs(distanceToCircle));
+                // color = mix(white, color, 2.0 * abs(distanceToCircle));
+                // color = mix(white, color, 4.0 * abs(distanceToCircle));
+
+                gl_FragColor = vec4(color, 1.0); // Change the color based on the shader output
             }
         `,
     };
 
-    // Create a cube geometry
     // Apply convolution shader as background material
-    const noiseMaterial = new THREE.ShaderMaterial({
-        uniforms: noisePlane().uniforms,
-        vertexShader: noisePlane().vertexShader,
-        fragmentShader: noisePlane().fragmentShader,
-    });
-
-    const sawMaterial = new THREE.ShaderMaterial({
-        uniforms: sawPlane().uniforms,
-        vertexShader: sawPlane().vertexShader,
-        fragmentShader: sawPlane().fragmentShader,
-    });
-
-    // Apply convolution shader as background material
-    const convolutionMaterial = new THREE.ShaderMaterial({
-        uniforms: convolutionPlane().uniforms,
-        vertexShader: convolutionPlane().vertexShader,
-        fragmentShader: convolutionPlane().fragmentShader,
-    });
-
-    // Create a camera path with yet another color
-    const cameraPathPoints = [
-        new THREE.Vector3(60, 5, -35),
-        new THREE.Vector3(-10, 20, 30),
-        new THREE.Vector3(-20, 30, -30),
-    ];
-
-    const timeStep = 1 / 60;
-    // const time = 0.0;
-    // const speed = 5;
+    const shader = new Shaders(width, height, deltaTime, time, shapeFactor);
+    // const noiseMaterial =shader.shaderMaterials().noiseMaterial; 
+    const sawMaterial = shader.shaderMaterials().sawMaterial;
+    const boidMaterial = shader.shaderMaterials().boidsMaterial;
+    const convolutionMaterial = shader.shaderMaterials().convolutionMaterial;
 
     useEffect(() => {
         const scene = sceneRef.current;
@@ -150,9 +186,8 @@ const NoiseShader = ({ width = window.innerWidth, height = window.innerHeight, p
         const directionalLight = light.addDirectionalLight({ color: randomHexColor(), intensity: 1, position: { x: 10, y: 20, z: 10 }, castShadow: true });
 
         // Optionally, add a path for an object or animation
-        const points = [new THREE.Vector3(0, 0, 0), new THREE.Vector3(10, 0, 0)];
-        light.createPath(points, randomRgbaColor())
-        light.createPath(cameraPathPoints, randomHexColor());
+        // const points = [new THREE.Vector3(0, 0, 0), ns
+        light.createPath(light.oneCameraPath, randomHexColor());
 
         // Initialize helpers
         const helpers = new LightAxisUtilHelper(scene, camera, renderer);
@@ -160,6 +195,7 @@ const NoiseShader = ({ width = window.innerWidth, height = window.innerHeight, p
         // // Add helpers to the scene
         helpers.addAxesHelper(); // Adds the axes helper to the scene automatically
         helpers.addGridHelper(); // Also adds the grid helper to the scene
+
         // helpers.addHemisphereLightHelper(light);
         helpers.addShadowCameraHelper(directionalLight);
         helpers.addDirectionalLightHelper(directionalLight);
@@ -167,25 +203,23 @@ const NoiseShader = ({ width = window.innerWidth, height = window.innerHeight, p
 
         // Create plane geometry and material
         const geo = new THREE.PlaneGeometry(20, 20, 32, 32); // Increase the size of the plane
-        const mat = new THREE.ShaderMaterial({
-            uniforms: noiseShader.uniforms,
-            vertexShader: noiseShader.vertexShader,
-            fragmentShader: noiseShader.fragmentShader,
-        });    
-        
+        const mat = shader.shaderMaterials().noiseMaterial;
+
         // const cplane = new Plane(scene, 60, 60, randomHexColor(), 1, THREE.DoubleSide); // The last parameter is thickness
         // cplane.setRotation(-0.5 * Math.PI, 0, 0);
 
         const plane = new THREE.Mesh(geo, sawMaterial, 1, THREE.DoubleSide); // Apply the shader material to the plane
         plane.rotation.x = -Math.PI / 2; // Rotate the plane to face upwards
+        plane.receiveShadow = true;
         scene.add(plane); // Add the plane to the scene // Add the plane geometry to the scene
+
         const planeGeometry = new THREE.PlaneGeometry(60, 60, 60);
         const planeMaterial = new THREE.MeshPhongMaterial({
             color: randomHexColor(),
             side: THREE.DoubleSide
         });
 
-        const planePad = new THREE.Mesh(planeGeometry, planeMaterial)
+        const planePad = new THREE.Mesh(planeGeometry, planeMaterial, 1, THREE.DoubleSide)
         planePad.rotation.x = -Math.PI / 2;
         planePad.receiveShadow = true;
         scene.add(planePad);
@@ -197,6 +231,7 @@ const NoiseShader = ({ width = window.innerWidth, height = window.innerHeight, p
             position: new CANNON.Vec3(1, 20, 0),
             material: boxPhysMat
         });
+
         canonBoxBody.addShape(new CANNON.Box(new CANNON.Vec3(1, 1, 1)));
         world.addBody(canonBoxBody);
 
@@ -206,7 +241,7 @@ const NoiseShader = ({ width = window.innerWidth, height = window.innerHeight, p
         // Instanced mesh setup
         // const particleGeometry = new THREE.SphereGeometry(0.2, 16, 16);
         // const particleMaterial = new THREE.MeshStandardMaterial({ color: randomHexColor() });
-        
+
         // Correct the ground body instantiation
         // Step 1: Define materials for particles and ground
         const sandMaterial = new CANNON.Material("sandMaterial");
@@ -234,6 +269,7 @@ const NoiseShader = ({ width = window.innerWidth, height = window.innerHeight, p
             mass: 0, // Static ground
             material: groundMaterial
         });
+
         groundBody.addShape(groundShape);
         groundBody.quaternion.setFromEuler(-Math.PI / 2, 0, 0); // Rotate to lie flat
         world.addBody(groundBody);
@@ -241,12 +277,11 @@ const NoiseShader = ({ width = window.innerWidth, height = window.innerHeight, p
         // Set gravity for the world
         world.gravity.set(0, -9.81, 0);
 
-        const boundingObjects = new BoundingObjects(scene, 50, 0.25, 50);
+        const boundingObjects = new BoundingObjects(scene, 50, 0.50, 50);
         // console.log('Bounding Objects:', boundingObjects);
         // console.log('Spheres:', clickedSpheres);
 
         // Now create objectsWithPhysics
-
         const objectsWithPhysics = boundingObjects.spheres?.map(sphereObj => ({
             mesh: sphereObj.mesh,
             velocity: sphereObj.velocity,
@@ -254,20 +289,17 @@ const NoiseShader = ({ width = window.innerWidth, height = window.innerHeight, p
         })) || [];
         scene.add(objectsWithPhysics)
 
-        boundingObjects.addSphere(3); // Initialize bounding objects
-
         // Create the cube boundary
         // boundingObjects.createBoundaryBox()
-
-        scene.add(box);
-        scene.add(multiBox);
-
         // // Step 4: Create an InstancedMesh for particles
         // const geometry = new THREE.SphereGeometry(0.2, 16, 16);
         // const material = new THREE.MeshStandardMaterial({ color: randomHexColor() });
         // const particlesMesh = new THREE.InstancedMesh(geometry, material, particleCount);
         // particlesMesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
         // scene.add(particlesMesh);
+        boundingObjects.addSphere(3); // Initialize bounding objects
+        scene.add(box);
+        scene.add(multiBox);
 
         // Step 5: Create sand particles with assigned material and interaction properties
         for (let i = 0; i < particleCount; i++) {
@@ -275,8 +307,9 @@ const NoiseShader = ({ width = window.innerWidth, height = window.innerHeight, p
             const geometry = new THREE.SphereGeometry(1.6, 16, 16);
             const material = mat;
             // const material = new THREE.MeshStandardMaterial({ color: randomHexColor() });
-           
+
             const mesh = new THREE.Mesh(geometry, material);
+            mesh.castShadow = true;
             mesh.position.set(
                 (Math.random() - 0.5) * 10,
                 Math.random() * 10 + 10,
@@ -293,9 +326,9 @@ const NoiseShader = ({ width = window.innerWidth, height = window.innerHeight, p
             const body = new CANNON.Sphere(1.6);
             const particleBody = new CANNON.Body({
                 mass: 13.1,
-                // position: new CANNON.Vec3(x, y, z),
+                position: new CANNON.Vec3(x, y, z),
                 // mass: 0.1, // Small mass for realistic sand behavior
-                position: new CANNON.Vec3(mesh.position.x, mesh.position.y, mesh.position.z),
+                // position: new CANNON.Vec3(mesh.position.x, mesh.position.y, mesh.position.z),
                 // material: sandMaterial // Assign the sand material for particle interactions
             });
 
@@ -306,6 +339,10 @@ const NoiseShader = ({ width = window.innerWidth, height = window.innerHeight, p
             world.addBody(particleBody);
             particleBodiesRef.current.push(particleBody);
         }
+
+
+        // const sandParticles = new SandParticles(scene, world, mat, 40);
+        // sandParticles.createNoiseParticles();
 
         // const instancedMesh = new THREE.InstancedMesh(particleGeometry, particleMaterial, particleCount);
         // scene.add(instancedMesh);
@@ -349,6 +386,7 @@ const NoiseShader = ({ width = window.innerWidth, height = window.innerHeight, p
         // Animation loop
         let startTime = Date.now(); // Move this outside `animate`
         const sphereUtils = new SphereUtils(scene, camera, textureLoader, plane);
+
         // Handle mouse movements
         window.addEventListener('mousemove', (event) => {
             sphereUtils.updateHover(event);
@@ -372,51 +410,36 @@ const NoiseShader = ({ width = window.innerWidth, height = window.innerHeight, p
         let timeValue;
         const animate = (time) => {
             requestAnimationFrame(animate);
-            // const elapsedTime = (Date.now() - startTime) / 1000; // Convert to seconds
-            // const speed = 5; // Speed factor
-            // const totalPoints = cameraPathPoints.length;
+
+            time = time * 0.001 * Date.now();
 
             // Step the physics world forward
-
             world.step(timeStep);
 
             // Sync Three.js meshes with Cannon.js bodies
             sandParticlesRef.current.forEach((mesh, i) => {
                 const body = particleBodiesRef.current[i];
+                mesh.castShadow = true;
                 mesh.position.copy(body.position);
                 mesh.quaternion.copy(body.quaternion);
             });
 
+            // sandParticles.update();
+
             startTime++;
             timeValue = 0.1;
 
-            // const elapsedTime = (Date.now() - startTime) / 1000; // Convert to seconds
-            // const speed = 5; // Speed factor
-            // const totalPoints = cameraPathPoints.length;
-
-            // Step the physics world forward
-            world.step(timeStep);
+            // Update Camera
+            light.update()
+            shader.update()
 
             // Update spheres in each frame
             sphereUtils.update();
             boundingObjects.updateSpheres();
 
-            // Update Camera
-            light.update()
-
-            // // Calculate the index of the current point in the camera path
-            // const pointIndex = Math.floor(elapsedTime / speed) % totalPoints;
-            // const nextPointIndex = (pointIndex + 1) % totalPoints;
-
-            // // Interpolate between the current and next point
-            // const t = (elapsedTime % speed) / speed; // Value between 0 and 1 over 'speed' seconds
-            // const currentPoint = cameraPathPoints[pointIndex];
-            // const nextPoint = cameraPathPoints[nextPointIndex];
-            // camera.position.lerpVectors(currentPoint, nextPoint, t);
-            // camera.lookAt(scene.position); // Ensure the camera looks at the center of the scene
-
             // Update shader time
             noiseShader.uniforms.time.value = time * 0.001; // Update time uniform
+            
 
             renderer.render(scene, camera);
         };

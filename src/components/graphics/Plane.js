@@ -60,4 +60,4 @@ export class Plane {
         this.material.color.set(color);
     }
 }
-// export default Plane
+export default Plane

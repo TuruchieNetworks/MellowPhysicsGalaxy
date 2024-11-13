@@ -31,7 +31,7 @@ const textureLoader = new THREE.TextureLoader();
 export const useBox = () => {
   return useMemo(() => {
     const boxGeometry = new THREE.BoxGeometry(6, 8, 10);
-    const boxMaterial = new THREE.MeshStandardMaterial({
+    const boxMaterial = new THREE.MeshPhongMaterial({
       color: 0x00FF00,
       map: textureLoader.load(nebula),
     });

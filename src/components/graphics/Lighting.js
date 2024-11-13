@@ -13,6 +13,13 @@ export class Lighting {
             new THREE.Vector3(-20, 2, 80),
             new THREE.Vector3(100, 20, -30),
         ];
+        // Create a camera path with yet another color
+        this.oneCameraPath = [
+            new THREE.Vector3(60, 5, -35),
+            new THREE.Vector3(-10, 20, 30),
+            new THREE.Vector3(-20, 30, -30),
+        ];
+
         this.fogPathPoints = [
             new THREE.Vector3(60, 5, -135),
             new THREE.Vector3(-30, 2, 80),
@@ -81,6 +88,15 @@ export class Lighting {
     // Method to create a path (for example, for a moving object)
     createCameraPath(color = 0xff0000) {
         const pathGeometry = new THREE.BufferGeometry().setFromPoints(this.cameraPathPoints);
+        const pathMaterial = new THREE.LineBasicMaterial({ color: color });
+        const pathLine = new THREE.Line(pathGeometry, pathMaterial);
+        this.scene.add(pathLine);
+        return pathLine;
+    }
+
+    // Method to create a path (for example, for a moving object)
+    createOneCameraPath(color = 0xff0000) {
+        const pathGeometry = new THREE.BufferGeometry().setFromPoints(this.oneCameraPath);
         const pathMaterial = new THREE.LineBasicMaterial({ color: color });
         const pathLine = new THREE.Line(pathGeometry, pathMaterial);
         this.scene.add(pathLine);

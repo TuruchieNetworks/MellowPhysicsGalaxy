@@ -1,7 +1,8 @@
 import * as THREE from 'three';
+import Shaders from '../graphics/Shaders';
 
 export class BoundingObjects {
-  constructor(scene, objQty = 50, radius = 0.15, cubeSize = 50, gravity = new THREE.Vector3(0, -9.8, 0), dampingFactor = 0.99) {
+  constructor(scene, objQty = 50, radius = 0.65, cubeSize = 50, gravity = new THREE.Vector3(0, -9.8, 0), dampingFactor = 0.99) {
     this.spheres = [];
     this.objQty = objQty;
     this.radius = radius;
@@ -9,14 +10,14 @@ export class BoundingObjects {
     this.gravity = gravity;
     this.dampingFactor = dampingFactor;
     this.scene = scene;
-    this.cubeSize = cubeSize;
+    this.shader = new Shaders(); // Assuming Shader class includes your noise shader
 
     this.createSpheres();
   }
 
   createRandomHexColor = () => {
-      return '#' + Math.floor(Math.random() * 16777215).toString(16);
-  }
+    return '#' + Math.floor(Math.random() * 16777215).toString(16);
+  };
 
   createBoundaryBox() {
     const boundaryGeom = new THREE.BoxGeometry(this.cubeSize, this.cubeSize, this.cubeSize);
@@ -26,7 +27,7 @@ export class BoundingObjects {
     });
     const boundary = new THREE.Mesh(boundaryGeom, boundaryMat);
     this.scene.add(boundary);
-  };
+  }
 
   createSpheres() {
     // Clear existing spheres if any
@@ -40,7 +41,8 @@ export class BoundingObjects {
 
   addSphere() {
     const geometry = new THREE.SphereGeometry(this.radius, 32, 32);
-    const material = new THREE.MeshBasicMaterial({ color: Math.random() * 0xffffff });
+    const material = this.shader.shaderMaterials().sawMaterial; // Use the noise shader material
+
     const sphere = new THREE.Mesh(geometry, material);
 
     const mass = Math.random() * 2 + 1; // Mass between 1 and 3
@@ -52,7 +54,7 @@ export class BoundingObjects {
       (Math.random() - 0.5) * this.cubeSize
     );
 
-    sphere.receiveShadow = true; 
+    sphere.receiveShadow = true;
     this.spheres.push({ mesh: sphere, velocity: velocity, mass: mass });
     this.scene.add(sphere);
   }
@@ -64,21 +66,26 @@ export class BoundingObjects {
   }
 
   updateSpheres() {
-    this.spheres.forEach((meshedObj) => {
-      meshedObj.velocity.add(this.gravity); // Apply gravity
-      meshedObj.velocity.multiplyScalar(this.dampingFactor); // Apply damping
+    this.spheres.forEach((obj) => {
+      obj.mesh.rotation.x += 0.1;
+      obj.mesh.rotation.y += 0.1;
+      obj.mesh.rotation.z += 0.1;
 
-      meshedObj.mesh.position.add(meshedObj.velocity); // Update position
+      obj.velocity.add(this.gravity); // Apply gravity
+      obj.velocity.multiplyScalar(this.dampingFactor); // Apply damping
+
+      obj.mesh.position.add(obj.velocity); // Update position
 
       // Check bounds and reflect
       ['x', 'y', 'z'].forEach((axis) => {
         const halfCube = this.cubeSize / 2;
-        if (meshedObj.mesh.position[axis] > halfCube || meshedObj.mesh.position[axis] < -halfCube) {
-          meshedObj.velocity[axis] = -meshedObj.velocity[axis];
-          meshedObj.mesh.position[axis] = THREE.MathUtils.clamp(meshedObj.mesh.position[axis], -halfCube, halfCube);
+        if (obj.mesh.position[axis] > halfCube || obj.mesh.position[axis] < -halfCube) {
+          obj.velocity[axis] = -obj.velocity[axis];
+          obj.mesh.position[axis] = THREE.MathUtils.clamp(obj.mesh.position[axis], -halfCube, halfCube);
         }
       });
     });
   }
 }
-export default BoundingObjects
+
+export default BoundingObjects;
