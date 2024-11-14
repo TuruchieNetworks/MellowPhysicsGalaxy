@@ -318,7 +318,7 @@ const FallingGhoasts = ({ height = window.innerHeight, width = window.innerWidth
 
         // Event listeners for mouse movements and clicks
         const onMouseMove = (event) => fontMaker.onMouseMove(event);
-        const onMouseClick = (event) => fontMaker.onMouseClick(event, '/About');
+        const onMouseClick = (event) => fontMaker.onMouseClick(event, '/Visuals');
 
         // Attach event listeners
         window.addEventListener('mousemove', onMouseMove);
@@ -331,22 +331,8 @@ const FallingGhoasts = ({ height = window.innerHeight, width = window.innerWidth
             camera.updateProjectionMatrix();
             renderer.setSize(window.innerWidth, window.innerHeight);
 
-            // Determine new font size based on window width
-            const newSize = window.innerWidth <= 700 ? 1.4 : 1.6;
-
-            // Update font size only if it differs from the current size
-            if (fontMaker.textMesh && fontMaker.textMesh.geometry.parameters.size !== newSize) {
-                // Remove the existing text mesh
-                scene.remove(fontMaker.textMesh);
-
-                // Re-create the text mesh with the updated size
-                fontMaker.createTextMesh('Falling Ghoasts Rush: Shoot Or Die!!!', {
-                    color: 0xff0000,
-                    size: newSize,
-                    height: 0.3,
-                    position: { x: -10, y: -15, z: 0 },
-                });
-            }
+            // Adjust font size based on the new window width
+            fontMaker.adjustFontSize(fontMaker);
         };
 
         // Add window resize listener

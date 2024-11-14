@@ -68,6 +68,7 @@ class SphereUtils {
 
         const sphere = new THREE.Mesh(geometry, material);
         sphere.visible = false;
+        document.body.style.cursor = 'pointer';
         // const sphere = new THREE.Mesh(geometry, this.Shaders.shaderMaterials().starryMaterial);
         // document.body.style.cursor = 'pointer';
         return sphere;

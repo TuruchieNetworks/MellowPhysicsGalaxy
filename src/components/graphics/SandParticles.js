@@ -1,13 +1,22 @@
 import * as THREE from 'three';
 import * as CANNON from 'cannon-es';
 import Shaders from './Shaders';
+import ImageUtils from './ImageUtils';
 
 export class SandParticles {
     constructor(scene, world, material = new Shaders(), particleCount = 100) {
         this.scene = scene;
         this.world = world; 
         this.material = material;
+        this.shader = new Shaders();
         this.particleCount = particleCount;
+
+        // Initialize ImageUtils and raycaster
+        this.imageUtils = new ImageUtils();
+        this.textureURL = this.imageUtils.getRandomImage('concerts');
+        this.textureLoader = new THREE.TextureLoader();
+        this.raycaster = new THREE.Raycaster();
+        this.mouse = new THREE.Vector2();
 
         // Initializes an empty array to hold the particle meshes
         this.sandParticles = [];
@@ -15,19 +24,21 @@ export class SandParticles {
 
         // Initializes an empty array to hold the Cannon.js bodies for particles
         this.particleBodies = [];
-        this.noiseParticleBodies = []; 
+        this.noiseParticleBodies = [];
+
+        this.ghostParticles = [];
+        this.ghostBodies = [];
 
         // Initialize particles when the class is instantiated
-        //this.addParticles();  // Calls the method to create and add particles to the scene and physics world
+        this.addParticles();  // Calls the method to create and add particles to the scene and physics world
     }
 
     randomHexColor() {
         return `#${Math.floor(Math.random() * 16777215).toString(16)}`;
     }
 
-    // Method to create particles and add them to the scene and physics world
-    addParticles() {
-        for (let i = 0; i < this.particleCount; i++) {
+    addParticles(count = 100) {
+        for (let i = 0; i < count; i++) {
             // Create Three.js mesh
             const geometry = new THREE.SphereGeometry(0.2, 16, 16);
             const material = new THREE.MeshStandardMaterial({ color: this.randomHexColor() });
@@ -36,23 +47,33 @@ export class SandParticles {
             const y = Math.random() * 10 + 10; // Start above the ground
             const z = (Math.random() - 0.5) * 10;
             mesh.position.set(x, y, z);
-
+    
             this.sandParticles.push(mesh);
             this.scene.add(mesh);
-
+    
             // Create Cannon.js body
             const shape = new CANNON.Sphere(0.2);
             const particleBody = new CANNON.Body({
-                mass: 1.0, // Adjust mass for proper falling behavior
+                mass: 0.5, // Adjust mass for better fall behavior
                 position: new CANNON.Vec3(x, y, z),
-                linearDamping: 0.5, // Damping to simulate air resistance
+                linearDamping: 0.1, // Reduced damping for more natural fall
             });
-
-            particleBody.allowSleep = true;  // Allow particles to sleep when at rest
-            particleBody.sleepSpeedLimit = 3.1; // Lower speed threshold for sleeping
-            particleBody.sleepTimeLimit = 3;  //
-
+    
+            // Optional: Apply a random force to give particles an initial splash effect
+            const randomForce = new CANNON.Vec3(
+                Math.random() * 5 - 2.5, 
+                Math.random() * 5 + 10, 
+                Math.random() * 5 - 2.5
+            );
+            particleBody.applyForce(randomForce, particleBody.position);
+    
+            // Allow sleep with adjusted limits
+            particleBody.allowSleep = true;
+            particleBody.sleepSpeedLimit = 1.0;  // Adjust sleeping speed
+            particleBody.sleepTimeLimit = 5;    // Allow sleep to take a bit longer
+    
             particleBody.addShape(shape);
+    
             this.particleBodies.push(particleBody);
             this.world.addBody(particleBody);
         }
@@ -73,6 +94,21 @@ export class SandParticles {
                 Math.random() * 10 + 10,
                 (Math.random() - 0.5) * 10
             );
+
+            const intersects = this.raycaster.intersectObjects(this.scene.children);
+            if (intersects.length > 0 && intersects[0].object.userData.clickable) {
+                document.body.style.cursor = 'pointer';
+        
+            //   // Check if textMesh exists and has a material before setting it
+            //   if (mesh && mesh.material) { // !== this.shader.shaderMaterials().noiseMaterial) {
+            //     mesh.material = this.shader.shaderMaterials().noiseMaterial;
+            //   }
+            } else {
+                document.body.style.cursor = 'default';
+            //   if (mesh) {
+            //     mesh.material = new THREE.MeshPhongMaterial({ map: this.textureLoader.load(this.textureURL) });
+            //   }
+            }
 
             // Add particle mesh to the scene
             this.scene.add(mesh);
@@ -96,6 +132,83 @@ export class SandParticles {
         }
     }
 
+    // Create ghost particles in the scene and physics world
+    createGhosts(ghostCount = 60) {
+        for (let i = 0; i < ghostCount; i++) {
+            // Create Three.js ghost particle
+            const geometry = new THREE.SphereGeometry(0.2, 16, 16);
+            const material = new THREE.MeshStandardMaterial({ color: this.randomHexColor() });
+            const mesh = new THREE.Mesh(geometry, material);
+            mesh.position.set(
+                (Math.random() - 0.5) * 10,
+                Math.random() * 10 + 10,
+                (Math.random() - 0.5) * 10
+            );
+
+            this.scene.add(mesh);
+            this.ghostParticles.push(mesh);
+
+            // Create corresponding Cannon.js body for the ghost
+            const shape = new CANNON.Sphere(0.2);
+            const ghostBody = new CANNON.Body({
+                mass: 0,  // Ghosts have no physics interactions
+                position: new CANNON.Vec3(mesh.position.x, mesh.position.y, mesh.position.z),
+            });
+            ghostBody.addShape(shape);
+            this.world.addBody(ghostBody);
+            this.ghostBodies.push(ghostBody);
+        }
+    }
+
+    // Call this method to initialize raycast listeners
+    enableRaycast() {
+        window.addEventListener('click', this.onMouseClick, false);
+        window.addEventListener('mousemove', this.onMouseMove, false); // Add mousemove event listener
+    }
+
+    // Call this method to disable raycast listeners (e.g., on cleanup)
+    disableRaycast() {
+        window.removeEventListener('click', this.onMouseClick, false);
+        window.removeEventListener('mousemove', this.onMouseMove, false); // Remove mousemove event listener
+    }
+
+    // Helper method for setting up raycaster
+    setRaycasterFromMouse(event) {
+        this.mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+        this.mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+        this.raycaster.setFromCamera(this.mouse, this.camera);
+    }
+
+    // Handle mouse move to change cursor style and material
+    onMouseMove(event) {
+        this.setRaycasterFromMouse(event);
+
+        const intersects = this.raycaster.intersectObjects(this.scene.children);
+        if (intersects.length > 0 && intersects[0].object.userData.clickable) {
+        document.body.style.cursor = 'pointer';
+
+        // Check if textMesh exists and has a material before setting it
+        if (this.textMesh && this.textMesh.material !== this.shader.shaderMaterials().noiseMaterial) {
+            this.textMesh.material = this.shader.shaderMaterials().noiseMaterial;
+        }
+        } else {
+        document.body.style.cursor = 'default';
+        if (this.textMesh) {
+            this.textMesh.material = new THREE.MeshPhongMaterial({ map: this.textureLoader.load(this.textureURL) });
+        }
+        }
+    }
+
+    // Handle mouse click for navigation
+    //   onMouseClick(event, path = '/FallingGhoasts') {
+    //     this.setRaycasterFromMouse(event);
+    //     const intersects = this.raycaster.intersectObjects(this.scene.children);
+
+    //     if (intersects.length > 0 && intersects[0].object.userData.clickable) {
+    //       console.log('Text clicked!');
+    //       this.navigate(path); // Use `navigate` from `useNavigate`
+    //     }
+    //   }
     // Sync each Three.js mesh with its corresponding Cannon.js body position
     update() {
         if (this.sandParticles.length === this.particleBodies.length) {
@@ -113,22 +226,64 @@ export class SandParticles {
             console.warn("Mismatch in the number of sand particles and particle bodies");
         }
 
-        for (let i = 0; i < this.noiseParticles.length; i++) {
-          const mesh = this.noiseParticles[i];
-          const body = this.noiseParticleBodies[i];
-    
-          mesh.position.copy(body.position);  // Sync mesh with physics body position
+        if (this.noiseParticles.length === this.noiseParticleBodies.length) {
+            for (let i = 0; i < this.noiseParticles.length; i++) {
+            const mesh = this.noiseParticles[i];
+            const body = this.noiseParticleBodies[i];
+        
+            mesh.position.copy(body.position);  // Sync mesh with physics body position
+            }
+        }
+
+        if (this.ghostParticles.length === this.ghostBodies.length) {
+            this.ghostParticles.forEach((mesh, i) => {
+                const body = this.ghostBodies[i];
+                mesh.position.copy(body.position);
+                mesh.quaternion.copy(body.quaternion);
+            });
         }
     }
 
-    // Optional method to retrieve the particles if needed externally
-    getParticles() {
+    // Cleanup method to remove all particles and bodies from the scene and world
+    cleanup() {
+        // Remove sand particles and their Cannon bodies
+        this.sandParticles.forEach((mesh) => this.scene.remove(mesh));
+        this.particleBodies.forEach((body) => this.world.removeBody(body));
+
+        // Remove ghost particles and their Cannon bodies
+        this.ghostParticles.forEach((mesh) => this.scene.remove(mesh));
+        this.ghostBodies.forEach((body) => this.world.removeBody(body));
+
+        // Dispose of materials and geometries if needed
+        this.sandParticles.forEach((mesh) => {
+            mesh.geometry.dispose();
+            mesh.material.dispose();
+        });
+
+        this.ghostParticles.forEach((mesh) => {
+            mesh.geometry.dispose();
+            mesh.material.dispose();
+        });
+    }
+
+    // Optional method to retrieve the sand particles if needed externally
+    getSandParticles() {
         return this.sandParticles;
     }
 
-    // Optional method to retrieve the Cannon Bodies if needed externally
+    // Optional method to retrieve the ghost particles if needed externally
+    getGhostParticles() {
+        return this.ghostParticles;
+    }
+
+    // Optional method to retrieve the Cannon.js bodies for sand particles
     getParticleBodies() {
         return this.particleBodies;
+    }
+
+    // Optional method to retrieve the Cannon.js bodies for ghost particles
+    getGhostBodies() {
+        return this.ghostBodies;
     }
 }
 

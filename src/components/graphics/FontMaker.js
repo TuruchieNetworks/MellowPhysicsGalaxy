@@ -36,19 +36,32 @@ export default class FontMaker {
     this.onMouseClick = this.onMouseClick.bind(this);
     this.onMouseMove = this.onMouseMove.bind(this); // Bind onMouseMove
 
-    // Load the font
-    this.loadFont();  // Load font on initialization
+
+    // Load the font asynchronously
+    this.initFont();
   }
 
-  // Load the font asynchronously
-  loadFont() {
-    this.loader.load(this.fontPath, (font) => {
-      this.font = font;
-      console.log('Font loaded:', font);  // Check the font object here
-      this.createTextMesh(this.defaultText);
-    }, undefined, (error) => {
-      console.error('Error loading font:', error);
+  // Wrap font loading in a promise for async/await compatibility
+  async loadFont() {
+    return new Promise((resolve, reject) => {
+      this.loader.load(this.fontPath,
+        (font) => resolve(font),
+        undefined,
+        (error) => reject(error)
+      );
     });
+  }
+
+  // Initialize font loading
+  async initFont() {
+    try {
+      this.font = await this.loadFont();
+      console.log('Font loaded:', this.font);
+      this.createTextMesh(this.defaultText);
+      this.createTextMesh(this.defaultText);
+    } catch (error) {
+      console.error('Error loading font:', error);
+    }
   }
 
   // Method to create the text mesh once the font is loaded
@@ -194,10 +207,39 @@ export default class FontMaker {
     }
   }
 
+  adjustFontSize() {
+    // Determine the font size based on window width
+    const newSize = window.innerWidth <= 700 ? 0.8 : 1.6;
+  
+    // Only update the font size if it's different from the current size
+    if (this.textMesh && this.textMesh.geometry.parameters.size !== newSize) {
+      // Update the existing text mesh size
+      this.textMesh.geometry = new TextGeometry(this.defaultText, {
+        font: this.font,
+        size: newSize,
+        height: 0.3,
+        bevelEnabled: true,
+        bevelThickness: 0.1,
+        bevelSize: 0.1,
+        bevelSegments: 5,
+        texturedURL: this.textureURL,
+        customShader: this.shader
+      });
+      
+      // Reposition the text to stay centered
+      const textGeometry = this.textMesh.geometry;
+      textGeometry.computeBoundingBox();
+      const boundingBox = textGeometry.boundingBox;
+      const xMid = -0.5 * (boundingBox.max.x - boundingBox.min.x);
+      const yMid = -0.5 * (boundingBox.max.y - boundingBox.min.y);
+      textGeometry.translate(xMid, yMid, 0); // Center the geometry
+    }
+  }
+
   // Update method that calls both rotation methods
   update() {
-    this.rotatePhrase();  // Calls rotation for the phrase
     this.rotateText();    // Calls rotation for text on X-axis
+    this.rotatePhrase();  // Calls rotation for phrases on y-phrase
   }
 
   // Dispose method to clean up resources
@@ -225,5 +267,4 @@ export default class FontMaker {
 
     console.log('FontMaker resources disposed.');
   }
-
 }
