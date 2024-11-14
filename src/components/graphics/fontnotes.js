@@ -750,7 +750,6 @@ export default class FontMaker {
       this.textMesh.material = this.shader.shaderMaterials().noiseMaterial;
     } else {
       document.body.style.cursor = 'default';
-      this.textMesh.material = this.textureLoader.load(this.textureURL) 
     }
   }
 

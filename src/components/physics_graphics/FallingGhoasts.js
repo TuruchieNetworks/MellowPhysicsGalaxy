@@ -309,7 +309,7 @@ const FallingGhoasts = ({ height = window.innerHeight, width = window.innerWidth
         // Event listeners for mouse movements and clicks
 
         const onMouseMove = (event) => fontMaker.onMouseMove(event);
-        const onMouseClick = (event) => fontMaker.onMouseClick(event, '/FallingSand');
+        const onMouseClick = (event) => fontMaker.onMouseClick(event, '/About');
 
         // Attach event listeners
         window.addEventListener('mousemove', onMouseMove);
