@@ -1,4 +1,5 @@
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useRef } from "react";
+import { useNavigate } from 'react-router-dom';
 import * as THREE from "three";
 import * as CANNON from "cannon-es"; // Import Cannon.js here
 import useColorUtils from '../hooks/UseColorUtils';
@@ -10,10 +11,12 @@ import { useCannonGround, useCannonUnderground } from '../hooks/UseCannonGround'
 import { LightAxisUtilHelper } from '../graphics/LightAxisUtilHelper';
 import Shaders from "../graphics/Shaders";
 import SandParticles from "../graphics/SandParticles";
+import FontMaker from "../graphics/FontMaker";
+import SphereUtils from "../graphics/SphereUtils";
 
 
 const NoisePartices = ({ height = window.innerHeight, width = window.innerWidth, particleCount = 500 }) => {
-    const { randomHexColor, randomRgbaColor } = useColorUtils();
+    const { randomHexColor } = useColorUtils();
     const canvasRef = useRef();
     const sceneRef = useRef(new THREE.Scene());
     const worldRef = useRef(new CANNON.World()); // Use CANNON.World()
@@ -21,6 +24,7 @@ const NoisePartices = ({ height = window.innerHeight, width = window.innerWidth,
     const sphereBodiesRef = useRef([]);
     const sphereMeshRef = useRef([]);
     const particleBodiesRef = useRef([]);
+    const navigate = useNavigate();
     // const box = useBox();
     // const multiBox = useMultiBox();
 
@@ -278,8 +282,89 @@ const NoisePartices = ({ height = window.innerHeight, width = window.innerWidth,
             particleBodiesRef.current.push(particleBody);
         }
 
+        const sphereUtils = new SphereUtils(scene, camera, textureLoader, plane);
         const sandParticles = new SandParticles(scene, world, shader.shaderMaterials().noiseMaterial, 40);
         sandParticles.createNoiseParticles();
+
+        // Pass both scene and camera to the FontMaker constructor
+        const fontMaker = new FontMaker(scene, camera, navigate);
+        
+        // Load the font and create the text mesh
+        fontMaker.loadFont(() => {
+            fontMaker.createTextMesh('Falling Ghoasts Rush: Shoot Or Die!!!', {
+                color: 0xff0000,
+                size: 1.6,
+                height: 0.3,
+                position: { x: -10, y: -15, z: 0 }, // Adjust y-position to place text below main scene area
+            });
+        
+            // Optionally enable raycasting for click detection
+            fontMaker.enableRaycast();
+        });
+
+        // Event listeners for mouse movements and clicks
+
+        const onMouseMove = (event) => fontMaker.onMouseMove(event);
+        // const onMouseClick = (event) => fontMaker.onMouseClick(event, '/About');
+
+        // // Attach event listeners
+        window.addEventListener('mousemove', onMouseMove);
+        // window.addEventListener('click', onMouseClick);
+
+        // Handle mouse movements
+        window.addEventListener('mousemove', (event) => {
+            sphereUtils.updateHover(event);
+        });
+
+        // Handle clicks to create spheres
+        window.addEventListener('click', () => {
+            sphereUtils.handleClick();
+        });
+
+        // Toggle gravity on key press (for example, "G" key)
+        window.addEventListener('keydown', (event) => {
+            if (event.key === 'a' || event.key === 'l') {
+                sphereUtils.handleClick();
+            }
+            if (event.key === 'g') {
+                sphereUtils.toggleGravity();
+            }
+        });    
+
+        // Handle window resizing and adjust font size based on screen width
+        const handleWindowResize = () => {
+            const newWidth = window.innerWidth;
+            const newHeight = window.innerHeight;
+      
+            // Adjust the camera and renderer dimensions directly
+            camera.aspect = newWidth / newHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(newWidth, newHeight);
+            // Update camera and renderer on window resize
+            camera.aspect = newWidth / newHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(newWidth, newHeight);
+
+            // Determine new font size based on window width
+            const newSize = newWidth <= 700 ? 1.0 : 1.6;
+
+            // Update font size only if it differs from the current size
+            if (fontMaker.textMesh && fontMaker.textMesh.geometry.parameters.size !== newSize) {
+                // Remove the existing text mesh
+                scene.remove(fontMaker.textMesh);
+
+                // Re-create the text mesh with the updated size
+                fontMaker.createTextMesh('Falling Ghoasts Rush: Shoot Or Die!!!', {
+                    color: 0xff0000,
+                    size: newSize,
+                    height: 0.3,
+                    position: { x: -10, y: -15, z: 0 },
+                });
+            }
+        };
+
+        // Add window resize listener
+        window.addEventListener('resize', handleWindowResize);
 
         // Add a ground plane
         // const groundGeometry = new THREE.PlaneGeometry(20, 20);
@@ -310,7 +395,10 @@ const NoisePartices = ({ height = window.innerHeight, width = window.innerWidth,
                 mesh.position.copy(body.position);
                 mesh.quaternion.copy(body.quaternion);
             });
+
             shader.update();
+            fontMaker.update()
+            sphereUtils.update();
             sandParticles.update();
             shader.shaderMaterials().sawMaterial.uniforms.time.value = time * 0.001
 

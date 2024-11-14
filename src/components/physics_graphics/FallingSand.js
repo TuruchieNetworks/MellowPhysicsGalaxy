@@ -6,7 +6,7 @@ import useColorUtils from '../hooks/UseColorUtils';
 import stars from '../../galaxy_imgs/stars.jpg';
 import nebula from '../../galaxy_imgs/nebula.jpg';
 
-import { useBox, useMultiBox } from '../hooks/UseBoxGeometry';
+// import { useBox, useMultiBox } from '../hooks/UseBoxGeometry';
 import { useCannonBox } from '../hooks/UseCannonGeometry';
 import { useCannonGround, useCannonUnderground } from '../hooks/UseCannonGround';
 import { LightAxisUtilHelper } from '../graphics/LightAxisUtilHelper';
@@ -25,8 +25,8 @@ const FallingSand = ({ height = window.innerHeight, width = window.innerWidth, p
     const sphereMeshRef = useRef([]);
     const particleBodiesRef = useRef([]);
     const navigate = useNavigate();
-    const box = useBox();
-    const multiBox = useMultiBox();
+    // const box = useBox();
+    // const multiBox = useMultiBox();
     // Access the Cannon.js ground
     const { groundBody } = useCannonGround();
     const { underGroundBody } = useCannonUnderground();
@@ -291,18 +291,18 @@ const FallingSand = ({ height = window.innerHeight, width = window.innerWidth, p
             particleBodiesRef.current.push(particleBody);
         }
 
-        box.position.y = 4;
-        multiBox.position.y = 4;
+        // box.position.y = 4;
+        // multiBox.position.y = 4;
 
-        scene.add(box);
-        scene.add(multiBox);
+        // scene.add(box);
+        // scene.add(multiBox);
 
         const sandParticles = new SandParticles(scene, world, shader.shaderMaterials().noiseMaterial, 40);
         sandParticles.createNoiseParticles(1.4);// Assuming you have access to both `scene` and `camera` objects
 
         // Pass both scene and camera to the FontMaker constructor
         const fontMaker = new FontMaker(scene, camera, navigate);
-        
+
 
 
         // fontMaker.initialize('Falling Ghoasts Rush: Shoot Or Die Trying!!!', {
@@ -312,32 +312,64 @@ const FallingSand = ({ height = window.innerHeight, width = window.innerWidth, p
         //     position: { x: -10, y: -15, z: 0 }, // Adjust y-position to place text below main scene area
         // });
 
-           // Load the font and create the text mesh
-           fontMaker.loadFont(() => {
+        // Load the font and create the text mesh
+        fontMaker.loadFont(() => {
             fontMaker.createTextMesh('Falling Ghoasts Rush: Shoot Or Die!!!', {
                 color: 0xff0000,
                 size: 1.6,
                 height: 0.3,
                 position: { x: -10, y: -15, z: 0 }, // Adjust y-position to place text below main scene area
             });
-        
+
             // Optionally enable raycasting for click detection
             fontMaker.enableRaycast();
         });
-        
+
 
         //     // Optionally enable raycasting for click detection
         //     fontMaker.enableRaycast();
         // });
 
         // Event listeners for mouse movements and clicks
-
         const onMouseMove = (event) => fontMaker.onMouseMove(event);
         const onMouseClick = (event) => fontMaker.onMouseClick(event, '/FallingGhoasts');
 
         // Attach event listeners
         window.addEventListener('mousemove', onMouseMove);
         window.addEventListener('click', onMouseClick);
+
+
+
+        // Handle window resizing and adjust font size based on screen width
+        const handleWindowResize = () => {
+            // Update camera and renderer on window resize
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+
+            // Determine new font size based on window width
+            const newSize = window.innerWidth <= 700 ? 1.4 : 1.6;
+
+            // Update font size only if it differs from the current size
+            if (fontMaker.textMesh && fontMaker.textMesh.geometry.parameters.size !== newSize) {
+                // Remove the existing text mesh
+                scene.remove(fontMaker.textMesh);
+
+                // Re-create the text mesh with the updated size
+                fontMaker.createTextMesh('Falling Ghoasts Rush: Shoot Or Die!!!', {
+                    color: 0xff0000,
+                    size: newSize,
+                    height: 0.3,
+                    position: { x: -10, y: -15, z: 0 },
+                });
+            }
+        };
+
+        // Add window resize listener
+        window.addEventListener('resize', handleWindowResize);
+
+        // Add event listener for window resize
+        window.addEventListener('resize', handleWindowResize);
 
         // Animation loop
         const animate = () => {
@@ -377,13 +409,13 @@ const FallingSand = ({ height = window.innerHeight, width = window.innerWidth, p
                 if (mesh.material.map) mesh.material.map.dispose();
                 mesh.material.dispose();
             });
-    
+
             // Dispose of font maker resources
             fontMaker.dispose();
-    
+
             // Clean up renderer to release WebGL context
             renderer.dispose();
-    
+
             console.log('Cleaned up FallingSand resources.');
         };
     }, [width, height, particleCount]);

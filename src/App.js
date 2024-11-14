@@ -16,7 +16,7 @@ import { SpinningBox } from './components/loaded_models/LoadedModelTextures';
 import Services from './components/auth/Services';
 import AboutGraphics from './components/layout/AboutGraphics';
 import MusicGraphics from './components/layout/MusicGraphics';
-import NoisePartices from './components/physics_graphics/NoiseParticles';
+import NoiseParticles from './components/physics_graphics/NoiseParticles';
 import FallingGhoasts from './components/physics_graphics/FallingGhoasts';
 import GalaxialFallingSandPlane from './components/physics_graphics/GalaxialFallingSandPlane';
 
@@ -33,7 +33,7 @@ function App() {
         <Route exact path='/Contact' element={ <Contact /> } />
         <Route exact path='/Services' element={ <Services /> } />
         <Route exact path='/Merchandise' element={ <Merchandise /> } />
-        <Route exact path='/Visuals' element={ <NoisePartices /> } />
+        <Route exact path='/Visuals' element={ <NoiseParticles /> } />
         <Route exact path='/Music' element={ <MusicGraphics /> } />
         <Route exact path='/ImageCarousel' element={ <ImageCarousel /> } />
         <Route exact path='/LoadedModels' element={ <LoadedModels /> } />

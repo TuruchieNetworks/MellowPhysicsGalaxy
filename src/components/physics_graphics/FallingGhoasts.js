@@ -258,6 +258,7 @@ const FallingGhoasts = ({ height = window.innerHeight, width = window.innerWidth
                 Math.random() * 10 + 10,
                 (Math.random() - 0.5) * 10
             );
+
             const x = (Math.random() - 0.5) * 10;
             const y = Math.random() * 10 + 10;
             const z = (Math.random() - 0.5) * 10;
@@ -266,6 +267,14 @@ const FallingGhoasts = ({ height = window.innerHeight, width = window.innerWidth
             // tempMatrix.setPosition(x, y, z);
             // instancedMesh.setMatrixAt(i, tempMatrix);
 
+
+            // Add a ground plane
+            // const groundGeometry = new THREE.PlaneGeometry(20, 20);
+            // const groundMaterial = new THREE.MeshStandardMaterial({ color: 0x00aa00 });
+            // const ground = new THREE.Mesh(groundGeometry, groundMaterial);
+            // ground.rotation.x = -Math.PI / 2;
+            // ground.position.y = 8;
+            // scene.add(ground);
             scene.add(mesh);
             sandParticlesRef.current.push(mesh);
 
@@ -287,12 +296,13 @@ const FallingGhoasts = ({ height = window.innerHeight, width = window.innerWidth
 
         scene.add(box);
         scene.add(multiBox);
+
         const sandParticles = new SandParticles(scene, world, shader.shaderMaterials().noiseMaterial, 40);
         sandParticles.createNoiseParticles(1.4);// Assuming you have access to both `scene` and `camera` objects
 
         // Pass both scene and camera to the FontMaker constructor
         const fontMaker = new FontMaker(scene, camera, navigate);
-        
+
         // Load the font and create the text mesh
         fontMaker.loadFont(() => {
             fontMaker.createTextMesh('Falling Ghoasts Rush: Shoot Or Die!!!', {
@@ -301,28 +311,46 @@ const FallingGhoasts = ({ height = window.innerHeight, width = window.innerWidth
                 height: 0.3,
                 position: { x: -10, y: -15, z: 0 }, // Adjust y-position to place text below main scene area
             });
-        
+
             // Optionally enable raycasting for click detection
             fontMaker.enableRaycast();
         });
 
         // Event listeners for mouse movements and clicks
-
         const onMouseMove = (event) => fontMaker.onMouseMove(event);
         const onMouseClick = (event) => fontMaker.onMouseClick(event, '/About');
 
         // Attach event listeners
         window.addEventListener('mousemove', onMouseMove);
         window.addEventListener('click', onMouseClick);
-        
 
-        // Add a ground plane
-        // const groundGeometry = new THREE.PlaneGeometry(20, 20);
-        // const groundMaterial = new THREE.MeshStandardMaterial({ color: 0x00aa00 });
-        // const ground = new THREE.Mesh(groundGeometry, groundMaterial);
-        // ground.rotation.x = -Math.PI / 2;
-        // ground.position.y = 8;
-        // scene.add(ground);
+        // Handle window resizing and adjust font size based on screen width
+        const handleWindowResize = () => {
+            // Update camera and renderer on window resize
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+
+            // Determine new font size based on window width
+            const newSize = window.innerWidth <= 700 ? 1.4 : 1.6;
+
+            // Update font size only if it differs from the current size
+            if (fontMaker.textMesh && fontMaker.textMesh.geometry.parameters.size !== newSize) {
+                // Remove the existing text mesh
+                scene.remove(fontMaker.textMesh);
+
+                // Re-create the text mesh with the updated size
+                fontMaker.createTextMesh('Falling Ghoasts Rush: Shoot Or Die!!!', {
+                    color: 0xff0000,
+                    size: newSize,
+                    height: 0.3,
+                    position: { x: -10, y: -15, z: 0 },
+                });
+            }
+        };
+
+        // Add window resize listener
+        window.addEventListener('resize', handleWindowResize);
 
         let time = Date.now();
         // Animation loop
