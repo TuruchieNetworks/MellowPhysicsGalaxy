@@ -16,8 +16,9 @@ import { SpinningBox } from './components/loaded_models/LoadedModelTextures';
 import Services from './components/auth/Services';
 import AboutGraphics from './components/layout/AboutGraphics';
 import MusicGraphics from './components/layout/MusicGraphics';
-import GalaxialFallingSandPlane from './components/physics_graphics/GalaxialFallingSandPlane';
 import NoisePartices from './components/physics_graphics/NoiseParticles';
+import FallingGhoasts from './components/physics_graphics/FallingGhoasts';
+import GalaxialFallingSandPlane from './components/physics_graphics/GalaxialFallingSandPlane';
 
 // Array of background images
 
@@ -34,13 +35,14 @@ function App() {
         <Route exact path='/Merchandise' element={ <Merchandise /> } />
         <Route exact path='/Visuals' element={ <NoisePartices /> } />
         <Route exact path='/Music' element={ <MusicGraphics /> } />
+        <Route exact path='/ImageCarousel' element={ <ImageCarousel /> } />
         <Route exact path='/LoadedModels' element={ <LoadedModels /> } />
         <Route exact path='/BouncingSpheres' element={ <BouncingSpheres /> } />
         <Route exact path='/SpinningBox' element={ <SpinningBox /> } />
         <Route exact path='/PhysicsAnimations' element={ <PhysicsAnimations /> } />
         <Route exact path='/MusicBackground' element={ <MusicBackground /> } />
-        <Route exact path='/ImageCarousel' element={ <Biography /> } />
-        <Route exact path='/ImageCarousel' element={ <ImageCarousel /> } />
+        <Route exact path='/FallingGhoasts' element={ <FallingGhoasts /> } />
+        <Route exact path='/GalaxialFallingSandPlane' element={ <GalaxialFallingSandPlane /> } />
         <Route exact path='/BackgroundCarousel' element={ <BackgroundCarousel /> } />
       </Routes>
     </div>

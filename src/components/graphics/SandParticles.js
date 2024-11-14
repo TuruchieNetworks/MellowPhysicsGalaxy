@@ -59,10 +59,10 @@ export class SandParticles {
     }
 
     // Method to create the particles
-    createNoiseParticles() {
+    createNoiseParticles(radius = 1.6) {
         for (let i = 0; i < this.particleCount; i++) {
             // Create Three.js particle
-            const geometry = new THREE.SphereGeometry(1.6, 16, 16);
+            const geometry = new THREE.SphereGeometry(radius, 16, 16);
             const material = this.material;
             const mesh = new THREE.Mesh(geometry, material);
             mesh.castShadow = true;

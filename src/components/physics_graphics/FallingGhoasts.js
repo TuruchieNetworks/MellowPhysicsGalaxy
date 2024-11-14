@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useRef } from "react";
 import { useNavigate } from 'react-router-dom';
 import * as THREE from "three";
 import * as CANNON from "cannon-es"; // Import Cannon.js here
@@ -6,8 +6,8 @@ import useColorUtils from '../hooks/UseColorUtils';
 import stars from '../../galaxy_imgs/stars.jpg';
 import nebula from '../../galaxy_imgs/nebula.jpg';
 
-import { useBox, useMultiBox } from '../hooks/UseBoxGeometry';
 import { useCannonBox } from '../hooks/UseCannonGeometry';
+import { useBox, useMultiBox } from '../hooks/UseBoxGeometry';
 import { useCannonGround, useCannonUnderground } from '../hooks/UseCannonGround';
 import { LightAxisUtilHelper } from '../graphics/LightAxisUtilHelper';
 import Shaders from "../graphics/Shaders";
@@ -15,7 +15,7 @@ import SandParticles from "../graphics/SandParticles";
 import FontMaker from "../graphics/FontMaker";
 
 
-const FallingSand = ({ height = window.innerHeight, width = window.innerWidth, particleCount = 500 }) => {
+const FallingGhoasts = ({ height = window.innerHeight, width = window.innerWidth, particleCount = 500 }) => {
     const { randomHexColor, randomRgbaColor } = useColorUtils();
     const canvasRef = useRef();
     const sceneRef = useRef(new THREE.Scene());
@@ -27,6 +27,8 @@ const FallingSand = ({ height = window.innerHeight, width = window.innerWidth, p
     const navigate = useNavigate();
     const box = useBox();
     const multiBox = useMultiBox();
+
+    // Access the Cannon.js world and ground
     // Access the Cannon.js ground
     const { groundBody } = useCannonGround();
     const { underGroundBody } = useCannonUnderground();
@@ -243,17 +245,6 @@ const FallingSand = ({ height = window.innerHeight, width = window.innerWidth, p
         // const instancedMesh = new THREE.InstancedMesh(particleGeometry, particleMaterial, particleCount);
         // scene.add(instancedMesh);
 
-
-        // Add a ground plane
-        // const groundGeometry = new THREE.PlaneGeometry(20, 20);
-        // const groundMaterial = new THREE.MeshStandardMaterial({ color: 0x00aa00 });
-        // const ground = new THREE.Mesh(groundGeometry, groundMaterial);
-        // ground.rotation.x = -Math.PI / 2;
-        // ground.position.y = 8;
-        // scene.add(ground);
-
-        let time = Date.now();
-
         // Initialize matrix and Cannon bodies for each particle
         const tempMatrix = new THREE.Matrix4();
         // Create sand particles in both Three.js and Cannon.js
@@ -296,24 +287,14 @@ const FallingSand = ({ height = window.innerHeight, width = window.innerWidth, p
 
         scene.add(box);
         scene.add(multiBox);
-
         const sandParticles = new SandParticles(scene, world, shader.shaderMaterials().noiseMaterial, 40);
         sandParticles.createNoiseParticles(1.4);// Assuming you have access to both `scene` and `camera` objects
 
         // Pass both scene and camera to the FontMaker constructor
         const fontMaker = new FontMaker(scene, camera, navigate);
         
-
-
-        // fontMaker.initialize('Falling Ghoasts Rush: Shoot Or Die Trying!!!', {
-        //     color: 0xff0000,
-        //     size: 1.6,
-        //     height: 0.3,
-        //     position: { x: -10, y: -15, z: 0 }, // Adjust y-position to place text below main scene area
-        // });
-
-           // Load the font and create the text mesh
-           fontMaker.loadFont(() => {
+        // Load the font and create the text mesh
+        fontMaker.loadFont(() => {
             fontMaker.createTextMesh('Falling Ghoasts Rush: Shoot Or Die!!!', {
                 color: 0xff0000,
                 size: 1.6,
@@ -324,21 +305,26 @@ const FallingSand = ({ height = window.innerHeight, width = window.innerWidth, p
             // Optionally enable raycasting for click detection
             fontMaker.enableRaycast();
         });
-        
-
-        //     // Optionally enable raycasting for click detection
-        //     fontMaker.enableRaycast();
-        // });
 
         // Event listeners for mouse movements and clicks
 
         const onMouseMove = (event) => fontMaker.onMouseMove(event);
-        const onMouseClick = (event) => fontMaker.onMouseClick(event, '/FallingGhoasts');
+        const onMouseClick = (event) => fontMaker.onMouseClick(event, '/FallingSand');
 
         // Attach event listeners
         window.addEventListener('mousemove', onMouseMove);
         window.addEventListener('click', onMouseClick);
+        
 
+        // Add a ground plane
+        // const groundGeometry = new THREE.PlaneGeometry(20, 20);
+        // const groundMaterial = new THREE.MeshStandardMaterial({ color: 0x00aa00 });
+        // const ground = new THREE.Mesh(groundGeometry, groundMaterial);
+        // ground.rotation.x = -Math.PI / 2;
+        // ground.position.y = 8;
+        // scene.add(ground);
+
+        let time = Date.now();
         // Animation loop
         const animate = () => {
             requestAnimationFrame(animate);
@@ -360,8 +346,8 @@ const FallingSand = ({ height = window.innerHeight, width = window.innerWidth, p
                 mesh.quaternion.copy(body.quaternion);
             });
             shader.update();
-            // fontMaker.update();
-            // sandParticles.update();
+            fontMaker.update();
+            sandParticles.update();
             shader.shaderMaterials().sawMaterial.uniforms.time.value = time * 0.001
 
             // Render the scene
@@ -370,25 +356,13 @@ const FallingSand = ({ height = window.innerHeight, width = window.innerWidth, p
         animate();
 
         return () => {
-            // Remove all particles from the scene
-            sandParticlesRef.current.forEach(mesh => {
-                scene.remove(mesh);
-                mesh.geometry.dispose();
-                if (mesh.material.map) mesh.material.map.dispose();
-                mesh.material.dispose();
-            });
-    
-            // Dispose of font maker resources
-            fontMaker.dispose();
-    
-            // Clean up renderer to release WebGL context
+            // Clean up the world and scene on unmount
+            sandParticlesRef.current.forEach(mesh => scene.remove(mesh));
             renderer.dispose();
-    
-            console.log('Cleaned up FallingSand resources.');
         };
     }, [width, height, particleCount]);
 
     return <canvas ref={canvasRef} className="galaxial-animation" />;
 };
 
-export default FallingSand;
+export default FallingGhoasts;
