@@ -11,24 +11,27 @@ import metal_blocks from '../../img/metal_blocks.jpg';
 import ImageUtils from './ImageUtils';
 import monkeyUrl from '../../GLTFs/monkey.glb';
 import DancingTwerk from '../../FBXs/DancingTwerk.fbx';
+import Shaders from './Shaders';
+
 export class Geometry {
-    constructor(scene) {
+    constructor(scene, world) {
         this.scene = scene;
+        this.world = world;
         this.spheres = [];
         this.boxes = [];
         this.gltfModels = [monkeyUrl];
         this.fbxModels = [DancingTwerk];
         this.textureLoader = new THREE.TextureLoader();
+        this.shader = new Shaders();
         this.imageUtils = new ImageUtils(); // Create an instance of ImageUtils
 
-        this.geometries = []; 
+        this.geometries = [];
+        this.createRandomHexColor();
     }
 
-    // createInitialGeometries() {
-    //     this.createMultiBoxes(5);
-    //     this.createSpheres(5);
-    //     this.createBoxes(5);
-    // }
+    createRandomHexColor = () => {
+        return '#' + Math.floor(Math.random() * 16777215).toString(16);
+    }
 
     createBox({ width = 1, height = 1, depth = 1, position = new THREE.Vector3(0, 0, 0), color = 0xff7700 } = {}) {
         const geometry = new THREE.BoxGeometry(width, height, depth);
@@ -53,7 +56,7 @@ export class Geometry {
             new THREE.MeshStandardMaterial({ map: this.textureLoader.load(metal_blocks) }),
             new THREE.MeshStandardMaterial({ map: this.textureLoader.load(globe_concert) })
         ];
-        
+
         const multiBox = new THREE.Mesh(geometry, multiBoxMaterial);
         multiBox.position.copy(position);
         multiBox.castShadow = multiBox.receiveShadow = true;
@@ -140,7 +143,8 @@ export class Geometry {
         });
     }
 
-    update() {
+    update(deltaTime = 1 / 60, time = 0.1, maxSubSteps = 3) {
+        this.world.step(deltaTime, time, maxSubSteps); //
         // Only update spheres if any exist
         if (this.spheres.length > 0) {
             this.spheres.forEach(sphere => {
@@ -148,7 +152,7 @@ export class Geometry {
                 sphere.rotation.y += 0.01;
             });
         }
-    
+
         // Only update boxes if any exist
         if (this.boxes.length > 0) {
             this.boxes.forEach(box => {
@@ -156,14 +160,14 @@ export class Geometry {
                 box.rotation.y += 0.01;
             });
         }
-    
-        // // Only update models (GLTF and FBX) if any exist
+    }
+
+    // Only update models (GLTF and FBX) if any exist
         // if (this.gltfModels.length > 0 || this.fbxModels.length > 0) {
         //     [...this.gltfModels, ...this.fbxModels].forEach(model => {
         //         model.rotation.y += 0.01;
         //     });
         // }
-    }    
 
     // Implement other methods for creating geometries...
     dispose() {
@@ -173,9 +177,7 @@ export class Geometry {
             mesh.material.dispose(); // Dispose of the material
         });
         this.geometries = []; // Clear the array
-    }
-    
-    meshDispose() {
+
         // Dispose of spheres
         this.spheres.forEach(sphere => {
             this.scene.remove(sphere);
@@ -183,7 +185,7 @@ export class Geometry {
             sphere.material.dispose();
         });
         this.spheres = [];
-    
+
         // Dispose of boxes
         this.boxes.forEach(box => {
             this.scene.remove(box);
@@ -191,7 +193,7 @@ export class Geometry {
             box.material.dispose();
         });
         this.boxes = [];
-    
+
         // Dispose of GLTF models
         this.gltfModels.forEach(model => {
             model.traverse(child => {
@@ -207,7 +209,7 @@ export class Geometry {
             this.scene.remove(model);
         });
         this.gltfModels = [];
-    
+
         // Dispose of FBX models
         this.fbxModels.forEach(model => {
             model.traverse(child => {
@@ -223,13 +225,13 @@ export class Geometry {
             this.scene.remove(model);
         });
         this.fbxModels = [];
-    
+
         // Dispose of textures loaded with TextureLoader
         this.textureLoader.cache.forEach(texture => {
             texture.dispose();
         });
         this.textureLoader.cache.clear();
-    
+
         // Remove any additional references
         this.geometries.forEach(mesh => {
             this.scene.remove(mesh);
@@ -238,5 +240,34 @@ export class Geometry {
         });
         this.geometries = [];
     }
-    
 }
+export default Geometry;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// createInitialGeometries() {
+//     this.createMultiBoxes(5);
+//     this.createSpheres(5);
+//     this.createBoxes(5);
+// }

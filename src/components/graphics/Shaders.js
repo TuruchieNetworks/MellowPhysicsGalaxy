@@ -8,6 +8,7 @@ export class Shaders {
     this.shapeFactor = shapeFactor;
     this.mousePosition = new THREE.Vector2(0, 0);
 
+    this.addMouseHover();
     this.addMouseListener();
     this.initializeShaders();
   }
@@ -20,8 +21,10 @@ export class Shaders {
     this.boidShaders = this.useBoidComputeShaders();
     this.noiseShader = this.useNoiseShader();
     this.redNoiseShader = this.useDarkNoiseShader();
-    this.starryBackground = this.useStarryBackgrounds()
+    this.starryBackground = this.useStarryBackgrounds();
     this.convolutionShader = this.useConvolutionShader();
+    this.wrinkledShader = this.useWrinkledShader();
+    this.explosiveShader = this.useExplosiveShader();
   }
 
   useStarryBackgrounds() {
@@ -225,6 +228,52 @@ export class Shaders {
     return redNoiseShader;
   }
 
+  useExplosiveShader() {
+    const explosiveShader = {
+      uniforms: {
+        time: { value: 0.0 },
+        mousePosition: { value: new THREE.Vector2(0.0, 0.0) },
+        hovered: { value: 0.0 },
+        explodeIntensity: { value: 0.1 }
+      },
+
+      vertexShader: `
+        uniform float time;
+        uniform float hovered;
+        uniform vec2 mousePosition;
+        uniform float explodeIntensity;
+        varying vec2 vUv;
+
+        float noise(vec2 p) {
+          return fract(sin(dot(p, vec2(12.9898, 78.233))) * 43758.5453);
+        }
+
+        void main() {
+          vUv = uv;
+          vec3 pos = position;
+
+          // Calculate distance to mouse position
+          float dist = distance(mousePosition, vec2(pos.x, pos.y));
+          float effect = hovered * smoothstep(0.2, 0.0, dist) * noise(pos.xy * 10.0 + time);
+
+          // Apply explode effect
+          pos += normal * effect * explodeIntensity;
+
+          gl_Position = projectionMatrix * modelViewMatrix * vec4(pos, 1.0);
+        }
+      `,
+
+      fragmentShader: `
+        varying vec2 vUv;
+        void main() {
+          gl_FragColor = vec4(vec3(vUv, 1.0), 1.0);
+        }
+      `
+    };
+
+    return explosiveShader;
+  }
+
   // Noise Plane
   useSawShader() {
     const sawShader = {
@@ -351,6 +400,69 @@ export class Shaders {
     };
     return redNoiseShader;
   };
+  
+  useWrinkledShader() {
+    return {
+      uniforms: {
+        time: { value: this.time },
+        resolution: { value: new THREE.Vector2(this.width, this.height) },
+        shapeFactor: { value: this.shapeFactor },
+      },
+      vertexShader: `
+        varying vec2 vUv;
+        void main() {
+          vUv = uv;
+          gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+        }
+      `,
+      fragmentShader: `
+        uniform float time;
+        uniform float shapeFactor;
+        varying vec2 vUv;
+  
+        // Noise function based on hash
+        float hash(vec2 p) {
+          return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453);
+        }
+  
+        float noise(vec2 p) {
+          vec2 i = floor(p);
+          vec2 f = fract(p);
+          float a = hash(i);
+          float b = hash(i + vec2(1.0, 0.0));
+          float c = hash(i + vec2(0.0, 1.0));
+          float d = hash(i + vec2(1.0, 1.0));
+          vec2 u = f * f * (3.0 - 2.0 * f);
+          return mix(a, b, u.x) + (c - a) * u.y * (1.0 - u.x) + (d - b) * u.x * u.y;
+        }
+  
+        // Signed distance function for a circle
+        float sdfCircle(vec2 p, float radius) {
+          return length(p) - radius;
+        }
+  
+        // Function to create a smooth gradient with noise and SDFs
+        void main() {
+          vec2 uv = vUv * shapeFactor * 3.0; // Scale UV for finer details
+          vec2 p = uv - 0.5; // Center the UV coordinates
+  
+          // Animate noise with time and add it to coordinates
+          float n = noise(uv * 10.0 + time * 0.1);
+          float sdf = sdfCircle(p, 0.3 + 0.1 * sin(time)); // Dynamic radius
+  
+          // Mix colors based on noise and SDF results
+          vec3 color1 = vec3(0.1, 0.4, 0.7);
+          vec3 color2 = vec3(1.0, 0.6, 0.2);
+          vec3 color3 = vec3(0.8, 0.2, 0.4);
+          
+          vec3 color = mix(color1, color2, smoothstep(0.0, 0.5, sdf));
+          color = mix(color, color3, n);
+  
+          gl_FragColor = vec4(color, 1.0);
+        }
+      `
+    };
+  }
 
   createSawShader() {
     return {
@@ -450,31 +562,31 @@ export class Shaders {
   }
 
   // Extend the boid shaders with additional uniforms
-useBoidComputeShaders() {
-  const boidShaders = {
-    uniforms: {
-      time: { value: 0.0 },
-      resolution: { value: new THREE.Vector2(this.width, this.height) },
-      mousePosition: { value: new THREE.Vector3(0, 0, 0) },
-      deltaTime: { value: this.deltaTime },
-      separationDistance: { value: 1.0 },
-      alignmentDistance: { value: 2.0 },
-      cohesionDistance: { value: 3.0 },
-      boidSpeed: { value: 1.0 },            // Speed of boids
-      fieldStrength: { value: 1.0 },        // Strength of field effects
-      noiseFactor: { value: 0.5 },          // Random noise influence on boid movement
-      attractorStrength: { value: 1.0 },    // Strength of attractor forces
-      colorShift: { value: 0.1 },           // Shift color over time for visual effect
-    },
+  useBoidComputeShaders() {
+    const boidShaders = {
+      uniforms: {
+        time: { value: 0.0 },
+        resolution: { value: new THREE.Vector2(this.width, this.height) },
+        mousePosition: { value: new THREE.Vector3(0, 0, 0) },
+        deltaTime: { value: this.deltaTime },
+        separationDistance: { value: 1.0 },
+        alignmentDistance: { value: 2.0 },
+        cohesionDistance: { value: 3.0 },
+        boidSpeed: { value: 1.0 },            // Speed of boids
+        fieldStrength: { value: 1.0 },        // Strength of field effects
+        noiseFactor: { value: 0.5 },          // Random noise influence on boid movement
+        attractorStrength: { value: 1.0 },    // Strength of attractor forces
+        colorShift: { value: 0.1 },           // Shift color over time for visual effect
+      },
 
-    vertexShader: `
+      vertexShader: `
       varying vec2 vUv;
       void main() {
         vUv = uv;
         gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
       }
     `,
-    fragmentShader: `
+      fragmentShader: `
       uniform float time;
       uniform float deltaTime;
       uniform vec2 resolution;
@@ -499,9 +611,9 @@ useBoidComputeShaders() {
         gl_FragColor = vec4(color, 1.0);
       }
     `
-  };
-  return boidShaders;
-}
+    };
+    return boidShaders;
+  }
 
   useBoidRender() {
     const boidRenderShader = {
@@ -543,6 +655,8 @@ useBoidComputeShaders() {
     const boidsMaterial = new THREE.ShaderMaterial(this.boidShaders);
     const boidsRender = new THREE.ShaderMaterial(this.boidRenderShader);
     const convolutionMaterial = new THREE.ShaderMaterial(this.convolutionShader);
+    const wrinkledMaterial = new THREE.ShaderMaterial(this.wrinkledShader);
+    const explosiveMaterial = new THREE.ShaderMaterial(this.explosiveShader)
 
     return {
       noiseMaterial,
@@ -550,10 +664,13 @@ useBoidComputeShaders() {
       sawMaterial,
       axialSawMaterial,
       convolutionMaterial,
+      boidsRender,
       boidsMaterial,
       northStarMaterial,
       starryMaterial,
-      boidsRender
+      boidsRender,
+      wrinkledMaterial,
+      explosiveMaterial
     };
   }
 
@@ -588,6 +705,22 @@ useBoidComputeShaders() {
     console.log(`Random click event: Boid Speed: ${randomSpeed}, Color Shift: ${randomColor}`);
   }
 
+  addMouseHover(renderer = null) {
+    window.addEventListener('mousemove', (event) => {
+      if (renderer !== null) {
+        const rect = renderer.domElement.getBoundingClientRect();
+        this.mousePosition.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+        this.mousePosition.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+      }
+    });
+  }
+
+  handleHoverEffect() {
+    // Update the shader with the current mouse position and toggle the effect
+    this.explosiveShader.uniforms.mousePosition.value = this.mousePosition;
+    this.explosiveShader.uniforms.hovered.value = 1.0;
+  }
+
   // Update method for shader uniforms and dynamic behavior
   update() {
     this.addMouseListener()
@@ -598,6 +731,26 @@ useBoidComputeShaders() {
     this.boidShaders.uniforms.boidSpeed.value = Math.sin(this.time * 0.5) * 0.5 + 1.0; // Oscillate speed
     this.boidShaders.uniforms.colorShift.value = (Math.cos(this.time) * 0.5) + 0.5; // Dynamic color
     // Update other uniforms if necessary
+    this.sawShader.uniforms.time.value = this.time;
+    this.explosiveShader.uniforms.time.value = this.time;
+    this.noiseShader.uniforms.time.value = (Math.cos(this.time) * 0.5) + 0.5;
+    this.handleHoverEffect();
   }
+
+  // dispose() {
+  //   if (this.northStar) this.northStar.dispose();
+  //   if (this.sawShader) this.sawShader.dispose();
+  //   if (this.boidRender) this.boidRender.dispose();
+  //   if (this.axialSawShader) this.axialSawShader.dispose();
+  //   if (this.boidShaders) this.boidShaders.dispose();
+  //   if (this.noiseShader) this.noiseShader.dispose();
+  //   if (this.redNoiseShader) this.redNoiseShader.dispose();
+  //   if (this.starryBackground) this.starryBackground.dispose();
+  //   if (this.convolutionShader) this.convolutionShader.dispose();
+  //   // Additional cleanups if you have any textures, geometries, or materials
+
+  //   // Remove event listeners if added
+  //   window.removeEventListener('mousemove', this.handleMouseMove);
+  // }
 }
 export default Shaders

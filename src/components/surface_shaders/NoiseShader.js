@@ -416,13 +416,13 @@ const NoiseShader = ({ width = window.innerWidth, height = window.innerHeight, p
             // Step the physics world forward
             world.step(timeStep);
 
-            // Sync Three.js meshes with Cannon.js bodies
-            sandParticlesRef.current.forEach((mesh, i) => {
-                const body = particleBodiesRef.current[i];
-                mesh.castShadow = true;
-                mesh.position.copy(body.position);
-                mesh.quaternion.copy(body.quaternion);
-            });
+            // // Sync Three.js meshes with Cannon.js bodies
+            // sandParticlesRef.current.forEach((mesh, i) => {
+            //     const body = particleBodiesRef.current[i];
+            //     mesh.castShadow = true;
+            //     mesh.position.copy(body.position);
+            //     mesh.quaternion.copy(body.quaternion);
+            // });
 
             // sandParticles.update();
 

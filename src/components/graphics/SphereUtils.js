@@ -1,21 +1,25 @@
 import * as THREE from 'three';
-import GaussianDistribution from '../graphics/GaussianDistribution';
+import * as CANNON from "cannon-es";
 import ImageUtils from './ImageUtils';
-// import Plane from './Plane';
 import Shaders from '../graphics/Shaders';
+import GaussianDistribution from '../graphics/GaussianDistribution';
+// import Plane from './Plane';
 
 
 class SphereUtils {
-    constructor(scene, camera, textureLoader, cubeSize, plane, sceneMeshes = []) {
+    constructor(scene, world = null, camera, textureLoader, cubeSize, plane, sceneMeshes = []) {
         this.scene = scene;
+        this.world = world;
         this.camera = camera;
-        this.textureLoader = textureLoader;
+        this.textureLoader = textureLoader || new THREE.TextureLoader();
 
         // Initialize GaussianDistribution for mass and velocity generation
         this.gaussianDistribution = new GaussianDistribution();
 
-        // Initialize Images From Image Utils
+        // Initialize Utils
+        this.shader = new Shaders();
         this.imageUtils = new ImageUtils();
+        this.textureLoader = new THREE.TextureLoader();
 
         // Intersection, raycasting, and hover preview
         this.mouse = new THREE.Vector2();
@@ -24,38 +28,82 @@ class SphereUtils {
         this.planeNormal = new THREE.Vector3();
         this.interactionPlane = new THREE.Plane();
         this.plane = plane;
-        this.Shaders = new Shaders();
 
         // Preview sphere for hover effect
+        this.createPreviewSphere();
         this.previewSphere = this.createPreviewSphere();
         this.scene.add(this.previewSphere);
 
         // Spheres and animations
         this.spheres = [];
-        this.sphereMeshes = []
+        this.geometries = [];
+        this.sphereMeshes = [];
+        this.sphereBodies = [];
+
+        // Physics
         this.gravityEnabled = true;
         this.gravity = new THREE.Vector3(0, -9.81, 0); // Gravity vector
         this.cubeSize = cubeSize; //|| 100; // Default cube size for wall collision boundary
         this.sceneMeshes = sceneMeshes; // Additional meshes in the scene for collision detection
         // /this.scenePlane = scenePlane; 
 
-
-
-        // Random Colors
-        // this.createRandomHexColor = this.createRandomHexColor();
+        this.createRandomHexColor();
     }
 
     createRandomHexColor = () => {
         return '#' + Math.floor(Math.random() * 16777215).toString(16);
     }
 
-    // Get a random image from the ImageUtils
-    // getRandomImage(category) {
-    //     const randomIndex = Math.floor(Math.random() * this.imageUtils.images.length);
-    //     return this.imageUtils.getRandomImage(category);//this.imageUtils.images[randomIndex];
-    // }
+    createCannonSphere(specs = { r: 4, w: 50, h: 50 }, color = this.createRandomHexColor(), position = { x: -10, y: 10, z: -80 }, mass = 0.1, shadedTexture = this.shader.shaderMaterials().northStarMaterial) {
+        // Geometry and Material
+        const sphereGeometry = new THREE.SphereGeometry(specs.r, specs.w, specs.h);
+        const sphereMaterial = new THREE.MeshPhongMaterial({
+            color: color,
+            wireframe: false
+        });
+
+        // Mesh
+        const sphere = new THREE.Mesh(sphereGeometry, shadedTexture || sphereMaterial);
+        this.scene.add(sphere);
+        sphere.position.set(position.x, position.y, position.z);
+        sphere.castShadow = true;
+        this.sphereMeshes.push(sphere);
+
+        // Cannon.js body for physics
+        const sphereShape = new CANNON.Sphere(specs.r);
+        const sphereBody = new CANNON.Body({
+            mass,
+            position: new CANNON.Vec3(position.x, position.y, position.z),
+            linearDamping: 0.1, // Add damping for more realistic inertia (slower stopping)
+            angularDamping: 0.1, // Optional: If you want to dampen angular momentum too
+        });
+
+        // Set restitution (bounciness) and friction for realistic collisions
+        sphereBody.material = new CANNON.Material();
+        const contactMaterial = new CANNON.ContactMaterial(
+            sphereBody.material,
+            sphereBody.material,
+            {
+                friction: 0.1, // Adjust friction for realistic movement
+                restitution: 0.6 // Adjust restitution for realistic bounciness
+            }
+        );
+
+        if (this.world !== null) {
+            this.world.addContactMaterial(contactMaterial);
+
+            sphereBody.addShape(sphereShape);
+            this.world.addBody(sphereBody);
+
+            // Store references
+            this.sphereBodies.push(sphereBody);
+        }
+
+        return { sphere, sphereBody }; // Return references if needed
+    }
 
     createPreviewSphere() {
+        document.body.style.cursor = 'pointer';
         // Get a random image for the sphere texture
         const textureURL = this.imageUtils.getRandomImage('concerts'); // Corrected category name
         const geometry = new THREE.SphereGeometry(2, 20, 20);
@@ -63,38 +111,20 @@ class SphereUtils {
             color: 0x00ff00,
             transparent: true,
             opacity: 0.5,
-            map: this.textureLoader.load(textureURL) 
+            map: this.textureLoader.load(textureURL)
         });
 
         const sphere = new THREE.Mesh(geometry, material);
         sphere.visible = false;
-        document.body.style.cursor = 'pointer';
         // const sphere = new THREE.Mesh(geometry, this.Shaders.shaderMaterials().starryMaterial);
         // document.body.style.cursor = 'pointer';
+        this.previewSphere = sphere;
         return sphere;
-    }
-
-    updateHover(event) {
-        this.mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
-        this.mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
-
-        this.planeNormal.copy(this.camera.position).normalize();
-        this.interactionPlane.setFromNormalAndCoplanarPoint(this.planeNormal, this.scene.position);
-        this.rayCaster.setFromCamera(this.mouse, this.camera);
-
-        if (this.rayCaster.ray.intersectPlane(this.interactionPlane, this.intersectionPoint)) {
-            this.previewSphere.position.copy(this.intersectionPoint);
-            this.previewSphere.visible = true;
-        }
-    }
-
-    hideHover() {
-        this.previewSphere.visible = false;
     }
 
     handleClick() {
         // Use GaussianDistribution to generate mass and velocity
-        const mass = this.gaussianDistribution.getMass();
+        const mass = this.gaussianDistribution.getMass() * 50;
         const velocity = this.gaussianDistribution.getVelocity();
 
         // Get a random image for the sphere texture
@@ -102,7 +132,6 @@ class SphereUtils {
 
         const newSphere = this.createSphere(textureURL, mass, velocity);
         this.spheres.push(newSphere);
-        this.sphereMeshes.push(newSphere.mesh);
 
         // Set a timeout to remove the sphere after 30 seconds
         const timeoutId = setTimeout(() => {
@@ -237,37 +266,71 @@ class SphereUtils {
             // Adjust the position to prevent penetration and reflect the velocity
             sphere.mesh.position.addScaledVector(planeNormal, sphere.radius - distanceToPlane);
             sphere.velocity.reflect(planeNormal);
+            sphere.material = this.shader.shaderMaterials().explosiveMaterial;
         }
     }
 
+    updateHover(event) {
+        this.mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+        this.mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+
+        this.planeNormal.copy(this.camera.position).normalize();
+        this.interactionPlane.setFromNormalAndCoplanarPoint(this.planeNormal, this.scene.position);
+        this.rayCaster.setFromCamera(this.mouse, this.camera);
+
+        if (this.rayCaster.ray.intersectPlane(this.interactionPlane, this.intersectionPoint)) {
+            this.previewSphere.position.copy(this.intersectionPoint);
+            this.previewSphere.visible = true;
+        }
+    }
+
+    hideHover() {
+        this.previewSphere.visible = false;
+    }
+
     updateSpheres() {
-        this.previewSphere.rotation.x += 0.12;
-        this.previewSphere.rotation.y += 0.14;
-        this.previewSphere.rotation.z += 0.16;
-        this.spheres.forEach((sphere, i) => {
-            sphere.mesh.rotation.x += 0.12;
-            sphere.mesh.rotation.y += 0.14;
-            sphere.mesh.rotation.z += 0.16;
-            // sphere.mesh.position.y -= 0.16;
-            // Apply gravity
-            if (this.gravityEnabled) {
-                sphere.velocity.add(this.gravity.clone().multiplyScalar(0.016));
-            }
+        if (this.previewSphere) {
+            this.previewSphere.rotation.x += 0.12;
+            this.previewSphere.rotation.y += 0.14;
+            this.previewSphere.rotation.z += 0.16;
+        }
 
-            // Update position based on velocity
-            sphere.mesh.position.add(sphere.velocity.clone().multiplyScalar(0.016));
+        // Sync Three.js meshes with Cannon.js bodies
+        this.sphereMeshes.forEach((mesh, i) => {
+            const body = this.sphereBodies[i];
+            mesh.position.copy(body.position);
+            mesh.quaternion.copy(body.quaternion);
+        });
 
-            // Check for collisions
-            this.checkWallCollision(sphere);
-            this.checkGroundCollision(sphere);
-            this.spheres.forEach(otherSphere => {
-                if (sphere !== otherSphere) {
-                    this.handleSphereCollision(sphere, otherSphere);
+        if (this.spheres.length > 0) {
+            this.spheres.forEach((sphere, i) => {
+                if (sphere && sphere.mesh) {
+                    sphere.mesh.rotation.x += 0.12;
+                    sphere.mesh.rotation.y += 0.14;
+                    sphere.mesh.rotation.z += 0.16;
+
+                    // Apply gravity
+                    if (this.gravityEnabled) {
+                        sphere.velocity.add(this.gravity.clone().multiplyScalar(0.016));
+                    }
+
+                    // Update position based on velocity
+                    sphere.mesh.position.add(sphere.velocity.clone().multiplyScalar(0.016));
+
+                    // Check for collisions
+                    this.checkWallCollision(sphere);
+                    this.checkGroundCollision(sphere);
+
+                    this.spheres.forEach(otherSphere => {
+                        if (sphere !== otherSphere && otherSphere.mesh) {
+                            this.handleSphereCollision(sphere, otherSphere);
+                        }
+                    });
+
+                    this.handlePlaneCollision(sphere); // Handle plane collision
                 }
             });
-
-            this.handlePlaneCollision(sphere); // Handle plane collision
-        });
+        }
     }
 
     // Central update method to be called each frame
@@ -280,9 +343,103 @@ class SphereUtils {
     toggleGravity() {
         this.gravityEnabled = !this.gravityEnabled;
     }
-}
 
+    dispose() {
+        // Remove and dispose of spheres
+        this.spheres.forEach(sphere => {
+            if (sphere.timeoutId) clearTimeout(sphere.timeoutId);
+            this.scene.remove(sphere.mesh);
+            sphere.mesh.geometry.dispose();
+            if (sphere.mesh.material.map) sphere.mesh.material.map.dispose();
+            sphere.mesh.material.dispose();
+        });
+        this.spheres = [];
+
+        // this.sphereMeshes.forEach(sphere => {
+        //     this.scene.remove(sphere.mesh); // Remove from the scene
+        //     sphere.mesh.geometry.dispose(); // Dispose of the geometry
+        //     sphere.mesh.material.dispose(); // Dispose of the material
+        // });
+        // this.sphereMeshes = []; // Clear the array
+
+        // this.sphereBodies.forEach(sphere => {
+        //     this.scene.remove(sphere.mesh); // Remove from the scene
+        //     sphere.mesh.geometry.dispose(); // Dispose of the geometry
+        //     sphere.mesh.material.dispose(); // Dispose of the material
+        // });
+        // this.sphereBodies = []; // Clear the array
+        // Remove preview sphere
+        // if (this.previewSphere) {
+        //     this.scene.remove(this.previewSphere);
+        //     this.previewSphere.geometry.dispose();
+        //     if (this.previewSphere.material.map) this.previewSphere.material.map.dispose();
+        //     this.previewSphere.material.dispose();
+        //     this.previewSphere = null;
+        // }
+
+        // Clear references
+        // this.mouse = null;
+        // this.intersectionPoint = null;
+        // this.rayCaster = null;
+        // this.planeNormal = null;
+        // this.interactionPlane = null;
+        // this.gravity = null;
+        // this.scene = null;
+        // this.camera = null;
+        // this.textureLoader = null;
+        // this.plane = null;
+        // this.sceneMeshes = [];
+    }
+}
 export default SphereUtils;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// Get a random image from the ImageUtils
+// getRandomImage(category) {
+//     const randomIndex = Math.floor(Math.random() * this.imageUtils.images.length);
+//     return this.imageUtils.getRandomImage(category);//this.imageUtils.images[randomIndex];
+// }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -332,7 +489,7 @@ export default SphereUtils;
 //         this.gravity = new THREE.Vector3(0, -9.81, 0); // Gravity vector
 //         this.cubeSize = cubeSize; //|| 100; // Default cube size for wall collision boundary
 //         this.sceneMeshes = sceneMeshes; // Additional meshes in the scene for collision detection
-//         // /this.scenePlane = scenePlane; 
+//         // /this.scenePlane = scenePlane;
 
 
 

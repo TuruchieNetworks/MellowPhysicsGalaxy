@@ -7,9 +7,9 @@ import FontMaker from './FontMaker';
 import ImageUtils from './ImageUtils';
 
 export class SceneManager {
-    constructor(canvasRef, width = window.innerWidth, height = window.innerHeight, groundColor = 0x00ff00) {
-        this.scene = new THREE.Scene();
-        this.world = new CANNON.World();
+    constructor(scene, world, canvasRef, width = window.innerWidth, height = window.innerHeight, groundColor = 0x00ff00) {
+        this.scene = scene;
+        this.world = world;
         this.width = width;
         this.height = height;
         this.canvasRef = canvasRef;
@@ -129,11 +129,11 @@ export class SceneManager {
         return groundBody;
     }
 
-    adjustFontSize() {
-        const width = window.innerWidth;
-        const newSize = width <= 700 ? 1.0 : 1.6;
-        this.fontMaker.adjustFontSize(newSize);
-    }
+    // adjustFontSize() {
+    //     const width = window.innerWidth;
+    //     const newSize = width <= 700 ? 1.0 : 1.6;
+    //     this.fontMaker.adjustFontSize(newSize);
+    // }
 
     onWindowResize = () => {
         const width = window.innerWidth;
