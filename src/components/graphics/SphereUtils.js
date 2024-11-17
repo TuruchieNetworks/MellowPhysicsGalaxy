@@ -54,11 +54,11 @@ class SphereUtils {
         return '#' + Math.floor(Math.random() * 16777215).toString(16);
     }
 
-    createCannonSphere(specs = { r: 4, w: 50, h: 50 }, color = this.createRandomHexColor(), position = { x: -10, y: 10, z: -80 }, mass = 0.1, shadedTexture = this.shader.shaderMaterials().northStarMaterial) {
+    createCannonSphere(specs = { r: 4, w: 50, h: 50 }, color = this.createRandomHexColor(), position = { x: -10, y: 10, z: -80 }, mass =  this.gaussianDistribution.getMass()* 50, shadedTexture = this.shader.shaderMaterials().northStarMaterial) {
         // Geometry and Material
         const sphereGeometry = new THREE.SphereGeometry(specs.r, specs.w, specs.h);
         const sphereMaterial = new THREE.MeshPhongMaterial({
-            color: color,
+            color,
             wireframe: false
         });
 

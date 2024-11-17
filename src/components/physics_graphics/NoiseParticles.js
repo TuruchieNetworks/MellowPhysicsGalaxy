@@ -286,7 +286,7 @@ const NoisePartices = ({ height = window.innerHeight, width = window.innerWidth,
 
         const sandParticles = new SandParticles(scene, world, shader.shaderMaterials().noiseMaterial, 40);
         // sandParticles.addParticles();
-        sandParticles.createNoiseParticles();
+        sandParticles.createNoiseParticles(60);
 
         // Pass both scene and camera to the FontMaker constructor
         const fontMaker = new FontMaker(scene, camera, navigate);
