@@ -415,9 +415,9 @@ const GalaxialFallingSandPlane = ({ height = window.innerHeight, width = window.
         const sphereUtils = new SphereUtils(scene, camera, textureLoader, planePad);
 
         // Handle mouse movements
-        window.addEventListener('mousemove', (event) => {
-            sphereUtils.updateHover(event);
-        });
+        // window.addEventListener('mousemove', (event) => {
+        //     sphereUtils.updateHover(event);
+        // });
 
         // Handle clicks to create spheres
         window.addEventListener('click', () => {

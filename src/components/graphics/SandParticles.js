@@ -30,7 +30,7 @@ export class SandParticles {
         this.ghostBodies = [];
 
         // Initialize particles when the class is instantiated
-        this.addParticles();  // Calls the method to create and add particles to the scene and physics world
+        // this.addParticles();  // Calls the method to create and add particles to the scene and physics world
     }
 
     randomHexColor() {
@@ -80,8 +80,8 @@ export class SandParticles {
     }
 
     // Method to create the particles
-    createNoiseParticles(radius = 1.6) {
-        for (let i = 0; i < this.particleCount; i++) {
+    createNoiseParticles(count = 20, radius = 1.6) {
+        for (let i = 0; i < count; i++) {
             // Create Three.js particle
             const geometry = new THREE.SphereGeometry(radius, 16, 16);
             const material = this.material;
@@ -95,20 +95,20 @@ export class SandParticles {
                 (Math.random() - 0.5) * 10
             );
 
-            const intersects = this.raycaster.intersectObjects(this.scene.children);
-            if (intersects.length > 0 && intersects[0].object.userData.clickable) {
-                document.body.style.cursor = 'pointer';
+            // const intersects = this.raycaster.intersectObjects(this.scene.children);
+            // if (intersects.length > 0 && intersects[0].object.userData.clickable) {
+            //     document.body.style.cursor = 'pointer';
         
-            //   // Check if textMesh exists and has a material before setting it
-            //   if (mesh && mesh.material) { // !== this.shader.shaderMaterials().noiseMaterial) {
-            //     mesh.material = this.shader.shaderMaterials().noiseMaterial;
-            //   }
-            } else {
-                document.body.style.cursor = 'default';
-            //   if (mesh) {
-            //     mesh.material = new THREE.MeshPhongMaterial({ map: this.textureLoader.load(this.textureURL) });
-            //   }
-            }
+            // //   // Check if textMesh exists and has a material before setting it
+            // //   if (mesh && mesh.material) { // !== this.shader.shaderMaterials().noiseMaterial) {
+            // //     mesh.material = this.shader.shaderMaterials().noiseMaterial;
+            // //   }
+            // } else {
+            //     document.body.style.cursor = 'default';
+            // //   if (mesh) {
+            // //     mesh.material = new THREE.MeshPhongMaterial({ map: this.textureLoader.load(this.textureURL) });
+            // //   }
+            // }
 
             // Add particle mesh to the scene
             this.scene.add(mesh);

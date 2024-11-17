@@ -103,7 +103,7 @@ class SphereUtils {
     }
 
     createPreviewSphere() {
-        document.body.style.cursor = 'pointer';
+        // document.body.style.cursor = 'pointer';
         // Get a random image for the sphere texture
         const textureURL = this.imageUtils.getRandomImage('concerts'); // Corrected category name
         const geometry = new THREE.SphereGeometry(2, 20, 20);

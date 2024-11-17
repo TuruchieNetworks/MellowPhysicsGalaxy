@@ -228,9 +228,8 @@ const FallingSand = ({ height = window.innerHeight, width = window.innerWidth, p
         scene.add(dLightHelper);
         // Initialize helpers
         const helpers = new LightAxisUtilHelper(scene, camera, renderer);
-        // // Add helpers to the scene
-        helpers.addAxesHelper(); // Adds the axes helper to the 
-        helpers.addGridHelper(); // Also adds the grid helper to the scene
+        helpers.addAxesHelper();
+        helpers.addGridHelper();
         // helpers.addHemisphereLightHelper(light);
         helpers.addShadowCameraHelper(directionalLight);
         helpers.addDirectionalLightHelper(directionalLight);
@@ -297,7 +296,7 @@ const FallingSand = ({ height = window.innerHeight, width = window.innerWidth, p
         // scene.add(box);
         // scene.add(multiBox);
 
-        const sandParticles = new SandParticles(scene, world, shader.shaderMaterials().noiseMaterial, 40);
+        const sandParticles = new SandParticles(scene, world, shader.shaderMaterials().noiseMaterial);
         sandParticles.createNoiseParticles(1.4);// Assuming you have access to both `scene` and `camera` objects
 
         // Pass both scene and camera to the FontMaker constructor
@@ -368,9 +367,6 @@ const FallingSand = ({ height = window.innerHeight, width = window.innerWidth, p
         // Add window resize listener
         window.addEventListener('resize', handleWindowResize);
 
-        // Add event listener for window resize
-        window.addEventListener('resize', handleWindowResize);
-
         // Animation loop
         const animate = () => {
             requestAnimationFrame(animate);
@@ -386,11 +382,11 @@ const FallingSand = ({ height = window.innerHeight, width = window.innerWidth, p
             });
 
             // Sync Three.js meshes with Cannon.js bodies
-            sphereMeshRef.current.forEach((mesh, i) => {
-                const body = sphereBodiesRef.current[i];
-                mesh.position.copy(body.position);
-                mesh.quaternion.copy(body.quaternion);
-            });
+            // sphereMeshRef.current.forEach((mesh, i) => {
+            //     const body = sphereBodiesRef.current[i];
+            //     mesh.position.copy(body.position);
+            //     mesh.quaternion.copy(body.quaternion);
+            // });
             shader.update();
             // fontMaker.update();
             // sandParticles.update();

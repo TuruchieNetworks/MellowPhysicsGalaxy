@@ -1,11 +1,12 @@
 import * as THREE from 'three';
 export class Shaders {
-  constructor(width = window.innerWidth, height = window.innerHeight, deltaTime = 1 / 60, time = 0.1, shapeFactor = 0.5) {
+  constructor(width = window.innerWidth, height = window.innerHeight, deltaTime = 1 / 60, time = 0.1, shapeFactor = 0.5, cubeTexture = null) {
     this.width = width;
     this.height = height;
     this.time = time;
     this.deltaTime = deltaTime;
     this.shapeFactor = shapeFactor;
+    this.cubeTexture = cubeTexture;
     this.mousePosition = new THREE.Vector2(0, 0);
 
     this.addMouseHover();
@@ -21,7 +22,7 @@ export class Shaders {
     this.boidShaders = this.useBoidComputeShaders();
     this.noiseShader = this.useNoiseShader();
     this.redNoiseShader = this.useDarkNoiseShader();
-    this.starryBackground = this.useStarryBackgrounds();
+    this.starryShader = this.useStarryBackgrounds();
     this.convolutionShader = this.useConvolutionShader();
     this.wrinkledShader = this.useWrinkledShader();
     this.explosiveShader = this.useExplosiveShader();
@@ -30,7 +31,11 @@ export class Shaders {
   useStarryBackgrounds() {
     const starryShader = {
       uniforms: {
-        time: this.time,
+        hovered: { value: 0.0 },
+        time: { value: this.time },
+        explodeIntensity: { value: 0.1 },
+        backgroundTexture: { value: this.cubeTexture },
+        mousePosition: { value: new THREE.Vector2(0.0, 0.0) },
         resolution: { value: new THREE.Vector2(this.width, this.height) },
       },
 
@@ -49,7 +54,7 @@ export class Shaders {
 
       // Simple random noise function
       float randomNoise(vec3 pos) {
-        return fract(sin(dot(pos.xyz, vec3(12.9898, 78.233, 54.53))) * 43758.5453);
+        return fract(sin(dot(pos.xyz * sin(time), vec3(12.9898, 78.233, 54.53))) * 43758.5453);
       }
 
       void main() {
@@ -730,10 +735,13 @@ export class Shaders {
     this.boidShaders.uniforms.mousePosition.value = this.mousePosition; // Add interactivity
     this.boidShaders.uniforms.boidSpeed.value = Math.sin(this.time * 0.5) * 0.5 + 1.0; // Oscillate speed
     this.boidShaders.uniforms.colorShift.value = (Math.cos(this.time) * 0.5) + 0.5; // Dynamic color
+
     // Update other uniforms if necessary
     this.sawShader.uniforms.time.value = this.time;
     this.explosiveShader.uniforms.time.value = this.time;
     this.noiseShader.uniforms.time.value = (Math.cos(this.time) * 0.5) + 0.5;
+    this.starryShader.uniforms.time.value = Math.sin(this.time) + 0.1;
+    this.starryShader.uniforms.explodeIntensity.value = Math.sin(this.time) + Math.cos(0.1 + this.time);
     this.handleHoverEffect();
   }
 
