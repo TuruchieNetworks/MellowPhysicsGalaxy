@@ -33,9 +33,9 @@ export class SceneManager {
     }
 
     init() {
+        this.addFog(); // Add fog to scene
         this.loadTextures(); // Load textures and set background
         this.adjustFontSize(); // Initial font adjustment
-        this.addFog(); // Add fog to scene
         this.initializeCamera();
         this.initializeRenderer();
         this.initializePhysics();
@@ -129,19 +129,15 @@ export class SceneManager {
         return groundBody;
     }
 
-    // adjustFontSize() {
-    //     const width = window.innerWidth;
-    //     const newSize = width <= 700 ? 1.0 : 1.6;
-    //     this.fontMaker.adjustFontSize(newSize);
-    // }
-
     onWindowResize = () => {
         const width = window.innerWidth;
         const height = window.innerHeight;
         this.camera.aspect = width / height;
         this.camera.updateProjectionMatrix();
         this.renderer.setSize(width, height);
-        this.adjustFontSize();
+        if (this.fontMaker !== null && this.fontMaker.textMesh) {
+            this.adjustFontSize();
+        }
     };
 
     adjustFontSize() {

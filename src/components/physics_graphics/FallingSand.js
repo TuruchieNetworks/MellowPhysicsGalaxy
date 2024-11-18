@@ -15,7 +15,7 @@ import SandParticles from "../graphics/SandParticles";
 import FontMaker from "../graphics/FontMaker";
 
 
-const FallingSand = ({ height = window.innerHeight, width = window.innerWidth, particleCount = 500 }) => {
+const FallingSand = ({ height = window.innerHeight, width = window.innerWidth, particleCount = 600 }) => {
     const { randomHexColor, randomRgbaColor } = useColorUtils();
     const canvasRef = useRef();
     const sceneRef = useRef(new THREE.Scene());
@@ -64,8 +64,6 @@ const FallingSand = ({ height = window.innerHeight, width = window.innerWidth, p
     //     wallBody.addShape(wallShape);
     //     worldRef.current.addBody(wallBody);  // Access world using worldRef.current
     // });
-
-
     useEffect(() => {
         const scene = sceneRef.current;
         const world = worldRef.current; // Ensure you're using the reference 
@@ -250,7 +248,6 @@ const FallingSand = ({ height = window.innerHeight, width = window.innerWidth, p
         // ground.rotation.x = -Math.PI / 2;
         // ground.position.y = 8;
         // scene.add(ground);
-
         let time = Date.now();
 
         // Initialize matrix and Cannon bodies for each particle
@@ -295,14 +292,11 @@ const FallingSand = ({ height = window.innerHeight, width = window.innerWidth, p
 
         // scene.add(box);
         // scene.add(multiBox);
-
         const sandParticles = new SandParticles(scene, world, shader.shaderMaterials().noiseMaterial);
-        sandParticles.createNoiseParticles(1.4);// Assuming you have access to both `scene` and `camera` objects
+        sandParticles.createNoiseParticles(100, 1.4);// Assuming you have access to both `scene` and `camera` objects
 
         // Pass both scene and camera to the FontMaker constructor
         const fontMaker = new FontMaker(scene, camera, navigate);
-
-
 
         // fontMaker.initialize('Falling Ghoasts Rush: Shoot Or Die Trying!!!', {
         //     color: 0xff0000,
@@ -323,11 +317,6 @@ const FallingSand = ({ height = window.innerHeight, width = window.innerWidth, p
             // Optionally enable raycasting for click detection
             fontMaker.enableRaycast();
         });
-
-
-        //     // Optionally enable raycasting for click detection
-        //     fontMaker.enableRaycast();
-        // });
 
         // Event listeners for mouse movements and clicks
         const onMouseMove = (event) => fontMaker.onMouseMove(event);
@@ -388,7 +377,7 @@ const FallingSand = ({ height = window.innerHeight, width = window.innerWidth, p
             //     mesh.quaternion.copy(body.quaternion);
             // });
             shader.update();
-            // fontMaker.update();
+            fontMaker.update();
             // sandParticles.update();
             shader.shaderMaterials().sawMaterial.uniforms.time.value = time * 0.001
 

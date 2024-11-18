@@ -28,9 +28,6 @@ export class SandParticles {
 
         this.ghostParticles = [];
         this.ghostBodies = [];
-
-        // Initialize particles when the class is instantiated
-        // this.addParticles();  // Calls the method to create and add particles to the scene and physics world
     }
 
     randomHexColor() {
@@ -70,7 +67,7 @@ export class SandParticles {
             // Allow sleep with adjusted limits
             particleBody.allowSleep = true;
             particleBody.sleepSpeedLimit = 1.0;  // Adjust sleeping speed
-            particleBody.sleepTimeLimit = 5;    // Allow sleep to take a bit longer
+            particleBody.sleepTimeLimit = 5;    // 1; // Allow sleep to take a bit longer
     
             particleBody.addShape(shape);
     
@@ -80,7 +77,7 @@ export class SandParticles {
     }
 
     // Method to create the particles
-    createNoiseParticles(count = 20, radius = 1.6) {
+    createNoiseParticles(count = 100, radius = 1.6) {
         for (let i = 0; i < count; i++) {
             // Create Three.js particle
             const geometry = new THREE.SphereGeometry(radius, 16, 16);

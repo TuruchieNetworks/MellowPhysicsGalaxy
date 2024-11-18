@@ -17,7 +17,7 @@ import SphereUtils from "../graphics/SphereUtils";
 import { spherizeUV } from "three/webgpu";
 
 
-const NoisePartices = ({ height = window.innerHeight, width = window.innerWidth, particleCount = 500 }) => {
+const NoisePartices = ({ height = window.innerHeight, width = window.innerWidth, particleCount = 700 }) => {
     const { randomHexColor } = useColorUtils();
     const canvasRef = useRef();
     const sceneRef = useRef(new THREE.Scene());
@@ -286,7 +286,7 @@ const NoisePartices = ({ height = window.innerHeight, width = window.innerWidth,
 
         const sandParticles = new SandParticles(scene, world, shader.shaderMaterials().noiseMaterial, 40);
         // sandParticles.addParticles();
-        sandParticles.createNoiseParticles(60);
+        sandParticles.createNoiseParticles(100);
 
         // Pass both scene and camera to the FontMaker constructor
         const fontMaker = new FontMaker(scene, camera, navigate);

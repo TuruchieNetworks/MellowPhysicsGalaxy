@@ -3,7 +3,7 @@ import * as CANNON from "cannon-es";
 import ImageUtils from './ImageUtils';
 import Shaders from '../graphics/Shaders';
 import GaussianDistribution from '../graphics/GaussianDistribution';
-// import Plane from './Plane';
+import { MomentumPhysics } from './MomentumPhysics';
 
 
 class SphereUtils {
@@ -29,17 +29,15 @@ class SphereUtils {
         this.interactionPlane = new THREE.Plane();
         this.plane = plane;
 
-        // Preview sphere for hover effect
-        this.createPreviewSphere();
-        this.previewSphere = this.createPreviewSphere();
-        this.scene.add(this.previewSphere);
-
         // Spheres and animations
         this.spheres = [];
         this.geometries = [];
         this.sphereMeshes = [];
         this.sphereBodies = [];
-
+        
+        this.previewSphere = this.createPreviewSphere();
+        this.scene.add(this.previewSphere);
+        
         // Physics
         this.gravityEnabled = true;
         this.gravity = new THREE.Vector3(0, -9.81, 0); // Gravity vector
@@ -137,7 +135,7 @@ class SphereUtils {
         const timeoutId = setTimeout(() => {
             this.scene.remove(newSphere.mesh); // Remove the sphere from the scene
             this.spheres = this.spheres.filter(s => s.sphereId !== newSphere.sphereId); // Clean up from array
-        }, 30000); // 30 seconds
+        }, 59999); // 30 seconds
 
         // Store the timeout ID in the sphere object to clear it later if necessary
         newSphere.timeoutId = timeoutId;
@@ -149,6 +147,7 @@ class SphereUtils {
             color: this.createRandomHexColor(),
             metalness: 0,
             roughness: 0,
+            map: this.textureLoader.load(textureURL)
         });
 
         const sphereMesh = new THREE.Mesh(geometry, material);

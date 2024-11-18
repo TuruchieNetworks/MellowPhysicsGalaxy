@@ -2,27 +2,6 @@ import { useMemo } from 'react';
 import * as THREE from 'three';
 import * as CANNON from 'cannon-es';
 
-import sun from '../../galaxy_imgs/sun.jpg';
-import stars from '../../galaxy_imgs/stars.jpg';
-import mars from '../../galaxy_imgs/mars.jpg';
-import earth from '../../galaxy_imgs/earth.jpg';
-import saturn from '../../galaxy_imgs/saturn.jpg';
-import venus from '../../galaxy_imgs/venus.jpg';
-import nebula from '../../galaxy_imgs/nebula.jpg';
-import jupiter from '../../galaxy_imgs/jupiter.jpg';
-import monkeyUrl from '../../GLTFs/monkey.glb';
-import DancingTwerk from '../../FBXs/DancingTwerk.fbx';
-import blue_concert from '../../img/blue_concert.jpg';
-import landing_dj from '../../img/landing_dj.jpg';
-import globe_concert from '../../img/globe_concert.jpg';
-import metal_blocks from '../../img/metal_blocks.jpg';
-import vasil_guitar from '../../img/vasil_guitar.jpg';
-import crowd_angle from '../../img/angle_outdoor_concerts.jpg';
-import bright_stage from '../../img/tube_concerts.avif';
-import blue_stage from '../../img/blue_stage_entrance.avif';
-import guitar_boy from '../../img/dark-greece.avif';
-import concert_lights from '../../img/bright-concert-lights.avif';
-
 export const useCannonGround = () => {
   return useMemo(() => {
     // Create a CANNON plane body
