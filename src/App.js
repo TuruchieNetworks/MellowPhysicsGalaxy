@@ -3,7 +3,6 @@ import { Routes, Route, Navigate } from 'react-router-dom';
 import './App.css';
 import NavBar from './components/headers/NavBar';
 import Landing from './components/layout/Landing';
-import Biography from './components/layout/Bio';
 import Contact from './components/auth/Contact';
 import Merchandise from './components/auth/Merchandise';
 import ImageCarousel from './components/carousels/ImageCarousel';
@@ -16,13 +15,12 @@ import { SpinningBox } from './components/loaded_models/LoadedModelTextures';
 import Services from './components/auth/Services';
 import AboutGraphics from './components/layout/AboutGraphics';
 import MusicGraphics from './components/layout/MusicGraphics';
-import NoiseParticles from './components/physics_graphics/NoiseParticles';
-import FallingFlashes from './components/physics_graphics/FallingFlashes';
-import FallingGhoasts from './components/physics_graphics/FallingGhoasts';
+import VisualGraphics from './components/layout/VisualGraphics';
+import FlashFalls from './components/layout/FlashFalls';
+import FlashGhoasts from './components/layout/FlashGhoasts';
 import GalaxialFallingSandPlane from './components/physics_graphics/GalaxialFallingSandPlane';
 import SphereDrops from './components/physics_graphics/SphereDrops';
-import FlashFalls from './components/layout/FlashFalls';
-import VisualGraphics from './components/layout/VisualGraphics';
+import FlashTracks from './components/layout/FlashTracks';
 
 // Array of background images
 
@@ -45,9 +43,9 @@ function App() {
         <Route exact path='/SpinningBox' element={ <SpinningBox /> } />
         <Route exact path='/PhysicsAnimations' element={ <PhysicsAnimations /> } />
         <Route exact path='/MusicBackground' element={ <MusicBackground /> } />
-        <Route exact path='/FallingGhoasts' element={ <FallingGhoasts /> } />
-        <Route exact path='/FallingTracks' element={ <FlashFalls /> } />
-        <Route exact path='/FlashFalls' element={ <FallingFlashes /> } />
+        <Route exact path='/FallingGhoasts' element={ <FlashGhoasts /> } />
+        <Route exact path='/FallingTracks' element={ <FlashTracks /> } />
+        <Route exact path='/FlashFalls' element={ <FlashFalls /> } />
         <Route exact path='/FallingFlashes' element={ <FlashFalls /> } />
         <Route exact path='/SphereDrops' element={ <SphereDrops /> } />
         <Route exact path='/GalaxialFallingSandPlane' element={ <GalaxialFallingSandPlane /> } />

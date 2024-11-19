@@ -302,7 +302,7 @@ const FallingTracks = ({ height = window.innerHeight, width = window.innerWidth,
         // scene.add(multiBox);
 
         const sphereUtils = new SphereUtils(scene, world, camera, textureLoader, plane);
-        sphereUtils.createCannonSphere({ r: 10, w: 50, h: 50 }, randomHexColor(), { x: -10, y: 20, z: -80 }, 10.1, shader.shaderMaterials().powderMaterial);
+        sphereUtils.createCannonSphere({ r: 10, w: 50, h: 50 }, randomHexColor(), { x: -10, y: 20, z: -80 }, 10.1, shader.shaderMaterials().sawMaterial);
 
         const sandParticles = new SandParticles(scene, world, shader.shaderMaterials().explosiveMaterial);
         sandParticles.createNoiseParticles(60, 1.4);// Assuming you have access to both `scene` and `camera` objects
