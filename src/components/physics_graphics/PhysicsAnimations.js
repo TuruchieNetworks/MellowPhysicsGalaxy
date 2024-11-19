@@ -143,7 +143,7 @@ const PhysicsAnimations = () => {
     // Setup scene, camera, and renderer
     const scene = new THREE.Scene();
     const camera = new THREE.PerspectiveCamera(75, dimensions.width / dimensions.height, 0.1, 1000);
-    camera.position.set(0, 3, 32);
+    camera.position.set(0, 3, 40);
 
     const renderer = new THREE.WebGLRenderer();
     renderer.setSize(dimensions.width, dimensions.height);
@@ -179,13 +179,12 @@ const PhysicsAnimations = () => {
     light.addAmbientLight({ color: 0x222222, intensity: 0.5, castShadow: true });
     light.addSpotLight({ color: 0xFFFFFF, intensity: 1, position: { x: -100, y: 100, z: 0 }, angle: 0.2, castShadow: true });
     light.addHemisphereLight({ skyColor: 0xFFFFFF, groundColor: 0x444444, intensity: 0.9, position: { x: 0, y: 50, z: 0 }, castShadow: true });
-    const pointLight = light.addPointLight({ color: 0xff0000, intensity: 0.8, position: { x: 20, y: 20, z: 20 }, castShadow: true });
+    light.addPointLight({ color: 0xff0000, intensity: 0.8, position: { x: 20, y: 20, z: 20 }, castShadow: true });
     const directionalLight = light.addDirectionalLight({ color: 0xFFFFFF, intensity: 1, position: { x: 10, y: 20, z: 10 }, castShadow: true });
 
     // Optionally, add a path for an object or animation
     const points = [new THREE.Vector3(0, 0, 0), new THREE.Vector3(10, 0, 0)];
-    light.createPath(points, random_bg_color())
-    light.createPath(fogPathPoints, random_hex_color());
+    // light.createPath(points, random_bg_color())sss
 
     // Initialize helpers
     const helpers = new LightAxisUtilHelper(scene, camera, renderer);
@@ -291,7 +290,7 @@ const PhysicsAnimations = () => {
     });
     const boundary = new THREE.Mesh(boundaryGeom, boundaryMat);
     scene.add(boundary);
-    boundingObjects.updateProperties(100, 0.2); // Update to 100 spheres with a radius of 0.2
+    boundingObjects.updateProperties(150, 0.5); // Update to 100 spheres with a radius of 0.2
 
     // camera.position.z = 10;
     // Create a keyframe track for galaxial motion

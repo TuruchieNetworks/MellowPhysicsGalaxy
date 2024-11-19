@@ -1,16 +1,16 @@
 import React, { useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import '../../App.css';
-import Biography from '../layout/Bio';
-import HeaderLinks from '../headers/HeaderLinks';
 import ImageCarousel from '../carousels/ImageCarousel';
-import landing_dj from '../../img/landing_dj.jpg';
+import HeaderLinks from '../headers/HeaderLinks';
+import useCarouselImages from '../hooks/UseCarouselImages';
 import blue_concert from '../../img/blue_concert.jpg';
 import globe_concert from '../../img/globe_concert.jpg';
+import landing_dj from '../../img/landing_dj.jpg';
 import metal_blocks from '../../img/metal_blocks.jpg';
 import vasil_guitar from '../../img/vasil_guitar.jpg';
-import useCarouselImages from '../hooks/UseCarouselImages';
-import GalaxialFallingSandPlane from '../physics_graphics/GalaxialFallingSandPlane';
+import Biography from './Bio';
+import FallingTracks from '../physics_graphics/FallingTracks';
 
 const images = [
     landing_dj,
@@ -20,7 +20,7 @@ const images = [
     vasil_guitar
 ];
 
-const Services = ({ currentBackground, handlePrev, handleNext }) => {
+const VisualGraphics = ({ currentBackground, handlePrev, handleNext }) => {
     const { idx, changeImage } = useCarouselImages(images);
     const videoRef = useRef(null);
 
@@ -47,7 +47,7 @@ const Services = ({ currentBackground, handlePrev, handleNext }) => {
             }}
         >
 
-            <GalaxialFallingSandPlane />
+            <FallingTracks />
 
             <div className="container showcase-container imageCover"
                 style={{
@@ -82,4 +82,4 @@ const Services = ({ currentBackground, handlePrev, handleNext }) => {
     );
 };
 
-export default Services;
+export default VisualGraphics;

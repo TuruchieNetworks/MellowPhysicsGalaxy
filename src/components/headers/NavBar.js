@@ -41,8 +41,23 @@ const NavBar = () => {
                                 </Link>
                             </li>
                             <li>
+                                <Link to="/FallingGhoasts">
+                                    <span className="fas fa-ghost" onClick={handleMenuClick}> Flash Noise</span>
+                                </Link>
+                            </li>
+                            <li>
+                                <Link to="/FlashFalls">
+                                    <span className="fas fa-fire" onClick={handleMenuClick}> Explosive Noise</span>
+                                </Link>
+                            </li>
+                            <li>
+                                <Link to="/FallingTracks">
+                                    <span className="fas fa-flash" onClick={handleMenuClick}> Noise Concerts</span>
+                                </Link>
+                            </li>
+                            <li>
                                 <Link to="/visuals">
-                                    <span className="fas fa-phone" onClick={handleMenuClick}> Visuals</span>
+                                    <span className="fas fa-camera" onClick={handleMenuClick}> Visuals</span>
                                 </Link>
                             </li>
                             <li>

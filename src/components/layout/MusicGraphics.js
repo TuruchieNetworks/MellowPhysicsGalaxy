@@ -3,7 +3,7 @@ import '../../App.css';
 import useCarouselImages from '../hooks/UseCarouselImages';
 import Music from '../auth/Music';
 import ImageUtils from '../graphics/ImageUtils';
-import GalaxialFallingSandPlane from '../physics_graphics/GalaxialFallingSandPlane';
+import PhysicsAnimations from '../physics_graphics/PhysicsAnimations';
 
 
 const MusicGraphics = () => {
@@ -33,7 +33,7 @@ const MusicGraphics = () => {
             transition: 'background-image 0.5s ease-in-out'
         }}
         >
-        <GalaxialFallingSandPlane/>
+        <PhysicsAnimations/>
         <Music />
         </div>
     );

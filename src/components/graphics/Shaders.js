@@ -825,7 +825,9 @@ export class Shaders {
 
     // Update other uniforms if necessary
     this.sawShader.uniforms.time.value = this.time;
-    this.axialSawShader.uniforms.time.value = this.time;
+    this.axialSawShader.uniforms.time.value = (Math.sin(this.time) * 0.5) + 0.5;
+    this.powderShader.uniforms.time.value = (Math.sin(this.time) * 0.5) + 0.5  + Math.cos(0.1 + this.time);
+    this.wrinkledShader.uniforms.time.value = (Math.sin(this.time) * 0.5) + 0.5  + Math.cos(0.1 + this.time);
     this.darkNoiseShader.uniforms.time.value = (Math.sin(this.time) * 0.5) + 0.5  + Math.cos(0.1 + this.time);
     this.explosiveShader.uniforms.time.value = (Math.sin(this.time) * 0.5) + 0.5  + Math.cos(0.1 + this.time);
     this.explosiveShader.uniforms.explodeIntensity.value = (Math.sin(this.time) * 0.5) + 0.5  + Math.cos(0.1 + this.time);

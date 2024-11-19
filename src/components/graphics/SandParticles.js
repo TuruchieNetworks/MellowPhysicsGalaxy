@@ -34,6 +34,13 @@ export class SandParticles {
         return `#${Math.floor(Math.random() * 16777215).toString(16)}`;
     }
 
+    createRandomPoints() {    
+        const x = (Math.random() - 0.5) * 10;
+        const y = Math.random() * 10 + 10;
+        const z = (Math.random() - 0.5) * 10;
+        return {x, y, z}
+    }
+
     addParticles(count = 100) {
         for (let i = 0; i < count; i++) {
             // Create Three.js mesh
@@ -86,6 +93,121 @@ export class SandParticles {
                 material = this.material;
             } else {
                 // material = this.material;
+                material = mat;
+            } 
+
+            const mesh = new THREE.Mesh(geometry, material);
+            mesh.castShadow = true;
+
+            const pos = this.createRandomPoints();
+
+            // Set random position
+            mesh.position.set(pos.x, pos.y, pos.z);
+
+            // const intersects = this.raycaster.intersectObjects(this.scene.children);
+            // if (intersects.length > 0 && intersects[0].object.userData.clickable) {
+            //     document.body.style.cursor = 'pointer';
+        
+            // //   // Check if textMesh exists and has a material before setting it
+            // //   if (mesh && mesh.material) { // !== this.shader.shaderMaterials().noiseMaterial) {
+            // //     mesh.material = this.shader.shaderMaterials().noiseMaterial;
+            // //   }
+            // } else {
+            //     document.body.style.cursor = 'default';
+            // //   if (mesh) {
+            // //     mesh.material = new THREE.MeshPhongMaterial({ map: this.textureLoader.load(this.textureURL) });
+            // //   }
+            // }
+
+            // Add particle mesh to the scene
+            this.scene.add(mesh);
+            this.noiseParticles.push(mesh);
+
+            // Create Cannon.js physics body
+            const body = new CANNON.Sphere(1.6);
+            const particleBody = new CANNON.Body({
+                mass: 13.1,
+                position: new CANNON.Vec3(mesh.position.x, mesh.position.y, mesh.position.z),
+            });
+
+            particleBody.addShape(body);
+            particleBody.allowSleep = true;  // Allow particles to sleep when at rest
+            particleBody.sleepSpeedLimit = 3.1; // Lower speed threshold for sleeping
+            particleBody.sleepTimeLimit = 3;  // Time required to enter sleep state
+
+            // Add the particle body to the world
+            this.world.addBody(particleBody);
+            this.noiseParticleBodies.push(particleBody);
+        }
+    }
+
+    // Method to create the particles
+    createDarkFlahNoiseParticles(count = 100, radius = 1.6, mat = this.shader.shaderMaterials().noiseMaterial) {
+        for (let i = 0; i < count; i++) {
+            // Create Three.js particle
+            let material;
+            const geometry = new THREE.SphereGeometry(radius, 16, 16);
+            if (i % 2 === 0) {
+                material = this.material;
+            } else {
+                // material = this.material;
+                material = mat;
+            } 
+
+            const mesh = new THREE.Mesh(geometry, material);
+            mesh.castShadow = true;
+
+            const pos = this.createRandomPoints();
+
+            // Set random position
+            mesh.position.set(pos.x, pos.y, pos.z);
+
+            // const intersects = this.raycaster.intersectObjects(this.scene.children);
+            // if (intersects.length > 0 && intersects[0].object.userData.clickable) {
+            //     document.body.style.cursor = 'pointer';
+        
+            // //   // Check if textMesh exists and has a material before setting it
+            // //   if (mesh && mesh.material) { // !== this.shader.shaderMaterials().noiseMaterial) {
+            // //     mesh.material = this.shader.shaderMaterials().noiseMaterial;
+            // //   }
+            // } else {
+            //     document.body.style.cursor = 'default';
+            // //   if (mesh) {
+            // //     mesh.material = new THREE.MeshPhongMaterial({ map: this.textureLoader.load(this.textureURL) });
+            // //   }
+            // }
+
+            // Add particle mesh to the scene
+            this.scene.add(mesh);
+            this.noiseParticles.push(mesh);
+
+            // Create Cannon.js physics body
+            const body = new CANNON.Sphere(1.6);
+            const particleBody = new CANNON.Body({
+                mass: 13.1,
+                position: new CANNON.Vec3(mesh.position.x, mesh.position.y, mesh.position.z),
+            });
+
+            particleBody.addShape(body);
+            particleBody.allowSleep = true;  // Allow particles to sleep when at rest
+            particleBody.sleepSpeedLimit = 3.1; // Lower speed threshold for sleeping
+            particleBody.sleepTimeLimit = 3;  // Time required to enter sleep state
+
+            // Add the particle body to the world
+            this.world.addBody(particleBody);
+            this.noiseParticleBodies.push(particleBody);
+        }
+    }
+
+    // Method to create the particles
+    createFlashParticles(count = 100, radius = 1.6, mat = this.shader.shaderMaterials().explosiveMaterial) {
+        for (let i = 0; i < count; i++) {
+            // Create Three.js particle
+            let material;
+            const geometry = new THREE.SphereGeometry(radius, 16, 16);
+            if (i % 2 === 1) {
+                material = this.material;
+            } else {
                 material = mat;
             } 
 

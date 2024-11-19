@@ -295,8 +295,8 @@ const FallingSand = ({ height = window.innerHeight, width = window.innerWidth, p
         // scene.add(multiBox);
         const sphereUtils = new SphereUtils(scene, world, camera, textureLoader, plane);
         sphereUtils.createCannonSphere({ r: 10, w: 50, h: 50 }, randomHexColor(), { x: -10, y: 20, z: -80 }, 10.1, shader.shaderMaterials().explosiveMaterial);
-        const sandParticles = new SandParticles(scene, world, shader.shaderMaterials().noiseMaterial);
-        sandParticles.createNoiseParticles(60, 1.4);// Assuming you have access to both `scene` and `camera` objects
+        const sandParticles = new SandParticles(scene, world, shader.shaderMaterials().sawMaterial);
+        sandParticles.createDarkFlahNoiseParticles(60, 1.4);// Assuming you have access to both `scene` and `camera` objects
 
         // Pass both scene and camera to the FontMaker constructor
         const fontMaker = new FontMaker(scene, camera, navigate);
@@ -312,8 +312,8 @@ const FallingSand = ({ height = window.innerHeight, width = window.innerWidth, p
         fontMaker.loadFont(() => {
             fontMaker.createTextMesh('Falling Ghoasts Rush: Shoot Or Die!!!', {
                 color: 0xff0000,
-                size: 1.6,
-                height: 0.3,
+                size: 3.6,
+                height: 5.3,
                 position: { x: -10, y: -15, z: 10 }, // Adjust y-position to place text below main scene area
             });
 
@@ -323,7 +323,7 @@ const FallingSand = ({ height = window.innerHeight, width = window.innerWidth, p
 
         // Event listeners for mouse movements and clicks
         const onMouseMove = (event) => fontMaker.onMouseMove(event);
-        const onMouseClick = (event) => fontMaker.onMouseClick(event, '/FallingTracks');
+        const onMouseClick = (event) => fontMaker.onMouseClick(event, '/FallingFlashes');
 
         // Attach event listeners
         window.addEventListener('click', onMouseClick);

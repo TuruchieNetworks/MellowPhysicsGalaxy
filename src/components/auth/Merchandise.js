@@ -18,6 +18,7 @@ import HeaderLinks from '../headers/HeaderLinks';
 import Biography from '../layout/Bio';
 import PhysicsAnimations from '../physics_graphics/PhysicsAnimations';
 import MusicBackground from '../backgroundVideos/MusicBackground';
+import FallingGhoasts from '../physics_graphics/FallingGhoasts';
 // Array of background images
 const images = [
     globe_concert,
@@ -57,11 +58,16 @@ const Merchandise = () => {
                 transition: 'background-image 0.5s ease-in-out',
             }}
         >
-        {/* <NoiseShaderMaterial /> */}
-        {/* <PerlinShader />
-        <FallingSand />
-        */}
-            <div className="container showcase-container imageCover">
+            <FallingGhoasts />
+            <div className="container showcase-container imageCover"
+            style={{
+                width: '100vw',
+                height: '100vh',
+                backgroundSize: 'cover', 
+                backgroundPosition: 'center',
+                backgroundImage: `url(${images[idx]})`,
+                transition: 'background-image 0.5s ease-in-out',
+            }}>
                 <div className='flex-carousel'>
                     <div className='showcase-container'>
                         <ImageCarousel />

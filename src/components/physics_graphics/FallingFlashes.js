@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { useNavigate } from 'react-router-dom';
 import * as THREE from "three";
 import * as CANNON from "cannon-es"; // Import Cannon.js here
@@ -6,34 +6,31 @@ import useColorUtils from '../hooks/UseColorUtils';
 import stars from '../../galaxy_imgs/stars.jpg';
 import nebula from '../../galaxy_imgs/nebula.jpg';
 
+// import { useBox, useMultiBox } from '../hooks/UseBoxGeometry';
 import { useCannonBox } from '../hooks/UseCannonGeometry';
 import { useCannonGround, useCannonUnderground } from '../hooks/UseCannonGround';
 import { LightAxisUtilHelper } from '../graphics/LightAxisUtilHelper';
 import Shaders from "../graphics/Shaders";
 import SandParticles from "../graphics/SandParticles";
 import FontMaker from "../graphics/FontMaker";
-import Geometry from "../graphics/Geometry";
 import SphereUtils from "../graphics/SphereUtils";
-import { spherizeUV } from "three/webgpu";
 
-
-const NoisePartices = ({ height = window.innerHeight, width = window.innerWidth, particleCount = 700 }) => {
-    const { randomHexColor } = useColorUtils();
+const FallingFlashes = ({ height = window.innerHeight, width = window.innerWidth, particleCount = 600 }) => {
+    const { randomHexColor, randomRgbaColor } = useColorUtils();
     const canvasRef = useRef();
     const sceneRef = useRef(new THREE.Scene());
     const worldRef = useRef(new CANNON.World());
-    const sphereMeshRef = useRef([]);
-    const sphereBodiesRef = useRef([]);
     const sandParticlesRef = useRef([]);
+    const sphereBodiesRef = useRef([]);
+    const sphereMeshRef = useRef([]);
     const particleBodiesRef = useRef([]);
     const navigate = useNavigate();
     // const box = useBox();
     // const multiBox = useMultiBox();
-
-    // Access the Cannon.js world and ground
+    // Access the Cannon.js ground
     const { groundBody } = useCannonGround();
-    const { cannonBox, boxMesh } = useCannonBox();
     const { underGroundBody } = useCannonUnderground();
+    const { cannonBox, boxMesh } = useCannonBox(); // If you want to use boxes as well
 
     // Define your box boundaries (min and max coordinates)
     const boxBoundary = {
@@ -127,9 +124,10 @@ const NoisePartices = ({ height = window.innerHeight, width = window.innerWidth,
         //     mass: 0, // Set mass to 0 for static bodies
         //     position: new CANNON.Vec3(0, -1, 0)
         // });
-        groundBody.addShape(new CANNON.Plane()); // Add plane shape to ground body
-        world.addBody(groundBody);
-        groundBody.quaternion.setFromEuler(-Math.PI / 2, 0, 0);
+        underGroundBody.addShape(new CANNON.Plane()); // Add plane shape to ground body
+        world.addBody(underGroundBody);
+        underGroundBody.quaternion.setFromEuler(-Math.PI / 2, 0, 0);
+
 
         const boxPhysMat = new CANNON.Material();
         const groundPhysMat = new CANNON.Material();
@@ -150,7 +148,7 @@ const NoisePartices = ({ height = window.innerHeight, width = window.innerWidth,
 
         // const groundMesh = new THREE.Mesh(groundGeo, groundMat);
         // scene.add(groundMesh);
-        // world.gravity.set(0, -9.81, 0); // Set gravity for the world
+        world.gravity.set(0, -9.81, 0); // Set gravity for the world
 
         const groundBoxContactMat = new CANNON.ContactMaterial(
             groundPhysMat,
@@ -184,10 +182,12 @@ const NoisePartices = ({ height = window.innerHeight, width = window.innerWidth,
             side: THREE.DoubleSide
         });
 
-        const shader = new Shaders(width, height, 1 / 60, timeStep, 50, cubeTextureLoader);
+        const shader = new Shaders(width, height);
         const plane = new THREE.Mesh(planeGeometry, shader.shaderMaterials().sawMaterial);
         scene.add(plane);
         plane.rotation.x = -0.5 * Math.PI;
+        plane.receiveShadow = true;
+
         plane.receiveShadow = true;
 
         const gridHelper = new THREE.GridHelper(30);
@@ -225,10 +225,8 @@ const NoisePartices = ({ height = window.innerHeight, width = window.innerWidth,
         scene.add(dLightHelper);
         // Initialize helpers
         const helpers = new LightAxisUtilHelper(scene, camera, renderer);
-
-        // // Add helpers to the scene
-        helpers.addAxesHelper(); // Adds the axes helper to the 
-        helpers.addGridHelper(); // Also adds the grid helper to the scene
+        helpers.addAxesHelper();
+        helpers.addGridHelper();
         // helpers.addHemisphereLightHelper(light);
         helpers.addShadowCameraHelper(directionalLight);
         helpers.addDirectionalLightHelper(directionalLight);
@@ -241,31 +239,32 @@ const NoisePartices = ({ height = window.innerHeight, width = window.innerWidth,
         // const instancedMesh = new THREE.InstancedMesh(particleGeometry, particleMaterial, particleCount);
         // scene.add(instancedMesh);
 
+
+        // Add a ground plane
+        // const groundGeometry = new THREE.PlaneGeometry(20, 20);
+        // const groundMaterial = new THREE.MeshStandardMaterial({ color: 0x00aa00 });
+        // const ground = new THREE.Mesh(groundGeometry, groundMaterial);
+        // ground.rotation.x = -Math.PI / 2;
+        // ground.position.y = 8;
+        // scene.add(ground);
+        let time = Date.now();
+
         // Initialize matrix and Cannon bodies for each particle
         // const tempMatrix = new THREE.Matrix4();
-
-        // Creating Extra sand particles in both Three.js and Cannon.js
+        // Create sand particles in both Three.js and Cannon.js
         for (let i = 0; i < particleCount; i++) {
             // Three.js particle
-            let material;
             const geometry = new THREE.SphereGeometry(0.3, 16, 16);
-            if (i % 3 === 0) {
-                material = shader.shaderMaterials().axialSawMaterial;
-            } else {
-                material = new THREE.MeshStandardMaterial({ color: randomHexColor() });
-            };
-
+            const material = new THREE.MeshStandardMaterial({ color: randomHexColor() });
             const mesh = new THREE.Mesh(geometry, material);
+            mesh.position.set(
+                (Math.random() - 0.5) * 10,
+                Math.random() * 10 + 10,
+                (Math.random() - 0.5) * 10
+            );
             const x = (Math.random() - 0.5) * 10;
             const y = Math.random() * 10 + 10;
             const z = (Math.random() - 0.5) * 10;
-            mesh.position.set(x, y, z);
-
-            // mesh.position.set(
-            //     (Math.random() - 0.5) * 10,
-            //     Math.random() * 10 + 10,
-            //     (Math.random() - 0.5) * 10
-            // );
 
             // Set position in the instanced mesh matrix
             // tempMatrix.setPosition(x, y, z);
@@ -274,11 +273,13 @@ const NoisePartices = ({ height = window.innerHeight, width = window.innerWidth,
             sandParticlesRef.current.push(mesh);
 
             // Cannon.js body for physics
-            const shape = new CANNON.Sphere(0.3);
+            const shape = new CANNON.Sphere(0.2);
             const particleBody = new CANNON.Body({
                 mass: 13.1,
                 position: new CANNON.Vec3(x, y, z),
                 // type: CANNON.Body.STATIC
+                linearDamping: 0.1, // Add damping for more realistic inertia (slower stopping)
+                angularDamping: 0.1, // Optional: If you want to dampen angular momentum too
             });
 
             particleBody.addShape(shape);
@@ -286,23 +287,33 @@ const NoisePartices = ({ height = window.innerHeight, width = window.innerWidth,
             particleBodiesRef.current.push(particleBody);
         }
 
+        // box.position.y = 4;
+        // multiBox.position.y = 4;
+
+        // scene.add(box);
+        // scene.add(multiBox);
         const sphereUtils = new SphereUtils(scene, world, camera, textureLoader, plane);
         sphereUtils.createCannonSphere({ r: 10, w: 50, h: 50 }, randomHexColor(), { x: -10, y: 20, z: -80 }, 10.1, shader.shaderMaterials().explosiveMaterial);
-
-        const sandParticles = new SandParticles(scene, world, shader.shaderMaterials().explosiveMaterial, 40);
-        // sandParticles.addParticles();
-        sandParticles.createNoiseParticles(100, 1.6, shader.shaderMaterials().noiseMaterial);
+        const sandParticles = new SandParticles(scene, world, shader.shaderMaterials().sawMaterial);
+        sandParticles.createNoiseParticles(60, 1.4);// Assuming you have access to both `scene` and `camera` objects
 
         // Pass both scene and camera to the FontMaker constructor
         const fontMaker = new FontMaker(scene, camera, navigate);
+
+        // fontMaker.initialize('Falling Ghoasts Rush: Shoot Or Die Trying!!!', {
+        //     color: 0xff0000,
+        //     size: 1.6,
+        //     height: 0.3,
+        //     position: { x: -10, y: -15, z: 0 }, // Adjust y-position to place text below main scene area
+        // });
 
         // Load the font and create the text mesh
         fontMaker.loadFont(() => {
             fontMaker.createTextMesh('Falling Ghoasts Rush: Shoot Or Die!!!', {
                 color: 0xff0000,
-                size: 1.6,
-                height: 0.3,
-                position: { x: -10, y: -15, z: 0 }, // Adjust y-position to place text below main scene area
+                size: 3.6,
+                height: 5.3,
+                position: { x: -10, y: -15, z: 10 }, // Adjust y-position to place text below main scene area
             });
 
             // Optionally enable raycasting for click detection
@@ -313,70 +324,38 @@ const NoisePartices = ({ height = window.innerHeight, width = window.innerWidth,
         const onMouseMove = (event) => fontMaker.onMouseMove(event);
         const onMouseClick = (event) => fontMaker.onMouseClick(event, '/FallingTracks');
 
-        // // Attach event listeners
+        // Attach event listeners
         window.addEventListener('click', onMouseClick);
         window.addEventListener('mousemove', onMouseMove);
 
-        // Handle mouse movements
-        window.addEventListener('mousemove', (event) => {
-            sphereUtils.updateHover(event);
-        });
-
-        // Handle clicks to create spheres
-        window.addEventListener('click', () => {
-            sphereUtils.handleClick();
-        });
-
-        // Toggle gravity on key press (for example, "G" key)
-        window.addEventListener('keydown', (event) => {
-            if (event.key === 'a' || event.key === 'l') {
-                sphereUtils.handleClick();
-            }
-            if (event.key === 'g') {
-                sphereUtils.toggleGravity();
-            }
-        });
-
         // Handle window resizing and adjust font size based on screen width
         const handleWindowResize = () => {
-            const newWidth = window.innerWidth;
-            const newHeight = window.innerHeight;
-
-            // Adjust the camera and renderer dimensions directly
-            camera.aspect = newWidth / newHeight;
-            camera.updateProjectionMatrix();
-            renderer.setSize(newWidth, newHeight);
-
             // Update camera and renderer on window resize
-            camera.aspect = newWidth / newHeight;
+            camera.aspect = window.innerWidth / window.innerHeight;
             camera.updateProjectionMatrix();
-            renderer.setSize(newWidth, newHeight);
+            renderer.setSize(window.innerWidth, window.innerHeight);
 
             // Determine new font size based on window width
-            const newSize = newWidth <= 700 ? 1.0 : 1.6;
+            const newSize = window.innerWidth <= 700 ? 1.4 : 1.6;
 
             // Update font size only if it differs from the current size
             if (fontMaker.textMesh && fontMaker.textMesh.geometry.parameters.size !== newSize) {
-                // Remove the existing text mesh if the size needs to change
+                // Remove the existing text mesh
                 scene.remove(fontMaker.textMesh);
 
-                // Adjust font size based on the new window width
-                fontMaker.adjustFontSize();  // Call adjustFontSize directly
-
+                // Re-create the text mesh with the updated size
+                fontMaker.createTextMesh('Falling Ghoasts Rush: Shoot Or Die!!!', {
+                    color: 0xff0000,
+                    size: newSize,
+                    height: 0.3,
+                    position: { x: -10, y: -15, z: 0 },
+                });
             }
         };
 
         // Add window resize listener
         window.addEventListener('resize', handleWindowResize);
 
-        // Add a ground plane
-        // const groundGeometry = new THREE.PlaneGeometry(20, 20);
-        // const groundMaterial = new THREE.MeshStandardMaterial({ color: 0x00aa00 });
-        // const ground = new THREE.Mesh(groundGeometry, groundMaterial);
-        // ground.rotation.x = -Math.PI / 2;
-        // ground.position.y = 8;
-        // scene.add(ground);
-        let time = Date.now();
         // Animation loop
         const animate = () => {
             requestAnimationFrame(animate);
@@ -386,6 +365,9 @@ const NoisePartices = ({ height = window.innerHeight, width = window.innerWidth,
 
             // Sync Three.js meshes with Cannon.js bodies
             sandParticlesRef.current.forEach((mesh, i) => {
+                mesh.rotation.x += 0.1;
+                mesh.rotation.y += 0.1;
+                mesh.rotation.z += 0.2;
                 const body = particleBodiesRef.current[i];
                 mesh.position.copy(body.position);
                 mesh.quaternion.copy(body.quaternion);
@@ -398,11 +380,10 @@ const NoisePartices = ({ height = window.innerHeight, width = window.innerWidth,
             //     mesh.quaternion.copy(body.quaternion);
             // });
             shader.update();
-            fontMaker.update()
+            fontMaker.update();
             sphereUtils.update();
             sandParticles.update();
-            shader.shaderMaterials().sawMaterial.uniforms.time.value = time * 0.002;
-            shader.shaderMaterials().axialSawMaterial.uniforms.time.value = time + Math.sin(time * 0.01);
+            shader.shaderMaterials().sawMaterial.uniforms.time.value = time * 0.001
 
             // Render the scene
             renderer.render(scene, camera);
@@ -410,16 +391,25 @@ const NoisePartices = ({ height = window.innerHeight, width = window.innerWidth,
         animate();
 
         return () => {
-            // Clean up the world and scene on unmount
-            sandParticlesRef.current.forEach(mesh => scene.remove(mesh));
-            renderer.dispose();
+            // Remove all particles from the scene
+            sandParticlesRef.current.forEach(mesh => {
+                scene.remove(mesh);
+                mesh.geometry.dispose();
+                if (mesh.material.map) mesh.material.map.dispose();
+                mesh.material.dispose();
+            });
+
+            // Dispose of font maker resources
             fontMaker.dispose();
-            sphereUtils.dispose();
-            sandParticles.cleanup();
+
+            // Clean up renderer to release WebGL context
+            renderer.dispose();
+
+            console.log('Cleaned up FallingSand resources.');
         };
     }, [width, height, particleCount]);
 
     return <canvas ref={canvasRef} className="galaxial-animation" />;
 };
 
-export default NoisePartices;
+export default FallingFlashes;
