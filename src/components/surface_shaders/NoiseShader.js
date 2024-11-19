@@ -26,6 +26,8 @@ const NoiseShader = ({ width = window.innerWidth, height = window.innerHeight, p
     const box = useBox();
     const multiBox = useMultiBox();
 
+    let timeValue;
+
     let time = 0.1;
     let shapeFactor = 0.5;
     let deltaTime = 1 / 60;
@@ -199,6 +201,7 @@ const NoiseShader = ({ width = window.innerWidth, height = window.innerHeight, p
         // helpers.addHemisphereLightHelper(light);
         helpers.addShadowCameraHelper(directionalLight);
         helpers.addDirectionalLightHelper(directionalLight);
+
         // helpers.addOrbitControls(); // Add orbit controls
 
         // Create plane geometry and material
@@ -207,7 +210,6 @@ const NoiseShader = ({ width = window.innerWidth, height = window.innerHeight, p
 
         // const cplane = new Plane(scene, 60, 60, randomHexColor(), 1, THREE.DoubleSide); // The last parameter is thickness
         // cplane.setRotation(-0.5 * Math.PI, 0, 0);
-
         const plane = new THREE.Mesh(geo, sawMaterial, 1, THREE.DoubleSide); // Apply the shader material to the plane
         plane.rotation.x = -Math.PI / 2; // Rotate the plane to face upwards
         plane.receiveShadow = true;
@@ -256,12 +258,13 @@ const NoiseShader = ({ width = window.innerWidth, height = window.innerHeight, p
             friction: 0.2,     // Friction between particles
             restitution: 0.1   // Minimal bounciness between particles
         });
+
         world.addContactMaterial(groundContactMaterial);
         world.addContactMaterial(particleContactMaterial);
 
         // Step 3: Configure collision detection for better performance with many particles
         world.broadphase = new CANNON.SAPBroadphase(world); // Better for objects on a plane
-        world.allowSleep = true;                            // Enable sleeping for particles that come to rest
+        world.allowSleep = true; // Enable sleeping for particles that come to rest
 
         // Step 4: Create a ground plane in Cannon.js
         const groundShape = new CANNON.Plane();
@@ -310,15 +313,16 @@ const NoiseShader = ({ width = window.innerWidth, height = window.innerHeight, p
 
             const mesh = new THREE.Mesh(geometry, material);
             mesh.castShadow = true;
-            mesh.position.set(
-                (Math.random() - 0.5) * 10,
-                Math.random() * 10 + 10,
-                (Math.random() - 0.5) * 10
-            );
             const x = (Math.random() - 0.5) * 10;
             const y = Math.random() * 10 + 10;
             const z = (Math.random() - 0.5) * 10;
+            mesh.position.set(x, y, z);
 
+            // mesh.position.set(
+            //     (Math.random() - 0.5) * 10,
+            //     Math.random() * 10 + 10,
+            //     (Math.random() - 0.5) * 10
+            // );
             scene.add(mesh);
             sandParticlesRef.current.push(mesh);
 
@@ -339,7 +343,6 @@ const NoiseShader = ({ width = window.innerWidth, height = window.innerHeight, p
             world.addBody(particleBody);
             particleBodiesRef.current.push(particleBody);
         }
-
 
         // const sandParticles = new SandParticles(scene, world, mat, 40);
         // sandParticles.createNoiseParticles();
@@ -407,7 +410,6 @@ const NoiseShader = ({ width = window.innerWidth, height = window.innerHeight, p
             }
         });
 
-        let timeValue;
         const animate = (time) => {
             requestAnimationFrame(animate);
 
@@ -444,7 +446,6 @@ const NoiseShader = ({ width = window.innerWidth, height = window.innerHeight, p
             renderer.render(scene, camera);
         };
 
-
         animate();
 
         // Handle window resizing
@@ -461,6 +462,7 @@ const NoiseShader = ({ width = window.innerWidth, height = window.innerHeight, p
         return () => {
             // Clean up the world and scene on unmount
             sandParticlesRef.current.forEach(mesh => scene.remove(mesh));
+            sphereUtils.dispose()
             renderer.dispose();
         };
     }, [width, height, particleCount]);

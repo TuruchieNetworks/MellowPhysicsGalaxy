@@ -15,11 +15,13 @@ import { useCannonGround, useCannonUnderground } from '../hooks/UseCannonGround'
 import SandParticles from '../graphics/SandParticles';
 import { Lighting } from '../graphics/Lighting';
 import SphereUtils from '../graphics/SphereUtils';
-import { BoundingObjects } from '../graphics/BoundingObjects';
 import { LightAxisUtilHelper } from '../graphics/LightAxisUtilHelper';
+import FontMaker from "../graphics/FontMaker";
+import { useNavigate } from "react-router-dom";
 
 const GalaxialFallingSandPlane = ({ height = window.innerHeight, width = window.innerWidth, particleCount = 10 }) => {
     // Refs for Three.js and Cannon.js essentials
+    const navigate = useNavigate();
     const canvasRef = useRef();
     const sceneRef = useRef(new THREE.Scene());
     const worldRef = useRef(new CANNON.World());
@@ -28,8 +30,7 @@ const GalaxialFallingSandPlane = ({ height = window.innerHeight, width = window.
     const sandParticlesRef = useRef([]);
     const sphereBodiesRef = useRef([]);
     const sphereMeshRef = useRef([]);
-    const particleBodiesRef = useRef([]);
-
+    // const particleBodiesRef = useRef([]);
     let startTime = Date.now();
     let timeValue = 0.0;
 
@@ -412,12 +413,35 @@ const GalaxialFallingSandPlane = ({ height = window.innerHeight, width = window.
         // }
 
         const particles = new SandParticles(scene, world, particleCount);
-        const sphereUtils = new SphereUtils(scene, camera, textureLoader, planePad);
+        const sphereUtils = new SphereUtils(scene, world, camera, textureLoader, planePad);
 
         // Handle mouse movements
-        // window.addEventListener('mousemove', (event) => {
-        //     sphereUtils.updateHover(event);
-        // });
+        window.addEventListener('mousemove', (event) => {
+            sphereUtils.updateHover(event);
+        });
+        
+        const fontMaker = new FontMaker(scene, camera, navigate);
+
+        // Load the font and create the text mesh
+        fontMaker.loadFont(() => {
+            fontMaker.createTextMesh('Falling Ghoasts Rush: Shoot Or Die!!!', {
+                color: 0xff0000,
+                size: 3.6,
+                height: 1.3,
+                position: { x: -10, y: -15, z: 50 }, 
+            });
+
+            // Optionally enable raycasting for click detection
+            fontMaker.enableRaycast();
+        });
+
+        // Event listeners for mouse movements and clicks
+        const onMouseMove = (event) => fontMaker.onMouseMove(event);
+        const onMouseClick = (event) => fontMaker.onMouseClick(event, '/PhysicsAnimations');
+
+        // Attach event listeners
+        window.addEventListener('click', onMouseClick);
+        window.addEventListener('mousemove', onMouseMove);
 
         // Handle clicks to create spheres
         window.addEventListener('click', () => {
@@ -453,6 +477,7 @@ const GalaxialFallingSandPlane = ({ height = window.innerHeight, width = window.
             // Update spheres in each frame
             particles.update();
             sphereUtils.update();
+            // fontMaker.update();
 
             // Update bounding balls
             // boundingObjects.updateProperties(100, 0.2); // Update to 100 spheres with a radius of 0.2
@@ -483,6 +508,9 @@ const GalaxialFallingSandPlane = ({ height = window.innerHeight, width = window.
             // Clean up the world and scene on unmount
             sandParticlesRef.current.forEach(mesh => scene.remove(mesh));
             renderer.dispose();
+            sphereUtils.dispose();
+            fontMaker.dispose();
+            particles.cleanup()
             light.reset()
         };
     }, [width, height, particleCount]);

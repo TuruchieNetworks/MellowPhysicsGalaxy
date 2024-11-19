@@ -6,7 +6,6 @@ import HeaderLinks from '../headers/HeaderLinks';
 import ImageUtils from '../graphics/ImageUtils';
 import ImageCarousel from '../carousels/ImageCarousel';
 import useBackgroundImages from '../hooks/UseBackgroundImages';
-import GalaxialFallingSandPlane from '../physics_graphics/GalaxialFallingSandPlane';
 // import PhysicsAnimations from '../physics_graphics/PhysicsAnimations';
 // import SphereDrops from '../physics_graphics/SphereDrops';
 
@@ -63,7 +62,6 @@ const Music = () => {
                 </Link>
                 </div>
             </div>
-            {/* <SphereDrops/> */}
         </div>
     );
 };

@@ -97,6 +97,7 @@ const SphereDrops = () => {
   useEffect(() => {
     // Setup scene, camera, and renderer
     const scene = new THREE.Scene();
+    const world = new CANNON.World();
     const camera = new THREE.PerspectiveCamera(75, dimensions.width / dimensions.height, 0.1, 1000);
     camera.position.set(-1, 5, 40);
 
@@ -156,6 +157,19 @@ const SphereDrops = () => {
     // // Fog
     // scene.fog = new THREE.Fog(0xFFFFFF, 0, 200);
     // scene.fog = new THREE.FogExp2(random_hex_color(), 0.01);
+
+    // Create bounding objects
+    const boundingObjects = new BoundingObjects(scene, 50, 0.25, 50);
+    // console.log('Bounding Objects:', boundingObjects);
+    // console.log('Spheres:', clickedSpheres);
+
+    // Now create objectsWithPhysics
+    
+    const objectsWithPhysics = boundingObjects.spheres?.map(sphereObj => ({
+      mesh: sphereObj.mesh,
+      velocity: sphereObj.velocity,
+      mass: sphereObj.mass
+    })) || [];
 
     // Load GLTF model
     const assetLoader = new GLTFLoader();
@@ -547,22 +561,9 @@ const SphereDrops = () => {
 
 // Initialize SphereUtils
 
-    const sphereUtils = new SphereUtils(scene, camera, textureLoader, plane);
+    const sphereUtils = new SphereUtils(scene, world, camera, textureLoader, plane);
 
     //const boundingObjects = new BoundingObjects(scene);// Update the number of spheres and their radius
-
-    // Create bounding objects
-    const boundingObjects = new BoundingObjects(scene, 50, 0.25, 50);
-    // console.log('Bounding Objects:', boundingObjects);
-    // console.log('Spheres:', clickedSpheres);
-
-    // Now create objectsWithPhysics
-    
-    const objectsWithPhysics = boundingObjects.spheres?.map(sphereObj => ({
-      mesh: sphereObj.mesh,
-      velocity: sphereObj.velocity,
-      mass: sphereObj.mass
-    })) || [];
 
     // const clickedObjectsWithPhysics = clickedSpheres?.map(sphereObj => ({
     //   mesh: sphereObj.mesh,
@@ -654,9 +655,9 @@ const SphereDrops = () => {
     };
 
     // Handle mouse movements
-    window.addEventListener('mousemove', (event) => {
-        sphereUtils.updateHover(event);
-    });
+    // window.addEventListener('mousemove', (event) => {
+    //     sphereUtils.updateHover(event);
+    // });
     
     // Handle clicks to create spheres
     window.addEventListener('click', () => {

@@ -4,7 +4,7 @@ import Shaders from './Shaders';
 import ImageUtils from './ImageUtils';
 
 export class SandParticles {
-    constructor(scene, world, material = new Shaders(), particleCount = 100) {
+    constructor(scene, world, material = new Shaders().shaderMaterials().convolutionMaterial, particleCount = 100) {
         this.scene = scene;
         this.world = world; 
         this.material = material;
@@ -77,11 +77,18 @@ export class SandParticles {
     }
 
     // Method to create the particles
-    createNoiseParticles(count = 100, radius = 1.6) {
+    createNoiseParticles(count = 100, radius = 1.6, mat = this.shader.shaderMaterials().wrinkledMaterial) {
         for (let i = 0; i < count; i++) {
             // Create Three.js particle
+            let material;
             const geometry = new THREE.SphereGeometry(radius, 16, 16);
-            const material = this.material;
+            if (i % 2 === 0) {
+                material = this.material;
+            } else {
+                // material = this.material;
+                material = mat;
+            } 
+
             const mesh = new THREE.Mesh(geometry, material);
             mesh.castShadow = true;
 
@@ -196,20 +203,56 @@ export class SandParticles {
         }
     }
 
-    // Handle mouse click for navigation
-    //   onMouseClick(event, path = '/FallingGhoasts') {
-    //     this.setRaycasterFromMouse(event);
-    //     const intersects = this.raycaster.intersectObjects(this.scene.children);
+    updateNoiseCannon() {
+        if (this.noiseParticles.length === this.noiseParticleBodies.length) {
+            for (let i = 0; i < this.noiseParticles.length; i++) {
+                const mesh = this.noiseParticles[i];
+                const body = this.noiseParticleBodies[i];
+                mesh.position.copy(body.position); 
+            }
+        }
+    }
 
-    //     if (intersects.length > 0 && intersects[0].object.userData.clickable) {
-    //       console.log('Text clicked!');
-    //       this.navigate(path); // Use `navigate` from `useNavigate`
-    //     }
-    //   }
-    // Sync each Three.js mesh with its corresponding Cannon.js body position
+    updateShaderRotation() {
+        if (this.noiseParticles.length === this.noiseParticleBodies.length) {
+            for (let i = 0; i < this.noiseParticles.length; i++) {
+                if (this.noiseParticles[i].material === this.shader.shaderMaterials().noiseMaterial) {
+                    const mesh = this.noiseParticles[i];
+                    mesh.rotation.x += 0.1;
+                    mesh.rotation.y += 0.1;
+                    mesh.rotation.z += 0.2;
+                }
+        
+            /* 
+            const body = this.noiseParticleBodies[i];
+             mesh.position.copy(body.position);  // Sync mesh with physics body position
+            */
+            }
+        }
+    }
+
+    updateNoiseRotation() {
+        if (this.noiseParticles.length === this.noiseParticleBodies.length) {
+            for (let i = 0; i < this.noiseParticles.length; i++) {
+            const mesh = this.noiseParticles[i];
+            mesh.rotation.x += 0.1;
+            mesh.rotation.y += 0.1;
+            mesh.rotation.z += 0.2;
+        
+            /* 
+            const body = this.noiseParticleBodies[i];
+             mesh.position.copy(body.position);  // Sync mesh with physics body position
+            */
+            }
+        }
+    }
+    
     update() {
         if (this.sandParticles.length === this.particleBodies.length) {
             this.sandParticles.forEach((mesh, index) => {
+                mesh.rotation.x += 0.1;
+                mesh.rotation.y += 0.1;
+                mesh.rotation.z += 0.2;
                 const body = this.particleBodies[index]; // Get the corresponding Cannon body
                 if (body) {
                     // Only copy position if body is defined
@@ -225,15 +268,23 @@ export class SandParticles {
 
         if (this.noiseParticles.length === this.noiseParticleBodies.length) {
             for (let i = 0; i < this.noiseParticles.length; i++) {
-            const mesh = this.noiseParticles[i];
-            const body = this.noiseParticleBodies[i];
-        
-            mesh.position.copy(body.position);  // Sync mesh with physics body position
+                const mesh = this.noiseParticles[i];
+                mesh.rotation.x += 0.1;
+                mesh.rotation.y += 0.1;
+                mesh.rotation.z += 0.2;
+
+                const body = this.noiseParticleBodies[i];
+            
+                mesh.position.copy(body.position);  // Sync mesh with physics body position
             }
         }
 
         if (this.ghostParticles.length === this.ghostBodies.length) {
             this.ghostParticles.forEach((mesh, i) => {
+                mesh.rotation.x += 0.1;
+                mesh.rotation.y += 0.1;
+                mesh.rotation.z += 0.2;
+
                 const body = this.ghostBodies[i];
                 mesh.position.copy(body.position);
                 mesh.quaternion.copy(body.quaternion);

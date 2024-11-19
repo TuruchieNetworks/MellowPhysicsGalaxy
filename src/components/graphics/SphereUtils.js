@@ -34,10 +34,11 @@ class SphereUtils {
         this.geometries = [];
         this.sphereMeshes = [];
         this.sphereBodies = [];
-        
+
+        this.generateRandomIndex(3);
         this.previewSphere = this.createPreviewSphere();
         this.scene.add(this.previewSphere);
-        
+
         // Physics
         this.gravityEnabled = true;
         this.gravity = new THREE.Vector3(0, -9.81, 0); // Gravity vector
@@ -52,7 +53,7 @@ class SphereUtils {
         return '#' + Math.floor(Math.random() * 16777215).toString(16);
     }
 
-    createCannonSphere(specs = { r: 4, w: 50, h: 50 }, color = this.createRandomHexColor(), position = { x: -10, y: 10, z: -80 }, mass =  this.gaussianDistribution.getMass()* 50, shadedTexture = this.shader.shaderMaterials().northStarMaterial) {
+    createCannonSphere(specs = { r: 4, w: 50, h: 50 }, color = this.createRandomHexColor(), position = { x: -10, y: 10, z: -80 }, mass = this.gaussianDistribution.getMass() * 50, shadedTexture = this.shader.shaderMaterials().northStarMaterial) {
         // Geometry and Material
         const sphereGeometry = new THREE.SphereGeometry(specs.r, specs.w, specs.h);
         const sphereMaterial = new THREE.MeshPhongMaterial({
@@ -120,15 +121,19 @@ class SphereUtils {
         return sphere;
     }
 
-    handleClick() {
+    generateRandomIndex(index = 3) {
+        return Math.random(index) * index
+    }
+
+    handleClick(mat = null) {
         // Use GaussianDistribution to generate mass and velocity
-        const mass = this.gaussianDistribution.getMass() * 50;
+        const mass = this.gaussianDistribution.getMass() * 150;
         const velocity = this.gaussianDistribution.getVelocity();
 
         // Get a random image for the sphere texture
         const textureURL = this.imageUtils.getRandomImage('concerts'); // Corrected category name
 
-        const newSphere = this.createSphere(textureURL, mass, velocity);
+        const newSphere = this.createSphere(textureURL, mass, velocity, mat);
         this.spheres.push(newSphere);
 
         // Set a timeout to remove the sphere after 30 seconds
@@ -141,14 +146,20 @@ class SphereUtils {
         newSphere.timeoutId = timeoutId;
     }
 
-    createSphere(textureURL, mass, velocity) {
+    createSphere(textureURL, mass, velocity, mat = null) {
         const geometry = new THREE.SphereGeometry(2, 20, 20);
-        const material = new THREE.MeshPhongMaterial({
-            color: this.createRandomHexColor(),
-            metalness: 0,
-            roughness: 0,
-            map: this.textureLoader.load(textureURL)
-        });
+        let material;
+        // const randomIndex = this.generateRandomIndex(2);
+        if (mat === null) {
+            material = new THREE.MeshPhongMaterial({
+                color: this.createRandomHexColor(),
+                metalness: 0,
+                roughness: 0,
+                map: this.textureLoader.load(textureURL)
+            });
+        } else {
+            material = mat;
+        }
 
         const sphereMesh = new THREE.Mesh(geometry, material);
         sphereMesh.material.map = this.textureLoader.load(textureURL);
@@ -296,6 +307,9 @@ class SphereUtils {
 
         // Sync Three.js meshes with Cannon.js bodies
         this.sphereMeshes.forEach((mesh, i) => {
+            mesh.rotation.x += 0.12;
+            mesh.rotation.y += 0.24;
+            mesh.rotation.z += 0.36;
             const body = this.sphereBodies[i];
             mesh.position.copy(body.position);
             mesh.quaternion.copy(body.quaternion);

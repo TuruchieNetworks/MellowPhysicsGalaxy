@@ -16,7 +16,7 @@ import FontMaker from "../graphics/FontMaker";
 import SphereUtils from "../graphics/SphereUtils";
 
 
-const FallingSand = ({ height = window.innerHeight, width = window.innerWidth, particleCount = 600 }) => {
+const FallingTracks = ({ height = window.innerHeight, width = window.innerWidth, particleCount = 800 }) => {
     const { randomHexColor, randomRgbaColor } = useColorUtils();
     const canvasRef = useRef();
     const sceneRef = useRef(new THREE.Scene());
@@ -236,7 +236,6 @@ const FallingSand = ({ height = window.innerHeight, width = window.innerWidth, p
         // Instanced mesh setup
         // const particleGeometry = new THREE.SphereGeometry(0.2, 16, 16);
         // const particleMaterial = new THREE.MeshStandardMaterial({ color: randomHexColor() });
-
         // const instancedMesh = new THREE.InstancedMesh(particleGeometry, particleMaterial, particleCount);
         // scene.add(instancedMesh);
 
@@ -251,21 +250,32 @@ const FallingSand = ({ height = window.innerHeight, width = window.innerWidth, p
         let time = Date.now();
 
         // Initialize matrix and Cannon bodies for each particle
-        // const tempMatrix = new THREE.Matrix4();
+        const tempMatrix = new THREE.Matrix4();
         // Create sand particles in both Three.js and Cannon.js
         for (let i = 0; i < particleCount; i++) {
             // Three.js particle
-            const geometry = new THREE.SphereGeometry(0.3, 16, 16);
-            const material = new THREE.MeshStandardMaterial({ color: randomHexColor() });
+            const geometry = new THREE.SphereGeometry(0.4, 16, 16);
+            let material;
+            if (i % 3 === 0) {
+                material = shader.shaderMaterials().axialSawMaterial;
+            } else 
+            if (i % 3 === 2) {
+                material = shader.shaderMaterials().darkNoiseMaterial;
+            } else {
+                material = new THREE.MeshStandardMaterial({ color: randomHexColor() });
+            };
+
             const mesh = new THREE.Mesh(geometry, material);
-            mesh.position.set(
-                (Math.random() - 0.5) * 10,
-                Math.random() * 10 + 10,
-                (Math.random() - 0.5) * 10
-            );
             const x = (Math.random() - 0.5) * 10;
             const y = Math.random() * 10 + 10;
             const z = (Math.random() - 0.5) * 10;
+            mesh.position.set(x, y, z);
+
+            // mesh.position.set(
+            //     (Math.random() - 0.5) * 10,
+            //     Math.random() * 10 + 10,
+            //     (Math.random() - 0.5) * 10
+            // );
 
             // Set position in the instanced mesh matrix
             // tempMatrix.setPosition(x, y, z);
@@ -274,15 +284,12 @@ const FallingSand = ({ height = window.innerHeight, width = window.innerWidth, p
             sandParticlesRef.current.push(mesh);
 
             // Cannon.js body for physics
-            const shape = new CANNON.Sphere(0.2);
+            const shape = new CANNON.Sphere(0.4);
             const particleBody = new CANNON.Body({
                 mass: 13.1,
                 position: new CANNON.Vec3(x, y, z),
                 // type: CANNON.Body.STATIC
-                linearDamping: 0.1, // Add damping for more realistic inertia (slower stopping)
-                angularDamping: 0.1, // Optional: If you want to dampen angular momentum too
             });
-
             particleBody.addShape(shape);
             world.addBody(particleBody);
             particleBodiesRef.current.push(particleBody);
@@ -293,9 +300,11 @@ const FallingSand = ({ height = window.innerHeight, width = window.innerWidth, p
 
         // scene.add(box);
         // scene.add(multiBox);
+
         const sphereUtils = new SphereUtils(scene, world, camera, textureLoader, plane);
-        sphereUtils.createCannonSphere({ r: 10, w: 50, h: 50 }, randomHexColor(), { x: -10, y: 20, z: -80 }, 10.1, shader.shaderMaterials().explosiveMaterial);
-        const sandParticles = new SandParticles(scene, world, shader.shaderMaterials().noiseMaterial);
+        sphereUtils.createCannonSphere({ r: 10, w: 50, h: 50 }, randomHexColor(), { x: -10, y: 20, z: -80 }, 10.1, shader.shaderMaterials().powderMaterial);
+
+        const sandParticles = new SandParticles(scene, world, shader.shaderMaterials().explosiveMaterial);
         sandParticles.createNoiseParticles(60, 1.4);// Assuming you have access to both `scene` and `camera` objects
 
         // Pass both scene and camera to the FontMaker constructor
@@ -314,7 +323,7 @@ const FallingSand = ({ height = window.innerHeight, width = window.innerWidth, p
                 color: 0xff0000,
                 size: 1.6,
                 height: 0.3,
-                position: { x: -10, y: -15, z: 10 }, // Adjust y-position to place text below main scene area
+                position: { x: -10, y: -15, z: 0 }, // Adjust y-position to place text below main scene area
             });
 
             // Optionally enable raycasting for click detection
@@ -323,11 +332,31 @@ const FallingSand = ({ height = window.innerHeight, width = window.innerWidth, p
 
         // Event listeners for mouse movements and clicks
         const onMouseMove = (event) => fontMaker.onMouseMove(event);
-        const onMouseClick = (event) => fontMaker.onMouseClick(event, '/FallingTracks');
+        const onMouseClick = (event) => fontMaker.onMouseClick(event, '/FallingGhoasts');
 
         // Attach event listeners
         window.addEventListener('click', onMouseClick);
         window.addEventListener('mousemove', onMouseMove);
+
+        // Handle Sphere mouse movements
+        window.addEventListener('mousemove', (event) => {
+            sphereUtils.updateHover(event);
+        });
+
+        // Handle clicks to create spheres
+        window.addEventListener('click', () => {
+            sphereUtils.handleClick(shader.shaderMaterials().wrinkledMaterial);
+        });
+
+        // Toggle gravity on key press (for example, "G" key)
+        window.addEventListener('keydown', (event) => {
+            if (event.key === 'a' || event.key === 'l') {
+                sphereUtils.handleClick();
+            }
+            if (event.key === 'g') {
+                sphereUtils.toggleGravity();
+            }
+        });
 
         // Handle window resizing and adjust font size based on screen width
         const handleWindowResize = () => {
@@ -366,9 +395,6 @@ const FallingSand = ({ height = window.innerHeight, width = window.innerWidth, p
 
             // Sync Three.js meshes with Cannon.js bodies
             sandParticlesRef.current.forEach((mesh, i) => {
-                mesh.rotation.x += 0.1;
-                mesh.rotation.y += 0.1;
-                mesh.rotation.z += 0.2;
                 const body = particleBodiesRef.current[i];
                 mesh.position.copy(body.position);
                 mesh.quaternion.copy(body.quaternion);
@@ -383,7 +409,7 @@ const FallingSand = ({ height = window.innerHeight, width = window.innerWidth, p
             shader.update();
             fontMaker.update();
             sphereUtils.update();
-            // sandParticles.updateNoise();
+            sandParticles.update();
             shader.shaderMaterials().sawMaterial.uniforms.time.value = time * 0.001
 
             // Render the scene
@@ -402,15 +428,17 @@ const FallingSand = ({ height = window.innerHeight, width = window.innerWidth, p
 
             // Dispose of font maker resources
             fontMaker.dispose();
+            sphereUtils.dispose()
+            sandParticles.cleanup()
 
             // Clean up renderer to release WebGL context
             renderer.dispose();
 
-            console.log('Cleaned up FallingSand resources.');
+            console.log('Cleaned up FallingTracks resources.');
         };
     }, [width, height, particleCount]);
 
     return <canvas ref={canvasRef} className="galaxial-animation" />;
 };
 
-export default FallingSand;
+export default FallingTracks;

@@ -18,14 +18,15 @@ export class Shaders {
     this.northStar = this.useNorthStar();
     this.sawShader = this.useSawShader();
     this.boidRender = this.useBoidRender();
+    this.noiseShader = this.useNoiseShader();
     this.axialSawShader = this.createSawShader();
     this.boidShaders = this.useBoidComputeShaders();
-    this.noiseShader = this.useNoiseShader();
-    this.redNoiseShader = this.useDarkNoiseShader();
+    this.darkNoiseShader = this.useDarkNoiseShader();
     this.starryShader = this.useStarryBackgrounds();
-    this.convolutionShader = this.useConvolutionShader();
+    this.powderShader = this.useCyclicPowderShader();
     this.wrinkledShader = this.useWrinkledShader();
     this.explosiveShader = this.useExplosiveShader();
+    this.convolutionShader = this.useConvolutionShader();
   }
 
   useStarryBackgrounds() {
@@ -176,9 +177,9 @@ export class Shaders {
   }
 
   useDarkNoiseShader() {
-    const redNoiseShader = {
+    const darkNoiseShader = {
       uniforms: {
-        time: this.time,
+        time: { value: this.time },
         resolution: { value: new THREE.Vector2(this.width, this.height) },
       },
 
@@ -230,11 +231,83 @@ export class Shaders {
         }
       `,
     };
-    return redNoiseShader;
+    return darkNoiseShader;
   }
 
   useExplosiveShader() {
     const explosiveShader = {
+      uniforms: {
+        time: { value: 0.0 },
+        mousePosition: { value: new THREE.Vector2(0.0, 0.0) },
+        hovered: { value: 0.0 },
+        explodeIntensity: { value: 0.1 },
+        backgroundTexture: { value: this.cubeTexture }
+      },
+  
+      vertexShader: `
+        uniform float time;
+        uniform float hovered;
+        uniform vec2 mousePosition;
+        uniform float explodeIntensity;
+        uniform float shapeFactor;
+        varying vec2 vUv;
+
+        float trapezoid(float x, float height, float width) {
+            float slope = height / (width * 0.5);
+            return smoothstep(0.0, slope, height - abs(x));
+        }
+  
+        float noise(vec2 p) {
+          return fract(sin(dot(p, vec2(12.9898, 78.233))) * 43758.5453);
+        }
+  
+        void main() {
+          vUv = uv;
+          vec3 pos = position;
+
+          // Apply noise based on UV coordinates and time
+          float n = noise(vUv * 10.0 + time * 0.1);
+  
+          // Calculate distance to mouse position
+          float dist = distance(mousePosition, vec2(pos.x, pos.y));
+          float effect = hovered * smoothstep(0.2, 0.0, dist) * noise(pos.xy * 10.0 + sin(time));
+  
+          // Apply explode effect
+          pos += normal * effect * explodeIntensity;
+  
+          gl_Position = projectionMatrix * modelViewMatrix * vec4(pos, 1.0);
+          //gl_Position = projectionMatrix * modelViewMatrix * vec4(position.x, sin(position.z + (n * time)) + cos(position.y * time), cos(position.z + (n * time)), 1.0);// Flat Bird
+        }
+      `,
+  
+      fragmentShader: `
+        uniform float time;
+        varying vec2 vUv;
+  
+        // Simple 2D noise function
+        float noise(vec2 p) {
+          return fract(sin(dot(p, vec2(12.9898, 78.233))) * 43758.5453);
+        }
+  
+        void main() {
+          float value = 0.0;
+
+          // Apply noise based on UV coordinates and time
+          float n = noise(vUv * 10.0 + time * 0.1);
+  
+          // Modify the color with noise
+          vec3 color = vec3(vUv.x + sin(n * 0.2), vUv.y + n * 0.2, 1.0); // Adds noise to the x and y UV-based color
+  
+          gl_FragColor = vec4(color, 1.0);
+        }
+      `
+    };
+  
+    return explosiveShader;
+  } 
+
+  useCyclicPowderShader() {
+    const powderShader = {
       uniforms: {
         time: { value: 0.0 },
         mousePosition: { value: new THREE.Vector2(0.0, 0.0) },
@@ -256,27 +329,41 @@ export class Shaders {
         void main() {
           vUv = uv;
           vec3 pos = position;
-
+  
           // Calculate distance to mouse position
           float dist = distance(mousePosition, vec2(pos.x, pos.y));
           float effect = hovered * smoothstep(0.2, 0.0, dist) * noise(pos.xy * 10.0 + time);
-
+  
           // Apply explode effect
           pos += normal * effect * explodeIntensity;
-
+  
           gl_Position = projectionMatrix * modelViewMatrix * vec4(pos, 1.0);
         }
       `,
 
       fragmentShader: `
+        uniform float time;
         varying vec2 vUv;
+  
+        // Cyclic noise function with smooth oscillations
+        float cyclicNoise(vec2 p) {
+          float angle = sin(p.x * 5.0 + time * 0.5) + cos(p.y * 5.0 + time * 0.5);
+          return fract(sin(dot(p + angle, vec2(12.9898, 78.233))) * 43758.5453);
+        }
+  
         void main() {
-          gl_FragColor = vec4(vec3(vUv, 1.0), 1.0);
+          // Apply cyclic noise based on UV coordinates and time
+          float n = cyclicNoise(vUv * 10.0);
+  
+          // Create a color pattern with oscillating noise
+          vec3 color = vec3(0.5 + 0.5 * sin(n + time), 0.5 + 0.5 * cos(n + time), 1.0);
+  
+          gl_FragColor = vec4(color, 1.0);
         }
       `
     };
 
-    return explosiveShader;
+    return powderShader;
   }
 
   // Noise Plane
@@ -350,11 +437,9 @@ export class Shaders {
     return sawShader;
   };
 
-
   // gl_FragColor = vec4(vec3(value + burst), 1.0); // Change the color based on the shader output
-
   useConvolutionShader() {
-    const redNoiseShader = {
+    const darkNoiseShader = {
       uniforms: {
         time: { value: 0.0 },
         resolution: { value: new THREE.Vector2(this.width, this.height) },
@@ -403,7 +488,7 @@ export class Shaders {
         }
     `,
     };
-    return redNoiseShader;
+    return darkNoiseShader;
   };
   
   useWrinkledShader() {
@@ -651,22 +736,23 @@ export class Shaders {
   }
 
   shaderMaterials() {
-    const noiseMaterial = new THREE.ShaderMaterial(this.noiseShader);
-    const redNoiseMaterial = new THREE.ShaderMaterial(this.redNoiseShader);
     const sawMaterial = new THREE.ShaderMaterial(this.sawShader);
+    const noiseMaterial = new THREE.ShaderMaterial(this.noiseShader);
     const northStarMaterial = new THREE.ShaderMaterial(this.northStar);
-    const starryMaterial = new THREE.ShaderMaterial(this.starryBackground);
-    const axialSawMaterial = new THREE.ShaderMaterial(this.axialSawShader);
+    const starryMaterial = new THREE.ShaderMaterial(this.starryShader);
     const boidsMaterial = new THREE.ShaderMaterial(this.boidShaders);
     const boidsRender = new THREE.ShaderMaterial(this.boidRenderShader);
+    const axialSawMaterial = new THREE.ShaderMaterial(this.axialSawShader);
+    const darkNoiseMaterial = new THREE.ShaderMaterial(this.darkNoiseShader);
     const convolutionMaterial = new THREE.ShaderMaterial(this.convolutionShader);
     const wrinkledMaterial = new THREE.ShaderMaterial(this.wrinkledShader);
-    const explosiveMaterial = new THREE.ShaderMaterial(this.explosiveShader)
+    const explosiveMaterial = new THREE.ShaderMaterial(this.explosiveShader);
+    const powderMaterial = new THREE.ShaderMaterial(this.powderShader);
 
     return {
-      noiseMaterial,
-      redNoiseMaterial,
       sawMaterial,
+      noiseMaterial,
+      darkNoiseMaterial,
       axialSawMaterial,
       convolutionMaterial,
       boidsRender,
@@ -675,7 +761,8 @@ export class Shaders {
       starryMaterial,
       boidsRender,
       wrinkledMaterial,
-      explosiveMaterial
+      explosiveMaterial,
+      powderMaterial
     };
   }
 
@@ -738,7 +825,10 @@ export class Shaders {
 
     // Update other uniforms if necessary
     this.sawShader.uniforms.time.value = this.time;
-    this.explosiveShader.uniforms.time.value = this.time;
+    this.axialSawShader.uniforms.time.value = this.time;
+    this.darkNoiseShader.uniforms.time.value = (Math.sin(this.time) * 0.5) + 0.5  + Math.cos(0.1 + this.time);
+    this.explosiveShader.uniforms.time.value = (Math.sin(this.time) * 0.5) + 0.5  + Math.cos(0.1 + this.time);
+    this.explosiveShader.uniforms.explodeIntensity.value = (Math.sin(this.time) * 0.5) + 0.5  + Math.cos(0.1 + this.time);
     this.noiseShader.uniforms.time.value = (Math.cos(this.time) * 0.5) + 0.5;
     this.starryShader.uniforms.time.value = Math.sin(this.time) + 0.1;
     this.starryShader.uniforms.explodeIntensity.value = Math.sin(this.time) + Math.cos(0.1 + this.time);
@@ -752,7 +842,7 @@ export class Shaders {
   //   if (this.axialSawShader) this.axialSawShader.dispose();
   //   if (this.boidShaders) this.boidShaders.dispose();
   //   if (this.noiseShader) this.noiseShader.dispose();
-  //   if (this.redNoiseShader) this.redNoiseShader.dispose();
+  //   if (this.darkNoiseShader) this.darkNoiseShader.dispose();
   //   if (this.starryBackground) this.starryBackground.dispose();
   //   if (this.convolutionShader) this.convolutionShader.dispose();
   //   // Additional cleanups if you have any textures, geometries, or materials

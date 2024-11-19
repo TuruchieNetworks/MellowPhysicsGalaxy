@@ -13,6 +13,7 @@ import { LightAxisUtilHelper } from '../graphics/LightAxisUtilHelper';
 import Shaders from "../graphics/Shaders";
 import SandParticles from "../graphics/SandParticles";
 import FontMaker from "../graphics/FontMaker";
+import SphereUtils from "../graphics/SphereUtils";
 
 
 const FallingGhoasts = ({ height = window.innerHeight, width = window.innerWidth, particleCount = 500 }) => {
@@ -132,7 +133,6 @@ const FallingGhoasts = ({ height = window.innerHeight, width = window.innerWidth
         world.addBody(underGroundBody);
         underGroundBody.quaternion.setFromEuler(-Math.PI / 2, 0, 0);
 
-
         const boxPhysMat = new CANNON.Material();
         const groundPhysMat = new CANNON.Material();
         const canonBoxBody = new CANNON.Body({
@@ -180,18 +180,16 @@ const FallingGhoasts = ({ height = window.innerHeight, width = window.innerWidth
         // world.addContactMaterial(groundSphereContactMat);
 
         // Add the plane geometry to the scene
+        
+        // const planeMaterial = new THREE.MeshPhongMaterial({
+        //     color: 0xffffff,
+        //     side: THREE.DoubleSide
+        // });
         const planeGeometry = new THREE.PlaneGeometry(30, 30, 30);
-        const planeMaterial = new THREE.MeshPhongMaterial({
-            color: 0xffffff,
-            side: THREE.DoubleSide
-        });
-
         const shader = new Shaders(width, height);
         const plane = new THREE.Mesh(planeGeometry, shader.shaderMaterials().sawMaterial);
         scene.add(plane);
         plane.rotation.x = -0.5 * Math.PI;
-        plane.receiveShadow = true;
-
         plane.receiveShadow = true;
 
         const gridHelper = new THREE.GridHelper(30);
@@ -239,14 +237,14 @@ const FallingGhoasts = ({ height = window.innerHeight, width = window.innerWidth
         helpers.addOrbitControls(); // Add orbit controls
 
         // Instanced mesh setup
-        const particleGeometry = new THREE.SphereGeometry(0.2, 16, 16);
-        const particleMaterial = new THREE.MeshStandardMaterial({ color: randomHexColor() });
+        // const particleGeometry = new THREE.SphereGeometry(0.2, 16, 16);
+        // const particleMaterial = new THREE.MeshStandardMaterial({ color: randomHexColor() });
 
         // const instancedMesh = new THREE.InstancedMesh(particleGeometry, particleMaterial, particleCount);
         // scene.add(instancedMesh);
 
         // Initialize matrix and Cannon bodies for each particle
-        const tempMatrix = new THREE.Matrix4();
+        // const tempMatrix = new THREE.Matrix4();
         // Create sand particles in both Three.js and Cannon.js
         for (let i = 0; i < particleCount; i++) {
             // Three.js particle
@@ -279,7 +277,6 @@ const FallingGhoasts = ({ height = window.innerHeight, width = window.innerWidth
             sandParticlesRef.current.push(mesh);
 
             // Cannon.js body for physics
-            // Create corresponding Cannon.js body
             const shape = new CANNON.Sphere(0.2);
             const particleBody = new CANNON.Body({
                 mass: 13.1,
@@ -292,13 +289,18 @@ const FallingGhoasts = ({ height = window.innerHeight, width = window.innerWidth
         }
 
         box.position.y = 4;
+        box.position.x = -12;
         multiBox.position.y = 4;
+        multiBox.position.x = 12;
 
         scene.add(box);
-        scene.add(multiBox);
+        scene.add(multiBox);      
+        
+        const sphereUtils = new SphereUtils(scene, world, camera, textureLoader, plane);
+        sphereUtils.createCannonSphere({ r: 10, w: 50, h: 50 }, randomHexColor(), { x: -10, y: 20, z: -80 }, 10.1, shader.shaderMaterials().explosiveMaterial);
 
         const sandParticles = new SandParticles(scene, world, shader.shaderMaterials().noiseMaterial, 40);
-        sandParticles.createNoiseParticles(1.4);// Assuming you have access to both `scene` and `camera` objects
+        sandParticles.createNoiseParticles(100, 1.4);// Assuming you have access to both `scene` and `camera` objects
 
         // Pass both scene and camera to the FontMaker constructor
         const fontMaker = new FontMaker(scene, camera, navigate);
@@ -309,7 +311,7 @@ const FallingGhoasts = ({ height = window.innerHeight, width = window.innerWidth
                 color: 0xff0000,
                 size: 1.6,
                 height: 0.3,
-                position: { x: -10, y: -15, z: 0 }, // Adjust y-position to place text below main scene area
+                position: { x: -10, y: -15, z: 40 }, // Adjust y-position to place text below main scene area
             });
 
             // Optionally enable raycasting for click detection
@@ -323,6 +325,26 @@ const FallingGhoasts = ({ height = window.innerHeight, width = window.innerWidth
         // Attach event listeners
         window.addEventListener('mousemove', onMouseMove);
         window.addEventListener('click', onMouseClick);
+
+        // Handle mouse movements
+        window.addEventListener('mousemove', (event) => {
+            sphereUtils.updateHover(event);
+        });
+
+        // Handle clicks to create spheres
+        window.addEventListener('click', () => {
+            sphereUtils.handleClick(shader.shaderMaterials().wrinkledMaterial);
+        });
+
+        // Toggle gravity on key press (for example, "G" key)
+        window.addEventListener('keydown', (event) => {
+            if (event.key === 'a' || event.key === 'l') {
+                sphereUtils.handleClick();
+            }
+            if (event.key === 'g') {
+                sphereUtils.toggleGravity();
+            }
+        });
 
         // Handle window resizing and adjust font size based on screen width
         const handleWindowResize = () => {
@@ -359,9 +381,12 @@ const FallingGhoasts = ({ height = window.innerHeight, width = window.innerWidth
                 mesh.position.copy(body.position);
                 mesh.quaternion.copy(body.quaternion);
             });
+
             shader.update();
             fontMaker.update();
-            sandParticles.update();
+            sphereUtils.update();
+            sandParticles.updateNoiseCannon();
+            sandParticles.updateShaderRotation();
             shader.shaderMaterials().sawMaterial.uniforms.time.value = time * 0.001
 
             // Render the scene
@@ -373,6 +398,9 @@ const FallingGhoasts = ({ height = window.innerHeight, width = window.innerWidth
             // Clean up the world and scene on unmount
             sandParticlesRef.current.forEach(mesh => scene.remove(mesh));
             renderer.dispose();
+            fontMaker.dispose();
+            sphereUtils.update();
+            sandParticles.cleanup();
         };
     }, [width, height, particleCount]);
 

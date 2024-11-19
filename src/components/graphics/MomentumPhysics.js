@@ -6,11 +6,9 @@ export class MomentumPhysics {
     this.cubeSize = cubeSize;
     this.radius = radius;
     this.qtn = qtn;
-    this.planeHeight = -cubeSize / 2;
-
-    // Initialize Manual Physics
-    this.gravityEnabled = true;
+    this.gravity = gravity;
     this.dampingFactor = dampingFactor;
+    this.planeHeight = -cubeSize / 2; // Define the y-position of the plane
 
     // Ensure each object's geometry has a bounding sphere
     this.objects.forEach(obj => {
@@ -92,11 +90,6 @@ export class MomentumPhysics {
     }
   }
 
-  // Toggle gravity on or off
-  toggleGravity() {
-      this.gravityEnabled = !this.gravityEnabled;
-  }
-
   updatePhysics(deltaTime, substeps) {
     const timeStep = deltaTime / substeps;
 
@@ -114,4 +107,3 @@ export class MomentumPhysics {
   }
 }
 
-export default MomentumPhysics;

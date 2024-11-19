@@ -41,11 +41,11 @@ export class BoundingObjects {
 
   addSphere() {
     const geometry = new THREE.SphereGeometry(this.radius, 32, 32);
-    const material = this.shader.shaderMaterials().sawMaterial; // Use the noise shader material
+    const material = this.shader.shaderMaterials().axialSawMaterial; // Use the noise shader material
 
     const sphere = new THREE.Mesh(geometry, material);
 
-    const mass = Math.random() * 2 + 1; // Mass between 1 and 3
+    const mass = Math.random(3) * 2 + 1; // Mass between 1 and 3
     const velocity = new THREE.Vector3(Math.random(), Math.random(), Math.random()).multiplyScalar(0.01);
 
     sphere.position.set(

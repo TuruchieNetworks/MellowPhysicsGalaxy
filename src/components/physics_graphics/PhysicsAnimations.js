@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import * as THREE from 'three';
 import * as CANNON from 'cannon-es';
 // import * as dat from 'dat.gui';
@@ -23,6 +24,7 @@ import monkeyUrl from '../../GLTFs/monkey.glb';
 import stars from '../../galaxy_imgs/stars.jpg';
 import nebula from '../../galaxy_imgs/nebula.jpg';
 import blue_concert from '../../img/blue_concert.jpg';
+import FontMaker from '../graphics/FontMaker';
 // import { Gravity } from '../../components/graphics/Gravity';
 // import { SceneManager } from '../../components/graphics/SceneManager';
 // import { Geometry } from '../../components/graphics/Geometry';
@@ -69,6 +71,7 @@ const PhysicsAnimations = () => {
   const containerRef = useRef(null);
   const box = useBox();
   const multiBox = useMultiBox();
+  const navigate = useNavigate();
   const generateMass = useGaussianMass();
   const generateVelocity = useGaussianVelocity();
   const [mixers, setMixers] = useState({});
@@ -117,18 +120,18 @@ const PhysicsAnimations = () => {
 
   const random_hex_color = () => {
     return '#' + Math.floor(Math.random() * 16777215).toString(16);
-  }     
-  
+  }
+
   // Define your box boundaries (min and max coordinates)
   const boxBoundary = {
-      min: new THREE.Vector3(-10, 0, -10),
-      max: new THREE.Vector3(10, 10, 10),
+    min: new THREE.Vector3(-10, 0, -10),
+    max: new THREE.Vector3(10, 10, 10),
   };
 
   // Define your sphere boundary (center and radius)
   const sphereBoundary = {
-      center: new THREE.Vector3(0, 5, 0),
-      radius: 10,
+    center: new THREE.Vector3(0, 5, 0),
+    radius: 10,
   };
   const random_bg_color = () => `#${Math.floor(Math.random() * 16777215).toString(16)}`;
 
@@ -201,7 +204,6 @@ const PhysicsAnimations = () => {
 
     // Load GLTF model
     const assetLoader = new GLTFLoader();
-
     assetLoader.load(monkeyUrl, function (gltf) {
       const gltfModel = gltf.scene;
       setMonkey(gltfModel)
@@ -364,13 +366,12 @@ const PhysicsAnimations = () => {
     const mass = generateMass();
     const velocity = generateVelocity();
 
- 
     const handleClick = () => {
       const geo = new THREE.SphereGeometry(2, 20, 20);
       const mat = new THREE.MeshPhongMaterial({
-          color: random_hex_color(),
-          metalness: 0,
-          roughness: 0,
+        color: random_hex_color(),
+        metalness: 0,
+        roughness: 0,
       });
 
       const mesh = new THREE.Mesh(geo, mat);
@@ -385,15 +386,15 @@ const PhysicsAnimations = () => {
 
       // Update state with the new sphere, including its id
       setClickedSpheres((prevSpheres) => [
-          ...prevSpheres,
-          { 
-              mesh, 
-              mass, 
-              velocity, 
-              radius, 
-              position: mesh.position.clone(),
-              sphereId: mesh.id // Store the unique sphereId
-          },
+        ...prevSpheres,
+        {
+          mesh,
+          mass,
+          velocity,
+          radius,
+          position: mesh.position.clone(),
+          sphereId: mesh.id // Store the unique sphereId
+        },
       ]);
       const boxMesh = new THREE.Mesh(geo, mat);
       const obj = new THREE.Object3D();
@@ -406,8 +407,8 @@ const PhysicsAnimations = () => {
 
       // Set the mixer in the global state
       setMixers((prevMixers) => ({
-          ...prevMixers,
-          [mesh.id]: newMixer, // Use mesh ID as the key
+        ...prevMixers,
+        [mesh.id]: newMixer, // Use mesh ID as the key
       }));
 
       // Add the new sphere to the scene
@@ -415,14 +416,48 @@ const PhysicsAnimations = () => {
 
       // Clean up after a timeout
       const timeoutId = setTimeout(() => {
-          scene.remove(mesh);
-          setClickedSpheres((prev) => prev.filter(s => s.mesh !== mesh));
-          setMixers((prev) => {
-              const { [mesh.id]: _, ...rest } = prev; // Remove the mixer safely
-              return rest;
-          });
+        scene.remove(mesh);
+        setClickedSpheres((prev) => prev.filter(s => s.mesh !== mesh));
+        setMixers((prev) => {
+          const { [mesh.id]: _, ...rest } = prev; // Remove the mixer safely
+          return rest;
+        });
       }, 30000);
-  };
+    };
+
+    // In your animation loop
+    const clock = new THREE.Clock();  // Define the clock
+    const deltaTime = clock.getDelta();
+
+    const physics = new MomentumPhysics(objectsWithPhysics, 50, gravity, dampingFactor);
+    const clickedPhysics = new MomentumPhysics(clickedSpheres, clickedSpheres.length, gravity, dampingFactor);
+
+
+    const fontMaker = new FontMaker(scene, camera, navigate);
+
+    // Load the font and create the text mesh
+    fontMaker.loadFont(() => {
+      fontMaker.createTextMesh('Falling Ghoasts Rush: Shoot Or Die!!!', {
+        color: 0xff0000,
+        size: 3.6,
+        height: 1.3,
+        position: { x: -10, y: -15, z: 50 },
+      });
+
+      // Optionally enable raycasting for click detection
+      fontMaker.enableRaycast();
+    });
+
+    // Event listeners for mouse movements and clicks
+    // const applyTextHover = (event) => fontMaker.onMouseMove(event);
+    const onMouseClick = (event) => fontMaker.onMouseClick(event, '/SphereDrops');
+
+    // Attach event listeners
+    window.addEventListener('click', onMouseClick);
+    // window.addEventListener('mousemove', applyTextHover);
+
+    window.addEventListener('click', handleClick);
+    window.addEventListener('mousemove', handleMouseMove);
 
     // for (let i = 0; i < newClickedSpheres.length; i++) {
     //   const geometry = new THREE.SphereGeometry(radius, 32, 32);
@@ -441,9 +476,6 @@ const PhysicsAnimations = () => {
     //   spheres.push({ mesh: sphere, velocity: velocity, mass: mass });
     //   scene.add(sphere);
     // }
-
-    window.addEventListener('mousemove', handleMouseMove);
-    window.addEventListener('click', handleClick);
 
     // // Function to handle sphere collision using mass and velocity
     // const handleCollision = (sphereA, sphereB) => {
@@ -527,15 +559,6 @@ const PhysicsAnimations = () => {
     //   }
     // };
 
-
-
-    // In your animation loop
-    const clock = new THREE.Clock();  // Define the clock
-    const deltaTime = clock.getDelta();
-
-    const physics = new MomentumPhysics(objectsWithPhysics, 50, gravity, dampingFactor);
-    const clickedPhysics = new MomentumPhysics(clickedSpheres, clickedSpheres.length, gravity, dampingFactor);
-
     // // clickedPhysics.checkWallCollision()
     // clickedPhysics.applyGravityAndDamping(deltaTime);
 
@@ -551,66 +574,64 @@ const PhysicsAnimations = () => {
 
     // const substeps = 10; // Increase for more precision
 
-  //   const animateMeshedObjects = (obj, t) => {
-  //     // Update sphere position based on velocity and gravity
-  //     obj.velocity.add(gravity.clone().multiplyScalar(t)); // Apply gravity
-  //     obj.mesh.position.add(obj.velocity.clone().multiplyScalar(t)); // Update position
+    //   const animateMeshedObjects = (obj, t) => {
+    //     // Update sphere position based on velocity and gravity
+    //     obj.velocity.add(gravity.clone().multiplyScalar(t)); // Apply gravity
+    //     obj.mesh.position.add(obj.velocity.clone().multiplyScalar(t)); // Update position
 
-  //     // Check for boundary conditions
-  //     if (!isWithinBoxBoundary(obj.mesh.position, boxBoundary)) {
-  //         // Reflect the velocity on collision with box boundary
-  //         obj.velocity.x *= -1; // Reverse x velocity
-  //         obj.velocity.y *= -1; // Reverse y velocity (optional)
-  //         obj.velocity.z *= -1; // Reverse z velocity
-  //         keepWithinBoxBoundary(obj.mesh.position, boxBoundary);
-  //     }
+    //     // Check for boundary conditions
+    //     if (!isWithinBoxBoundary(obj.mesh.position, boxBoundary)) {
+    //         // Reflect the velocity on collision with box boundary
+    //         obj.velocity.x *= -1; // Reverse x velocity
+    //         obj.velocity.y *= -1; // Reverse y velocity (optional)
+    //         obj.velocity.z *= -1; // Reverse z velocity
+    //         keepWithinBoxBoundary(obj.mesh.position, boxBoundary);
+    //     }
 
-  //     if (!isWithinSphereBoundary(obj.mesh.position, sphereBoundary)) {
-  //         // Reflect the velocity on collision with sphere boundary
-  //         const direction = obj.mesh.position.clone().sub(sphereBoundary.center).normalize();
-  //         obj.velocity.reflect(direction); // Reflect the velocity off the sphere
-  //         keepWithinSphereBoundary(obj.mesh.position, sphereBoundary);
-  //     }
+    //     if (!isWithinSphereBoundary(obj.mesh.position, sphereBoundary)) {
+    //         // Reflect the velocity on collision with sphere boundary
+    //         const direction = obj.mesh.position.clone().sub(sphereBoundary.center).normalize();
+    //         obj.velocity.reflect(direction); // Reflect the velocity off the sphere
+    //         keepWithinSphereBoundary(obj.mesh.position, sphereBoundary);
+    //     }
 
-  //     // Rotate the object along its own axis
-  //     obj.mesh.rotation.x += 0.01;
-  //     obj.mesh.rotation.y += 0.01;
-  //     obj.mesh.rotation.z += 0.01;
+    //     // Rotate the object along its own axis
+    //     obj.mesh.rotation.x += 0.01;
+    //     obj.mesh.rotation.y += 0.01;
+    //     obj.mesh.rotation.z += 0.01;
 
-  //     // Optional: Implement collision detection with ground
-  //     if (obj.mesh.position.y <= 0) {
-  //         obj.velocity.y *= -0.7; // Reverse velocity for bounce effect
-  //         obj.mesh.position.y = 0; // Keep mesh on ground
-  //     }
-  // };
+    //     // Optional: Implement collision detection with ground
+    //     if (obj.mesh.position.y <= 0) {
+    //         obj.velocity.y *= -0.7; // Reverse velocity for bounce effect
+    //         obj.mesh.position.y = 0; // Keep mesh on ground
+    //     }
+    // };
 
-  // const isWithinBoxBoundary = (position, boundary) => {
-  //     return (
-  //         position.x >= boundary.min.x &&
-  //         position.x <= boundary.max.x &&
-  //         position.y >= boundary.min.y &&
-  //         position.y <= boundary.max.y &&
-  //         position.z >= boundary.min.z &&
-  //         position.z <= boundary.max.z
-  //     );
-  //   };
+    // const isWithinBoxBoundary = (position, boundary) => {
+    //     return (
+    //         position.x >= boundary.min.x &&
+    //         position.x <= boundary.max.x &&
+    //         position.y >= boundary.min.y &&
+    //         position.y <= boundary.max.y &&
+    //         position.z >= boundary.min.z &&
+    //         position.z <= boundary.max.z
+    //     );
+    //   };
 
-  //   const keepWithinBoxBoundary = (position, boundary) => {
-  //       position.x = Math.max(boundary.min.x, Math.min(boundary.max.x, position.x));
-  //       position.y = Math.max(boundary.min.y, Math.min(boundary.max.y, position.y));
-  //       position.z = Math.max(boundary.min.z, Math.min(boundary.max.z, position.z));
-  //   };
+    //   const keepWithinBoxBoundary = (position, boundary) => {
+    //       position.x = Math.max(boundary.min.x, Math.min(boundary.max.x, position.x));
+    //       position.y = Math.max(boundary.min.y, Math.min(boundary.max.y, position.y));
+    //       position.z = Math.max(boundary.min.z, Math.min(boundary.max.z, position.z));
+    //   };
 
-  //   const isWithinSphereBoundary = (position, boundary) => {
-  //       return position.distanceTo(boundary.center) <= boundary.radius;
-  //   };
+    //   const isWithinSphereBoundary = (position, boundary) => {
+    //       return position.distanceTo(boundary.center) <= boundary.radius;
+    //   };
 
-  //   const keepWithinSphereBoundary = (position, boundary) => {
-  //       const direction = position.clone().sub(boundary.center).normalize();
-  //       position.copy(boundary.center).add(direction.multiplyScalar(boundary.radius));
-  //   };
-
-
+    //   const keepWithinSphereBoundary = (position, boundary) => {
+    //       const direction = position.clone().sub(boundary.center).normalize();
+    //       position.copy(boundary.center).add(direction.multiplyScalar(boundary.radius));
+    //   };
     const animate = () => {
       requestAnimationFrame(animate);
       // const deltaTime = clock.getDelta();
@@ -622,9 +643,7 @@ const PhysicsAnimations = () => {
       // multiBox.rotation.z -= 2;
       // box.mesh.rotateX(0.03);
       // multiBox.mesh.rotateY(0.032);
-  
-
-      physics.updatePhysics(deltaTime, 15);
+      
       // clickedPhysics.updatePhysics(deltaTime, 11); 
       // updatePhysics
       // Example: 5 substeps for smoother simulation
@@ -664,12 +683,16 @@ const PhysicsAnimations = () => {
       clickedSpheres.forEach((obj, index) => {
         const { mesh } = obj;
         const orbitRadius = (Math.LN2 * index) + ((index * Math.PI2) + (index * Math.E / Math.SQRT1_2));
-        
+
         // Calculate the new positions for galaxial motion
         mesh.position.x = Math.sin(Date.now() * 0.001 + index) * orbitRadius;
         mesh.position.z = Math.cos(Date.now() * 0.001 + index) * orbitRadius;
         //animateMeshedObjects(obj, deltaTime);
       });
+
+      fontMaker.update();
+      boundingObjects.updateSpheres();
+      physics.updatePhysics(deltaTime, 0.1);
 
       // Update all mixers
       Object.values(mixers).forEach(mixer => mixer.update(deltaTime));
@@ -679,34 +702,34 @@ const PhysicsAnimations = () => {
     animate();
 
 
-      // if (spheres.length > 0) { // Ensure spheres array is not empty
-      //   spheres.forEach(({ mesh, velocity }) => {
-      //     if (mesh) { // Check if mesh is defined
-      //       // Rotate the mesh
-      //       mesh.rotation.x += 0.01;
-      //       mesh.rotation.y += 0.01;
-      //       mesh.rotation.z += 0.03;
-      //       physics.handleCollision(mesh, mesh);
+    // if (spheres.length > 0) { // Ensure spheres array is not empty
+    //   spheres.forEach(({ mesh, velocity }) => {
+    //     if (mesh) { // Check if mesh is defined
+    //       // Rotate the mesh
+    //       mesh.rotation.x += 0.01;
+    //       mesh.rotation.y += 0.01;
+    //       mesh.rotation.z += 0.03;
+    //       physics.handleCollision(mesh, mesh);
 
-      //       // Galactic movement effect using velocity
-      //       mesh.position.x += velocity.x;
-      //       mesh.position.z += velocity.z;
+    //       // Galactic movement effect using velocity
+    //       mesh.position.x += velocity.x;
+    //       mesh.position.z += velocity.z;
 
-      //       // Optional: Update the velocity based on some logic if needed
-      //       // For example, you could add some randomness:
-      //       velocity.x += (Math.random() - 0.5) * 0.001;
-      //       velocity.z += (Math.random() - 0.5) * 0.001;
-      //     } else {
-      //       console.warn("Mesh is undefined in spheres array.");
-      //     }
-      //   });
-      // }
+    //       // Optional: Update the velocity based on some logic if needed
+    //       // For example, you could add some randomness:
+    //       velocity.x += (Math.random() - 0.5) * 0.001;
+    //       velocity.z += (Math.random() - 0.5) * 0.001;
+    //     } else {
+    //       console.warn("Mesh is undefined in spheres array.");
+    //     }
+    //   });
+    // }
 
-      //const deltaTime = 0.016; // Approx. 60 FPS
-      // physics.updatePhysics(deltaTime, substeps);
+    //const deltaTime = 0.016; // Approx. 60 FPS
+    // physics.updatePhysics(deltaTime, substeps);
 
 
- 
+
 
     // Current value of containerRef in a variable
     const currentContainer = containerRef.current;
@@ -745,8 +768,8 @@ const PhysicsAnimations = () => {
     };
   }, [dimensions.width, dimensions.height, angle, box, multiBox]) //, angle, box, multiBox]); // Dependency array ensures useEffect runs on dimensions change
 
-  return <div ref={containerRef} className="galaxial-animation"/> //style={{ width: '100vw', height: '100vh' }} 
- 
+  return <div ref={containerRef} className="galaxial-animation" /> //style={{ width: '100vw', height: '100vh' }} 
+
   //:  'Content Loading...'
 };
 

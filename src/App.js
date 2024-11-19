@@ -19,6 +19,8 @@ import MusicGraphics from './components/layout/MusicGraphics';
 import NoiseParticles from './components/physics_graphics/NoiseParticles';
 import FallingGhoasts from './components/physics_graphics/FallingGhoasts';
 import GalaxialFallingSandPlane from './components/physics_graphics/GalaxialFallingSandPlane';
+import FallingTracks from './components/physics_graphics/FallingTracks';
+import SphereDrops from './components/physics_graphics/SphereDrops';
 
 // Array of background images
 
@@ -42,6 +44,8 @@ function App() {
         <Route exact path='/PhysicsAnimations' element={ <PhysicsAnimations /> } />
         <Route exact path='/MusicBackground' element={ <MusicBackground /> } />
         <Route exact path='/FallingGhoasts' element={ <FallingGhoasts /> } />
+        <Route exact path='/FallingTracks' element={ <FallingTracks /> } />
+        <Route exact path='/SphereDrops' element={ <SphereDrops /> } />
         <Route exact path='/GalaxialFallingSandPlane' element={ <GalaxialFallingSandPlane /> } />
         <Route exact path='/BackgroundCarousel' element={ <BackgroundCarousel /> } />
       </Routes>
