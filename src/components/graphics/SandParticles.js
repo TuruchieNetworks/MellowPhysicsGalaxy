@@ -84,17 +84,15 @@ export class SandParticles {
     }
 
     // Method to create the particles
-    createNoiseParticles(count = 100, radius = 1.6, mat = this.shader.shaderMaterials().wrinkledMaterial) {
+    createNoiseParticles(count = 100, radius = 1.6, mat = this.shader.shaderMaterials().wrinkledMaterial, defMat = this.material) {
         for (let i = 0; i < count; i++) {
             // Create Three.js particle
             let material;
             const geometry = new THREE.SphereGeometry(radius, 16, 16);
-            if (i % 2 === 0) {
-                material = this.material;
-            } else {
-                // material = this.material;
-                material = mat;
-            } 
+            i % 2 === 0 ? 
+                material = defMat:
+                material = mat
+            ;
 
             const mesh = new THREE.Mesh(geometry, material);
             mesh.castShadow = true;
@@ -142,17 +140,15 @@ export class SandParticles {
     }
 
     // Method to create the particles
-    createDarkFlahNoiseParticles(count = 100, radius = 1.6, mat = this.shader.shaderMaterials().noiseMaterial) {
+    createDarkFlashNoiseParticles(count = 100, radius = 1.6, mat = this.shader.shaderMaterials().noiseMaterial) {
         for (let i = 0; i < count; i++) {
             // Create Three.js particle
             let material;
             const geometry = new THREE.SphereGeometry(radius, 16, 16);
-            if (i % 2 === 0) {
-                material = this.material;
-            } else {
-                // material = this.material;
-                material = mat;
-            } 
+            i % 2 === 0 ? 
+                material = this.material:
+                material = mat
+            ;
 
             const mesh = new THREE.Mesh(geometry, material);
             mesh.castShadow = true;

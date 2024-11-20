@@ -21,6 +21,7 @@ import FlashGhoasts from './components/layout/FlashGhoasts';
 import GalaxialFallingSandPlane from './components/physics_graphics/GalaxialFallingSandPlane';
 import SphereDrops from './components/physics_graphics/SphereDrops';
 import FlashTracks from './components/layout/FlashTracks';
+import BrokenFalls from './components/layout/BrokenFalls';
 
 // Array of background images
 
@@ -45,6 +46,7 @@ function App() {
         <Route exact path='/MusicBackground' element={ <MusicBackground /> } />
         <Route exact path='/FallingGhoasts' element={ <FlashGhoasts /> } />
         <Route exact path='/FallingTracks' element={ <FlashTracks /> } />
+        <Route exact path='/BrokenFalls' element={ <BrokenFalls /> } />
         <Route exact path='/FlashFalls' element={ <FlashFalls /> } />
         <Route exact path='/FallingFlashes' element={ <FlashFalls /> } />
         <Route exact path='/SphereDrops' element={ <SphereDrops /> } />

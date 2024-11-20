@@ -5,7 +5,7 @@ import HeaderTitle from './HeaderTitle';
 
 const HeaderLinks = () => {
   return (
-    <Link to="/landing" className='headerTitle'>
+    <Link to="/BrokenFalls" className='headerTitle'>
       <div>
         <HeaderTitle />
       </div>

@@ -1,9 +1,22 @@
 import * as THREE from 'three';
 export class Shaders {
-  constructor(width = window.innerWidth, height = window.innerHeight, deltaTime = 1 / 60, time = 0.1, shapeFactor = 0.5, cubeTexture = null) {
+  constructor(width = window.innerWidth,
+    height = window.innerHeight,
+    deltaTime = 1 / 60,
+    time = 0.1,
+    shapeFactor = 0.5, 
+    cubeTexture = null,
+    explodeIntensity = 0.1,
+    side = THREE.DoubleSide,
+    thickness = 1,
+    flatShading = true) {
     this.width = width;
     this.height = height;
     this.time = time;
+    this.side = side;
+    this.thickness = thickness;
+    this.explodeIntensity = explodeIntensity;
+    this.flatShading = flatShading;
     this.deltaTime = deltaTime;
     this.shapeFactor = shapeFactor;
     this.cubeTexture = cubeTexture;
@@ -12,7 +25,8 @@ export class Shaders {
     this.addMouseHover();
     this.addMouseListener();
     this.initializeShaders();
-  }
+    this.createRandomHexColor();
+}
 
   initializeShaders() {
     this.northStar = this.useNorthStar();
@@ -28,6 +42,10 @@ export class Shaders {
     this.explosiveShader = this.useExplosiveShader();
     this.convolutionShader = this.useConvolutionShader();
   }
+
+createRandomHexColor = () => {
+    return '#' + Math.floor(Math.random() * 16777215).toString(16);
+}
 
   useStarryBackgrounds() {
     const starryShader = {
@@ -240,8 +258,11 @@ export class Shaders {
         time: { value: 0.0 },
         mousePosition: { value: new THREE.Vector2(0.0, 0.0) },
         hovered: { value: 0.0 },
-        explodeIntensity: { value: 0.1 },
-        backgroundTexture: { value: this.cubeTexture }
+        explodeIntensity: { value: this.explodeIntensity },
+        backgroundTexture: { value: this.cubeTexture },
+        side: { value: this.side }, // Retain the side parameter
+        flatShading: { value: this.flatShading }, // Retain flat shading
+        color: { value: new THREE.Color(this.createRandomHexColor()) }
       },
   
       vertexShader: `
@@ -766,6 +787,23 @@ export class Shaders {
     };
   }
 
+  shaderConfigs() {
+    return {
+      sawShader: this.sawShader,
+      noiseShader: this.noiseShader,
+      northStar: this.northStar,
+      starryShader: this.starryShader,
+      boidShaders: this.boidShaders,
+      boidRenderShader: this.boidRenderShader,
+      axialSawShader: this.axialSawShader,
+      darkNoiseShader: this.darkNoiseShader,
+      convolutionShader: this.convolutionShader,
+      wrinkledShader: this.wrinkledShader,
+      explosiveShader: this.explosiveShader,
+      powderShader: this.powderShader,
+    };
+  }
+  
   // Convert mouse coordinates from screen space to normalized device coordinates
   convertMouseToNDC(event) {
     const x = (event.clientX / window.innerWidth) * 2 - 1; // Normalize X between -1 and 1
