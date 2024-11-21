@@ -53,7 +53,7 @@ export class SandParticles {
         return randomForce;
     }
 
-    addParticles(count = 100) {
+    addParticles(count = this.particleCount) {
         for (let i = 0; i < count; i++) {
             // Create Three.js mesh
             const geometry = new THREE.SphereGeometry(0.2, 16, 16);
@@ -89,7 +89,7 @@ export class SandParticles {
     }
 
     // Method to create the particles
-    createNoiseParticles(count = 100, radius = 1.6, mat = this.shader.shaderMaterials().sawMaterial, defMat = this.material) {
+    createNoiseParticles(count = this.particleCount, radius = 1.6, mat = this.shader.shaderMaterials().sawMaterial, defMat = this.material) {
         for (let i = 0; i < count; i++) {
             // Create Three.js particle
             let material;
@@ -145,7 +145,7 @@ export class SandParticles {
     }
 
     // Method to create the particles
-    createDarkFlashNoiseParticles(count = 100, radius = 1.6, mat = this.shader.shaderMaterials().wrinkledMaterial) {
+    createDarkFlashNoiseParticles(count = this.particleCount, radius = 1.6, mat = this.shader.shaderMaterials().wrinkledMaterial) {
         for (let i = 0; i < count; i++) {
             // Create Three.js particle
             let material;
@@ -202,7 +202,7 @@ export class SandParticles {
     }
 
     // Method to create the particles
-    createFlashParticles(count = 100, radius = 1.6, mat = this.shader.shaderMaterials().explosiveMaterial) {
+    createFlashParticles(count = this.particleCount, radius = 1.6, mat = this.shader.shaderMaterials().explosiveMaterial) {
         for (let i = 0; i < count; i++) {
             // Create Three.js particle
             let material;
@@ -216,12 +216,10 @@ export class SandParticles {
             const mesh = new THREE.Mesh(geometry, material);
             mesh.castShadow = true;
 
+            const pos = this.createRandomPoints();
+
             // Set random position
-            mesh.position.set(
-                (Math.random() - 0.5) * 10,
-                Math.random() * 10 + 10,
-                (Math.random() - 0.5) * 10
-            );
+            mesh.position.set(pos.x, pos.y, pos.z);
 
             // const intersects = this.raycaster.intersectObjects(this.scene.children);
             // if (intersects.length > 0 && intersects[0].object.userData.clickable) {

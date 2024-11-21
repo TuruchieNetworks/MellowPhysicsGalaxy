@@ -183,7 +183,7 @@ const FallingSand = ({ height = window.innerHeight, width = window.innerWidth, p
             side: THREE.DoubleSide
         });
 
-        const shader = new Shaders(width, height);
+        const shader = new Shaders(width, height, timeStep, 0.1, 50, cubeTextureLoader, 0.1, 2, 1, true);
         const plane = new THREE.Mesh(planeGeometry, shader.shaderMaterials().sawMaterial);
         scene.add(plane);
         plane.rotation.x = -0.5 * Math.PI;
@@ -252,20 +252,24 @@ const FallingSand = ({ height = window.innerHeight, width = window.innerWidth, p
 
         // Initialize matrix and Cannon bodies for each particle
         // const tempMatrix = new THREE.Matrix4();
-        // Create sand particles in both Three.js and Cannon.js
+        // Create sand particles in both Three.js and Cannon.js  
+        const sphereUtils = new SphereUtils(scene, world, camera, textureLoader, plane);
+        sphereUtils.createCannonSphere({ r: 10, w: 50, h: 50 }, randomHexColor(), { x: -10, y: 20, z: -80 }, 10.1, shader.shaderMaterials().explosiveMaterial);
+        const sandParticles = new SandParticles(scene, world, shader.shaderMaterials().noiseMaterial, 100);
+        sandParticles.createDarkFlashNoiseParticles(60, 1.4, shader.shaderMaterials().sawMaterial);
+
+        // Pass both scene and camera to the FontMaker constructor
+        const fontMaker = new FontMaker(scene, camera, navigate);
         for (let i = 0; i < particleCount; i++) {
             // Three.js particle
             const geometry = new THREE.SphereGeometry(0.3, 16, 16);
             const material = new THREE.MeshStandardMaterial({ color: randomHexColor() });
             const mesh = new THREE.Mesh(geometry, material);
-            mesh.position.set(
-                (Math.random() - 0.5) * 10,
-                Math.random() * 10 + 10,
-                (Math.random() - 0.5) * 10
-            );
-            const x = (Math.random() - 0.5) * 10;
-            const y = Math.random() * 10 + 10;
-            const z = (Math.random() - 0.5) * 10;
+
+            const pos = sandParticles.createRandomPoints();
+
+            // Set random position
+            mesh.position.set(pos.x, pos.y, pos.z);
 
             // Set position in the instanced mesh matrix
             // tempMatrix.setPosition(x, y, z);
@@ -277,7 +281,7 @@ const FallingSand = ({ height = window.innerHeight, width = window.innerWidth, p
             const shape = new CANNON.Sphere(0.2);
             const particleBody = new CANNON.Body({
                 mass: 13.1,
-                position: new CANNON.Vec3(x, y, z),
+                position: new CANNON.Vec3(mesh.position.x, mesh.position.y, mesh.position.z),
                 // type: CANNON.Body.STATIC
                 linearDamping: 0.1, // Add damping for more realistic inertia (slower stopping)
                 angularDamping: 0.1, // Optional: If you want to dampen angular momentum too
@@ -293,13 +297,7 @@ const FallingSand = ({ height = window.innerHeight, width = window.innerWidth, p
 
         // scene.add(box);
         // scene.add(multiBox);
-        const sphereUtils = new SphereUtils(scene, world, camera, textureLoader, plane);
-        sphereUtils.createCannonSphere({ r: 10, w: 50, h: 50 }, randomHexColor(), { x: -10, y: 20, z: -80 }, 10.1, shader.shaderMaterials().explosiveMaterial);
-        const sandParticles = new SandParticles(scene, world, shader.shaderMaterials().noiseMaterial, 100);
-        sandParticles.createDarkFlashNoiseParticles(60, 1.4, shader.shaderMaterials().sawMaterial);// Assuming you have access to both `scene` and `camera` objects
-
-        // Pass both scene and camera to the FontMaker constructor
-        const fontMaker = new FontMaker(scene, camera, navigate);
+      
 
         // fontMaker.initialize('Falling Ghoasts Rush: Shoot Or Die Trying!!!', {
         //     color: 0xff0000,
@@ -384,7 +382,9 @@ const FallingSand = ({ height = window.innerHeight, width = window.innerWidth, p
             fontMaker.update();
             sphereUtils.update();
             // sandParticles.updateNoise();
-            shader.shaderMaterials().sawMaterial.uniforms.time.value = time * 0.001
+            shader.shaderMaterials().sawMaterial.uniforms.time.value = time * 0.001;
+            shader.shaderMaterials().explosiveMaterial.uniforms.shapeFactor = time * Math.sin(0.001 + time);
+            shader.shaderMaterials().explosiveMaterial.uniforms.explodeIntensity.value = 0.5 + (time * Math.sin(0.01 + time));
 
             // Render the scene
             renderer.render(scene, camera);
