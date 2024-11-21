@@ -1,11 +1,12 @@
 import * as THREE from 'three';
 import * as CANNON from "cannon-es";
 import ImageUtils from './ImageUtils';
-import Shaders from '../graphics/Shaders';
-import GaussianDistribution from '../graphics/GaussianDistribution'; import { mergeBufferGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils';
+import Shaders from './Shaders';
+import GaussianDistribution from './GaussianDistribution'; 
+import { mergeBufferGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils';
 
 class ProceduralExtrusions {
-  constructor(scene, world = null, camera, textureLoader, cubeSize, plane, sceneMeshes = []) {
+  constructor(scene, world, camera, textureLoader, cubeSize, plane, sceneMeshes = []) {
     this.scene = scene;
     this.world = world;
     this.camera = camera;

@@ -28,17 +28,30 @@ export class SandParticles {
 
         this.ghostParticles = [];
         this.ghostBodies = [];
+
+        this.pos = this.createRandomPosition();
+        this.randomForce = this.addRandomForce();
     }
 
     randomHexColor() {
         return `#${Math.floor(Math.random() * 16777215).toString(16)}`;
     }
 
-    createRandomPoints() {    
+    createRandomPosition() {    
         const x = (Math.random() - 0.5) * 10;
         const y = Math.random() * 10 + 10;
         const z = (Math.random() - 0.5) * 10;
         return {x, y, z}
+    }
+
+    addRandomForce() {
+        const randomForce = new CANNON.Vec3(
+            Math.random() * 5 - 2.5, 
+            Math.random() * 5 + 10, 
+            Math.random() * 5 - 2.5
+        );
+
+        return randomForce;
     }
 
     addParticles(count = 100) {
@@ -47,11 +60,8 @@ export class SandParticles {
             const geometry = new THREE.SphereGeometry(0.2, 16, 16);
             const material = new THREE.MeshStandardMaterial({ color: this.randomHexColor() });
             const mesh = new THREE.Mesh(geometry, material);
-            const x = (Math.random() - 0.5) * 10;
-            const y = Math.random() * 10 + 10; // Start above the ground
-            const z = (Math.random() - 0.5) * 10;
-            mesh.position.set(x, y, z);
-    
+            mesh.position.set(this.pos.x, this.pos.y, this.pos.z);
+
             this.sandParticles.push(mesh);
             this.scene.add(mesh);
     
@@ -59,23 +69,17 @@ export class SandParticles {
             const shape = new CANNON.Sphere(0.2);
             const particleBody = new CANNON.Body({
                 mass: 0.5, // Adjust mass for better fall behavior
-                position: new CANNON.Vec3(x, y, z),
+                position: new CANNON.Vec3(this.pos.x, this.pos.y, this.pos.z),
                 linearDamping: 0.1, // Reduced damping for more natural fall
             });
-    
-            // Optional: Apply a random force to give particles an initial splash effect
-            const randomForce = new CANNON.Vec3(
-                Math.random() * 5 - 2.5, 
-                Math.random() * 5 + 10, 
-                Math.random() * 5 - 2.5
-            );
+
+            const randomForce = this.randomForce;
             particleBody.applyForce(randomForce, particleBody.position);
     
             // Allow sleep with adjusted limits
             particleBody.allowSleep = true;
             particleBody.sleepSpeedLimit = 1.0;  // Adjust sleeping speed
             particleBody.sleepTimeLimit = 5;    // 1; // Allow sleep to take a bit longer
-    
             particleBody.addShape(shape);
     
             this.particleBodies.push(particleBody);
@@ -84,7 +88,7 @@ export class SandParticles {
     }
 
     // Method to create the particles
-    createNoiseParticles(count = 100, radius = 1.6, mat = this.shader.shaderMaterials().wrinkledMaterial, defMat = this.material) {
+    createNoiseParticles(count = 100, radius = 1.6, mat = this.shader.shaderMaterials().sawMaterial, defMat = this.material) {
         for (let i = 0; i < count; i++) {
             // Create Three.js particle
             let material;
@@ -97,10 +101,8 @@ export class SandParticles {
             const mesh = new THREE.Mesh(geometry, material);
             mesh.castShadow = true;
 
-            const pos = this.createRandomPoints();
-
             // Set random position
-            mesh.position.set(pos.x, pos.y, pos.z);
+            mesh.position.set(this.pos.x, this.pos.y, this.pos.z);
 
             // const intersects = this.raycaster.intersectObjects(this.scene.children);
             // if (intersects.length > 0 && intersects[0].object.userData.clickable) {
@@ -125,7 +127,7 @@ export class SandParticles {
             const body = new CANNON.Sphere(1.6);
             const particleBody = new CANNON.Body({
                 mass: 13.1,
-                position: new CANNON.Vec3(mesh.position.x, mesh.position.y, mesh.position.z),
+                position: new CANNON.Vec3(this.pos.x, this.pos.y, this.pos.z),
             });
 
             particleBody.addShape(body);
@@ -140,11 +142,12 @@ export class SandParticles {
     }
 
     // Method to create the particles
-    createDarkFlashNoiseParticles(count = 100, radius = 1.6, mat = this.shader.shaderMaterials().noiseMaterial) {
+    createDarkFlashNoiseParticles(count = 100, radius = 1.6, mat = this.shader.shaderMaterials().wrinkledMaterial) {
         for (let i = 0; i < count; i++) {
             // Create Three.js particle
             let material;
             const geometry = new THREE.SphereGeometry(radius, 16, 16);
+
             i % 2 === 0 ? 
                 material = this.material:
                 material = mat
@@ -153,10 +156,8 @@ export class SandParticles {
             const mesh = new THREE.Mesh(geometry, material);
             mesh.castShadow = true;
 
-            const pos = this.createRandomPoints();
-
             // Set random position
-            mesh.position.set(pos.x, pos.y, pos.z);
+            mesh.position.set(this.pos.x, this.pos.y, this.pos.z);
 
             // const intersects = this.raycaster.intersectObjects(this.scene.children);
             // if (intersects.length > 0 && intersects[0].object.userData.clickable) {
@@ -181,7 +182,7 @@ export class SandParticles {
             const body = new CANNON.Sphere(1.6);
             const particleBody = new CANNON.Body({
                 mass: 13.1,
-                position: new CANNON.Vec3(mesh.position.x, mesh.position.y, mesh.position.z),
+                position: new CANNON.Vec3(this.pos.x, this.pos.y, this.pos.z),
             });
 
             particleBody.addShape(body);
@@ -211,11 +212,7 @@ export class SandParticles {
             mesh.castShadow = true;
 
             // Set random position
-            mesh.position.set(
-                (Math.random() - 0.5) * 10,
-                Math.random() * 10 + 10,
-                (Math.random() - 0.5) * 10
-            );
+            mesh.position.set(this.pos.x, this.pos.y, this.pos.z);
 
             // const intersects = this.raycaster.intersectObjects(this.scene.children);
             // if (intersects.length > 0 && intersects[0].object.userData.clickable) {
@@ -240,7 +237,7 @@ export class SandParticles {
             const body = new CANNON.Sphere(1.6);
             const particleBody = new CANNON.Body({
                 mass: 13.1,
-                position: new CANNON.Vec3(mesh.position.x, mesh.position.y, mesh.position.z),
+                position: new CANNON.Vec3(this.pos.x, this.pos.y, this.pos.z),
             });
 
             particleBody.addShape(body);
@@ -261,11 +258,7 @@ export class SandParticles {
             const geometry = new THREE.SphereGeometry(0.2, 16, 16);
             const material = new THREE.MeshStandardMaterial({ color: this.randomHexColor() });
             const mesh = new THREE.Mesh(geometry, material);
-            mesh.position.set(
-                (Math.random() - 0.5) * 10,
-                Math.random() * 10 + 10,
-                (Math.random() - 0.5) * 10
-            );
+            mesh.position.set(this.pos.x, this.pos.y, this.pos.z);
 
             this.scene.add(mesh);
             this.ghostParticles.push(mesh);
@@ -274,7 +267,7 @@ export class SandParticles {
             const shape = new CANNON.Sphere(0.2);
             const ghostBody = new CANNON.Body({
                 mass: 0,  // Ghosts have no physics interactions
-                position: new CANNON.Vec3(mesh.position.x, mesh.position.y, mesh.position.z),
+                position: new CANNON.Vec3(this.pos.x, this.pos.y, this.pos.z),
             });
             ghostBody.addShape(shape);
             this.world.addBody(ghostBody);
@@ -364,7 +357,7 @@ export class SandParticles {
             }
         }
     }
-    
+
     update() {
         if (this.sandParticles.length === this.particleBodies.length) {
             this.sandParticles.forEach((mesh, index) => {
