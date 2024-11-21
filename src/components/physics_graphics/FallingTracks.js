@@ -49,7 +49,6 @@ const FallingTracks = ({ height = window.innerHeight, width = window.innerWidth,
         const z = (Math.random() - 0.5) * 10;
         return {x, y, z}
     }
-    const pos = generateRandomPoints();
 
     const timeStep = 1 / 60;
 
@@ -271,7 +270,9 @@ const FallingTracks = ({ height = window.innerHeight, width = window.innerWidth,
                 material = new THREE.MeshStandardMaterial({ color: randomHexColor() });
             };
 
+            const pos = generateRandomPoints();
             const mesh = new THREE.Mesh(geometry, material);
+
             mesh.position.set(pos.x, pos.y, pos.z);
 
             // mesh.position.set(

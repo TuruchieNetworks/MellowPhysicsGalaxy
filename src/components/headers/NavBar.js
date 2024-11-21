@@ -42,7 +42,7 @@ const NavBar = () => {
                             </li>
                             <li>
                                 <Link to="/FallingGhoasts">
-                                    <span className="fas fa-ghost" onClick={handleMenuClick}> Flash Noise</span>
+                                    <span className="fas fa-ghost" onClick={handleMenuClick}> Ghost Noise</span>
                                 </Link>
                             </li>
                             <li>

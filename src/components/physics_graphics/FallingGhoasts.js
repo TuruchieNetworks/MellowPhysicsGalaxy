@@ -300,7 +300,7 @@ const FallingGhoasts = ({ height = window.innerHeight, width = window.innerWidth
         sphereUtils.createCannonSphere({ r: 10, w: 50, h: 50 }, randomHexColor(), { x: -10, y: 20, z: -80 }, 10.1, shader.shaderMaterials().explosiveMaterial);
 
         const sandParticles = new SandParticles(scene, world, shader.shaderMaterials().noiseMaterial, 40);
-        sandParticles.createNoiseParticles(100, 1.4);// Assuming you have access to both `scene` and `camera` objects
+        sandParticles.createNoiseParticles(100, 1.4, shader.shaderMaterials().noiseMaterial, shader.shaderMaterials().sawMaterial);// Assuming you have access to both `scene` and `camera` objects
 
         // Pass both scene and camera to the FontMaker constructor
         const fontMaker = new FontMaker(scene, camera, navigate);
