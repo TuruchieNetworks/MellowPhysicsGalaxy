@@ -365,10 +365,12 @@ const FallingFlashes = ({ height = window.innerHeight, width = window.innerWidth
             light.update();
             shader.update();
             fontMaker.update();
-            mediaPlayer.update();
             sphereUtils.update();
+            mediaPlayer.update();
             sandParticles.updateNoiseParticles();
-            shader.shaderMaterials().sawMaterial.uniforms.time.value = time * 0.001
+            shader.shaderMaterials().sawMaterial.uniforms.time.value = time * 0.001;
+            shader.shaderMaterials().explosiveMaterial.uniforms.shapeFactor.value = time * Math.sin(0.001 + time);
+            // shader.shaderMaterials().explosiveMaterial.uniforms.explodeIntensity.value = 0.5 + (time * Math.sin(0.01 + time));
 
             // Render the scene
             renderer.render(scene, camera);

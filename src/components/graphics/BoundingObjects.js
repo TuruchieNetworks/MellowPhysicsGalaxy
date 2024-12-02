@@ -12,7 +12,7 @@ export class BoundingObjects {
     this.scene = scene;
     this.shader = new Shaders(); // Assuming Shader class includes your noise shader
 
-    this.createSpheres(this.objQty, null);
+    this.createSpheres(this.objQty, null, this.radius);
   }
 
   createRandomHexColor = () => {
@@ -29,7 +29,7 @@ export class BoundingObjects {
     this.scene.add(boundary);
   }
 
-  createSpheres(qty = this.objQty, mat = null) {
+  createSpheres(qty = this.objQty, mat = null, radius = this.radius) {
     // Clear existing spheres if any
     this.spheres.forEach(sphereObj => this.scene.remove(sphereObj.mesh));
     this.spheres = [];
@@ -40,9 +40,9 @@ export class BoundingObjects {
         material = this.shader.shaderMaterials().sawMaterial;
       } else
       if (i % 3 === 2) {
+        // material = this.shader.shaderMaterials().powderMaterial;
         // material = this.shader.shaderMaterials().wrinkledMaterial;
-        material = this.shader.shaderMaterials().wrinkledMaterial
-        // material = mat
+        material = mat
       } else {
         material = mat
       }
@@ -59,12 +59,12 @@ export class BoundingObjects {
       //     material = mat
       //   }
       
-      this.addSphere(material);
+      this.addSphere(material, radius);
     }
   }
 
-  addSphere(mat = null) {
-    const geometry = new THREE.SphereGeometry(this.radius, 32, 32);
+  addSphere(mat = null, radius = this.radius) {
+    const geometry = new THREE.SphereGeometry(radius, 32, 32);
     let material;
     mat === null ? 
     material = this.shader.shaderMaterials().axialSawMaterial:

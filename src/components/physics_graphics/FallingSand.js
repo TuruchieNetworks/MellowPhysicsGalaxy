@@ -423,7 +423,7 @@ const FallingSand = ({ height = window.innerHeight, width = window.innerWidth, p
             mediaPlayer.update();
             sandParticles.updateSandParticles();
             shader.shaderMaterials().sawMaterial.uniforms.time.value = time * 0.001;
-            // shader.shaderMaterials().explosiveMaterial.uniforms.shapeFactor.value = time * Math.sin(0.001 + time);
+            shader.shaderMaterials().explosiveMaterial.uniforms.shapeFactor.value = time * Math.sin(0.001 + time);
             // shader.shaderMaterials().explosiveMaterial.uniforms.explodeIntensity.value = 0.5 + (time * Math.sin(0.01 + time));
 
             // Render the scene

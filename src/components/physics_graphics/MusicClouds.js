@@ -160,6 +160,7 @@ const MusicClouds = ({ height = window.innerHeight, width = window.innerWidth, p
 
     // Configure world gravity
     world.gravity.set(0, -9.81, 0);
+    const dampingFactor = 0.99; // Damping factor for velocity
 
     // Append renderer to the DOM element referred by containerRef
     if (containerRef.current) {
@@ -245,11 +246,10 @@ const MusicClouds = ({ height = window.innerHeight, width = window.innerWidth, p
     // Create physics with gravity instance
 
     //const gravity = new THREE.Vector3(0, -0.1, 0); // Gravity vector
-    ///const dampingFactor = 0.99; // Damping factor for velocity
 
     // Plane
     // Create an instance of the Plane class
-    boundingObjects.createSpheres(50, shader.shaderMaterials().explosiveMaterial);// Initialize bounding objects
+    boundingObjects.createSpheres(50, shader.shaderMaterials().explosiveMaterial, 0.80);// Initialize bounding objects
     const plane = new Plane(scene, 30, 30, randomHexColor(), 1, THREE.DoubleSide, 'explosiveMaterial'); // The last parameter is thickness
     plane.setRotation(-0.5 * Math.PI, 0, 0);
     const sphereUtils = new SphereUtils(scene, world, camera, textureLoader, plane);
@@ -295,7 +295,7 @@ const MusicClouds = ({ height = window.innerHeight, width = window.innerWidth, p
     });
     const boundary = new THREE.Mesh(boundaryGeom, boundaryMat);
     scene.add(boundary);
-    boundingObjects.updateProperties(150, 0.5, shader.shaderMaterials().explosiveMaterial); // Update to 100 spheres with a radius of 0.2
+    boundingObjects.updateProperties(250, 1.20, shader.shaderMaterials().explosiveMaterial); // Update to 100 spheres with a radius of 0.2
 
     // camera.position.z = 10;
     // Create a keyframe track for galaxial motion
@@ -433,8 +433,7 @@ const MusicClouds = ({ height = window.innerHeight, width = window.innerWidth, p
     const clock = new THREE.Clock();  // Define the clock
     const deltaTime = clock.getDelta();
 
-    const physics = new MomentumPhysics(objectsWithPhysics, 50, gravity, dampingFactor);
-    // const clickedPhysics = new MomentumPhysics(clickedSpheres, clickedSpheres.length, gravity, dampingFactor);
+    const physics = new MomentumPhysics(objectsWithPhysics, cubeSize, 1.2, new THREE.Quaternion(), gravity, dampingFactor);
 
     // Load the font and create the text mesh
     fontMaker.loadFont(() => {
@@ -735,6 +734,9 @@ const MusicClouds = ({ height = window.innerHeight, width = window.innerWidth, p
       mediaPlayer.update();
       boundingObjects.updateSpheres();
       physics.updatePhysics(deltaTime, 0.1);
+      // shader.shaderMaterials().sawMaterial.uniforms.time.value = time * 0.001;
+      // shader.shaderMaterials().explosiveMaterial.uniforms.shapeFactor.value = time * Math.tan(0.001 + time);
+      // shader.shaderMaterials().explosiveMaterial.uniforms.explodeIntensity.value = 0.5 + (time * Math.sin(0.01 + time));
 
       // Update all mixers
       Object.values(mixers).forEach(mixer => mixer.update(deltaTime));

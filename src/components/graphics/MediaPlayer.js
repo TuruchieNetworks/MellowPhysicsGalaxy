@@ -425,10 +425,12 @@ class MediaPlayer {
       this.mesh.rotation.z += 0.020;
 
       // this.shader.update();
+      this.updateVisualizer();
+
 
       this.shader.shaderMaterials().explosiveMaterial.uniforms.time.value += this.time + this.clock.getElapsedTime();
       this.shader.shaderMaterials().explosiveMaterial.uniforms.explodeIntensity.value = this.time + this.analyser.getAverageFrequency();
-      this.shader.shaderMaterials().explosiveMaterial.uniforms.shapeFactor.value = this.clock.getElapsedTime() + Math.sin(this.clock.getElapsedTime());
+      this.shader.shaderMaterials().explosiveMaterial.uniforms.shapeFactor.value = this.clock.getElapsedTime() + Math.sin(this.shader.shaderMaterials().explosiveMaterial.uniforms.shapeFactor.value + this.clock.getElapsedTime());
       this.shader.shaderMaterials().explosiveMaterial.uniforms.u_frequency.value = this.analyser.getAverageFrequency() + this.time;
 
       this.composer.render();

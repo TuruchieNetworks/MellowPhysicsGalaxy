@@ -202,8 +202,6 @@ const FallingTracks = ({ height = window.innerHeight, width = window.innerWidth,
         plane.rotation.x = -0.5 * Math.PI;
         plane.receiveShadow = true;
 
-        plane.receiveShadow = true;
-
         const gridHelper = new THREE.GridHelper(30);
         scene.add(gridHelper);
 
@@ -421,7 +419,9 @@ const FallingTracks = ({ height = window.innerHeight, width = window.innerWidth,
             mediaPlayer.update();
             sphereUtils.update();
             sandParticles.update();
-            shader.shaderMaterials().sawMaterial.uniforms.time.value = time * 0.001
+            shader.shaderMaterials().sawMaterial.uniforms.time.value = time * 0.001;
+            shader.shaderMaterials().explosiveMaterial.uniforms.shapeFactor.value = time * Math.sin(0.001 + time);
+            // shader.shaderMaterials().explosiveMaterial.uniforms.explodeIntensity.value = 0.5 + (time * Math.sin(0.01 + time));
 
             // Render the scene
             renderer.render(scene, camera);
