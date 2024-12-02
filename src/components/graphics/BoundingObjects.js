@@ -12,7 +12,7 @@ export class BoundingObjects {
     this.scene = scene;
     this.shader = new Shaders(); // Assuming Shader class includes your noise shader
 
-    this.createSpheres();
+    this.createSpheres(this.objQty, null);
   }
 
   createRandomHexColor = () => {
@@ -29,19 +29,47 @@ export class BoundingObjects {
     this.scene.add(boundary);
   }
 
-  createSpheres() {
+  createSpheres(qty = this.objQty, mat = null) {
     // Clear existing spheres if any
     this.spheres.forEach(sphereObj => this.scene.remove(sphereObj.mesh));
     this.spheres = [];
 
-    for (let i = 0; i < this.objQty; i++) {
-      this.addSphere();
+    for (let i = 0; i < qty; i++) {
+      let material
+      if (i % 3 === 1) {
+        material = this.shader.shaderMaterials().sawMaterial;
+      } else
+      if (i % 3 === 2) {
+        // material = this.shader.shaderMaterials().wrinkledMaterial;
+        material = this.shader.shaderMaterials().wrinkledMaterial
+        // material = mat
+      } else {
+        material = mat
+      }
+
+      // for (let i = 0; i < qty; i++) {
+      //   let material
+      //   if (i % 3 === 0) {
+      //     material = this.shader.shaderMaterials().axialSawMaterial
+      //   } else
+      //   if (i % 3 === 1) {
+      //     material = this.shader.shaderMaterials().wrinkledMaterial
+      //   } else
+      //   if (i % 3 === 2){
+      //     material = mat
+      //   }
+      
+      this.addSphere(material);
     }
   }
 
-  addSphere() {
+  addSphere(mat = null) {
     const geometry = new THREE.SphereGeometry(this.radius, 32, 32);
-    const material = this.shader.shaderMaterials().axialSawMaterial; // Use the noise shader material
+    let material;
+    mat === null ? 
+    material = this.shader.shaderMaterials().axialSawMaterial:
+    material = mat;
+    ///const material = this.shader.shaderMaterials().explosiveMaterial; // Use the noise shader material
 
     const sphere = new THREE.Mesh(geometry, material);
 
@@ -59,10 +87,10 @@ export class BoundingObjects {
     this.scene.add(sphere);
   }
 
-  updateProperties(objQty, radius) {
+  updateProperties(objQty, radius, mat = null) {
     this.objQty = objQty;
     this.radius = radius;
-    this.createSpheres(); // Re-create spheres with updated properties
+    this.createSpheres(this.objQty, mat); // Re-create spheres with updated properties
   }
 
   updateSpheres() {

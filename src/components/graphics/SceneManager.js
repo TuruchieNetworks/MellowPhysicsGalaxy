@@ -17,6 +17,9 @@ export class SceneManager {
         this.textureLoader = new THREE.TextureLoader();
         this.cubeTextureLoader = new THREE.CubeTextureLoader();
 
+        // Configure world gravity
+        this.world.gravity.set(0, -9.81, 0);
+
         // Initialize core components
         this.renderer = new THREE.WebGLRenderer({ canvas: this.canvasRef, antialias: true });
         this.camera = new THREE.PerspectiveCamera(75, this.width / this.height, 0.1, 1000);
@@ -28,25 +31,43 @@ export class SceneManager {
         this.meshes = [];
         this.materials = [];
         this.geometries = [];
+        this.boxBoundary = null;
+        this.sphereBoundary = null;
 
-        // this.init();
+        this.init();
     }
 
     init() {
         this.addFog(); // Add fog to scene
-        this.loadTextures(); // Load textures and set background
+        // this.loadTextures(); // Load textures and set background
+        this.loadCubeTextures(true); // Load textures and set background
         this.adjustFontSize(); // Initial font adjustment
         this.initializeCamera();
         this.initializeRenderer();
         this.initializePhysics();
         // this.initializeGround();
+        //sthis.initializeBoundaries();
+    
+        // window.addEventListener('resize', this.onWindowResize);
+    }
 
-        window.addEventListener('resize', this.onWindowResize);
+    initializeBoundaries() {
+        // Define your box boundaries (min and max coordinates)
+        this.boxBoundary = {
+            min: new THREE.Vector3(-10, 0, -10),
+            max: new THREE.Vector3(10, 10, 10),
+        };
+    
+        // Define your sphere boundary (center and radius)
+        // this.sphereBoundary = {
+        //     center: new THREE.Vector3(0, 5, 0),
+        //     radius: 10,
+        // };
     }
 
     // Initialize camera
     initializeCamera() {
-        this.camera.position.set(-1, 0, 30);
+        this.camera.position.set(-1, 2, 30);
         this.scene.add(this.camera);
     }
 

@@ -1,10 +1,13 @@
 import * as THREE from 'three';
+import { LightAxisUtilHelper } from './LightAxisUtilHelper';
 
 export class Lighting {
-    constructor(scene, camera, speed = 5) {
+    constructor(scene, camera, speed = 5, renderer = null) {
         this.scene = scene;
         this.speed = speed;
         this.camera = camera;
+        this.renderer = renderer;
+
         this.cameraPathPoints = [
             new THREE.Vector3(60, 10, -135),
             new THREE.Vector3(-20, 2, 80),
@@ -13,6 +16,7 @@ export class Lighting {
             new THREE.Vector3(-20, 2, 80),
             new THREE.Vector3(100, 20, -30),
         ];
+
         // Create a camera path with yet another color
         this.oneCameraPath = [
             new THREE.Vector3(60, 5, -35),
@@ -26,9 +30,38 @@ export class Lighting {
             // new THREE.Vector3(-10, 20, 130),
             new THREE.Vector3(20, 13, -30),
         ];
-        this.startTime = Date.now();
+
+        this.startTime = 0.0;
+
+
+        this.helpers = new LightAxisUtilHelper(this.scene, this.camera, this.renderer);
+        // this.gridHelper = null;
+
+        this.randomColor = this.createRandomHexColor();
+        // this.initializeLightAndHelpers();
     }
 
+    initializeLightAndHelpers() {
+        if (this.renderer !== null) {
+            this.addAmbientLight(0x333333, 1);
+            this.addSpotLight(this.randomColor, 1, { x: -100, y: 100, z: 10 }, 0.3, true, true)
+            // this.addPointLight(this.randomColor, 0.8, { x: -30, y: 50, z: -40 },  true, true)
+            this.addDirectionalLight(0xFFFFFF, 0.8, { x: -30, y: 50, z: 0 },  true, true)
+
+            // // Initialize helpers
+            this.initializeHelpers();
+        }
+    }
+
+    initializeHelpers() {
+        const directionalLight = this.addDirectionalLight(0xFFFFFF, 0.8, { x: -30, y: 50, z: 0 },  true);
+        this.helpers.addShadowCameraHelper(directionalLight);
+        this.helpers.addDirectionalLightHelper(directionalLight);
+        this.helpers.createInitialHelpers();
+        this.helpers.update();
+        // this.gridHelper = this.helpers.addGridHelper( 30, 30);
+        // this.scene.add(this.gridHelper);
+    }
     // Add an Ambient Light with customizable parameters
     addAmbientLight({ color = 0x333333, intensity = 1 } = {}) {
         const ambientLight = new THREE.AmbientLight(color, intensity);
@@ -50,14 +83,16 @@ export class Lighting {
     }
 
     // Add a Spot Light with customizable parameters
-    addSpotLight({ color = 0xFFFFFF, intensity = 1, position = { x: 0, y: 10, z: 0 }, angle = 0.3, castShadow = true } = {}) {
+    addSpotLight({ color = 0xFFFFFF, intensity = 1, position = { x: -100, y: 100, z: 0 }, angle = 0.3, castShadow = true, receiveShadow = true } = {}) {
         const spotLight = new THREE.SpotLight(color, intensity);
         spotLight.position.set(position.x, position.y, position.z);
         spotLight.angle = angle;
         spotLight.castShadow = castShadow;
+        spotLight.receiveShadow = receiveShadow;
         this.scene.add(spotLight);
         return spotLight;
     }
+    
 
     // Add a Hemisphere Light with customizable parameters
     addHemisphereLight({ skyColor = 0xFFFFFF, groundColor = 0x080820, intensity = 0.6, position = { x: 0, y: 50, z: 0 } } = {}) {
@@ -68,10 +103,11 @@ export class Lighting {
     }
 
     // Add a Point Light with customizable parameters
-    addPointLight({ color = 0xFFFFFF, intensity = 1, position = { x: 10, y: 10, z: 10 }, castShadow = true } = {}) {
+    addPointLight({ color = 0xFFFFFF, intensity = 1, position = { x: 10, y: 10, z: 10 }, castShadow = true, receiveShadow = true  } = {}) {
         const pointLight = new THREE.PointLight(color, intensity);
         pointLight.position.set(position.x, position.y, position.z);
         pointLight.castShadow = castShadow;
+        pointLight.receiveShadow = receiveShadow;
         this.scene.add(pointLight);
         return pointLight;
     }
@@ -126,10 +162,27 @@ export class Lighting {
             
         // Fog
         this.scene.fog = new THREE.Fog(0xFFFFFF, 0, 200);
-        this.scene.fog = new THREE.FogExp2(this.createRandomHexColor(), 0.01);
+        this.scene.fog = new THREE.FogExp2(this.randomColor, 0.01);
     }
 
     update() {
+        /*/ Calculate the index of the current point in the camera path
+        const elapsedTime = (Date.now() - startTime) / 1000; // Convert to seconds
+        // const speed = 5; // Speed factor
+        const totalPoints = cameraPathPoints.length;
+
+        const pointIndex = Math.floor(elapsedTime / speed) % totalPoints;
+        const nextPointIndex = (pointIndex + 1) % totalPoints;
+
+        // Interpolate between the current and next point
+        const t = (elapsedTime % speed) / speed; // Value between 0 and 1 over 'speed' seconds
+        const currentPoint = cameraPathPoints[pointIndex];
+        const nextPoint = cameraPathPoints[nextPointIndex];
+        camera.position.lerpVectors(currentPoint, nextPoint, t);
+        camera.lookAt(scene.position); // Ensure the camera looks at the center of the scene
+        */
+
+        ///*
         const elapsedTime = (Date.now() - this.startTime) / 1000; // Convert to seconds
         const totalPoints = this.cameraPathPoints.length;
 
@@ -142,7 +195,10 @@ export class Lighting {
 
         // Interpolate between the current and next point
         this.camera.position.lerpVectors(currentPoint, nextPoint, t);
-        this.camera.lookAt(0, 0, 0); // Ensure the camera looks at the center of the scene
+        this.camera.lookAt(this.scene.position); // Ensure the camera looks at the center of the scene
+        //*/
+
+        this.randomColor = this.createRandomHexColor();
     }
 
     reset() {

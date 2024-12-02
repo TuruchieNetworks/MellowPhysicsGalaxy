@@ -14,6 +14,9 @@ import Shaders from "../graphics/Shaders";
 import SandParticles from "../graphics/SandParticles";
 import FontMaker from "../graphics/FontMaker";
 import SphereUtils from "../graphics/SphereUtils";
+import { Lighting } from "../graphics/Lighting";
+import MediaPlayer from "../graphics/MediaPlayer";
+import { GUI } from "dat.gui";
 
 const FallingFlashes = ({ height = window.innerHeight, width = window.innerWidth, particleCount = 500 }) => {
     const { randomHexColor, randomRgbaColor } = useColorUtils();
@@ -67,6 +70,7 @@ const FallingFlashes = ({ height = window.innerHeight, width = window.innerWidth
     useEffect(() => {
         const scene = sceneRef.current;
         const world = worldRef.current; // Ensure you're using the reference 
+        const gui = new GUI();
 
         // Set up camera
         const camera = new THREE.PerspectiveCamera(75, width / height, 0.1, 1000);
@@ -98,6 +102,9 @@ const FallingFlashes = ({ height = window.innerHeight, width = window.innerWidth
 
         // Configure world gravity
         world.gravity.set(0, -9.81, 0);
+
+        const light = new Lighting(scene, camera, 5.0, renderer);
+        light.initializeLightAndHelpers();
 
         // Add ground mesh to scene
         // scene.add(groundMesh);
@@ -148,7 +155,6 @@ const FallingFlashes = ({ height = window.innerHeight, width = window.innerWidth
 
         // const groundMesh = new THREE.Mesh(groundGeo, groundMat);
         // scene.add(groundMesh);
-        world.gravity.set(0, -9.81, 0); // Set gravity for the world
 
         const groundBoxContactMat = new CANNON.ContactMaterial(
             groundPhysMat,
@@ -190,48 +196,6 @@ const FallingFlashes = ({ height = window.innerHeight, width = window.innerWidth
 
         plane.receiveShadow = true;
 
-        const gridHelper = new THREE.GridHelper(30);
-        scene.add(gridHelper);
-
-        // const sphereGeometry = new THREE.SphereGeometry(4, 50, 50);
-        // const sphereMaterial = new THREE.MeshPhongMaterial({
-        //     color: 0x0000FF,
-        //     wireframe: false
-        // });
-        // const sphere = new THREE.Mesh(sphereGeometry, sphereMaterial);
-        // scene.add(sphere);
-        // sphere.position.set(-10, 10, -80);
-        // sphere.castShadow = true;
-        // sphereMeshRef.current.push(sphere);
-
-        // // Cannon.js body for physics
-        // const sphbody = new CANNON.Sphere(0.2); // Use CANNON.Sphere()
-        // const sphParticleBody = new CANNON.Body({
-        //     mass: 0.1, // Small mass for realistic sand behavior
-        //     position: new CANNON.Vec3(sphere.position.x, sphere.position.y, sphere.position.z),
-        // });
-        // sphParticleBody.addShape(sphbody); // Add the sphere shape
-        // world.addBody(sphParticleBody);
-        // sphereBodiesRef.current.push(sphParticleBody);
-        const ambientLight = new THREE.AmbientLight(0x333333);
-        scene.add(ambientLight);
-
-        const directionalLight = new THREE.DirectionalLight(0xFFFFFF, 0.8);
-        scene.add(directionalLight);
-        directionalLight.position.set(-30, 50, 0);
-        directionalLight.castShadow = true;
-
-        const dLightHelper = new THREE.DirectionalLightHelper(directionalLight, 5);
-        scene.add(dLightHelper);
-        // Initialize helpers
-        const helpers = new LightAxisUtilHelper(scene, camera, renderer);
-        helpers.addAxesHelper();
-        helpers.addGridHelper();
-        // helpers.addHemisphereLightHelper(light);
-        helpers.addShadowCameraHelper(directionalLight);
-        helpers.addDirectionalLightHelper(directionalLight);
-        helpers.addOrbitControls(); // Add orbit controls
-
         // Instanced mesh setup
         // const particleGeometry = new THREE.SphereGeometry(0.2, 16, 16);
         // const particleMaterial = new THREE.MeshStandardMaterial({ color: randomHexColor() });
@@ -250,11 +214,12 @@ const FallingFlashes = ({ height = window.innerHeight, width = window.innerWidth
         let time = Date.now();
 
         // Initialize matrix and Cannon bodies for each particle
-        // const tempMatrix = new THREE.Matrix4();        
+        // const tempMatrix = new THREE.Matrix4();  
         const sphereUtils = new SphereUtils(scene, world, camera, textureLoader, plane);
         sphereUtils.createCannonSphere({ r: 10, w: 50, h: 50 }, randomHexColor(), { x: -10, y: 20, z: -80 }, 10.1, shader.shaderMaterials().sawMaterial);
         const sandParticles = new SandParticles(scene, world, shader.shaderMaterials().sawMaterial, 60);
         sandParticles.createNoiseParticles(60, 1.4, shader.shaderMaterials().sawMaterial, shader.shaderMaterials().explosiveMaterial);
+        const mediaPlayer = new MediaPlayer(scene, camera, renderer, gui, canvasRef.current, width, height, shader);
 
         const fontMaker = new FontMaker(scene, camera, navigate);
         // Create sand particles in both Three.js and Cannon.js
@@ -327,8 +292,20 @@ const FallingFlashes = ({ height = window.innerHeight, width = window.innerWidth
         });
 
         // Event listeners for mouse movements and clicks
-        const onMouseMove = (event) => fontMaker.onMouseMove(event);
-        const onMouseClick = (event) => fontMaker.onMouseClick(event, '/FallingTracks');
+        const onMouseMove = (event) => {
+            fontMaker.onMouseMove(event);
+            sphereUtils.updateHover(event);
+        };
+
+        const onMouseClick = (event) => {
+            sphereUtils.handleClick(shader.shaderMaterials().explosiveMaterial);
+
+            if (mediaPlayer.isPlaying === false) {
+                mediaPlayer.loadMedia();
+            }
+
+            fontMaker.onMouseClick(event, '/FallingTracks');
+        }
 
         // Attach event listeners
         window.addEventListener('click', onMouseClick);
@@ -385,10 +362,12 @@ const FallingFlashes = ({ height = window.innerHeight, width = window.innerWidth
             //     mesh.position.copy(body.position);
             //     mesh.quaternion.copy(body.quaternion);
             // });
+            light.update();
             shader.update();
             fontMaker.update();
+            mediaPlayer.update();
             sphereUtils.update();
-            sandParticles.update();
+            sandParticles.updateNoiseParticles();
             shader.shaderMaterials().sawMaterial.uniforms.time.value = time * 0.001
 
             // Render the scene
@@ -407,6 +386,9 @@ const FallingFlashes = ({ height = window.innerHeight, width = window.innerWidth
 
             // Dispose of font maker resources
             fontMaker.dispose();
+            sphereUtils.dispose();
+            sandParticles.cleanup();
+            mediaPlayer.cleanup();
 
             // Clean up renderer to release WebGL context
             renderer.dispose();

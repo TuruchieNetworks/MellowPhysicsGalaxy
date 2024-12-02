@@ -15,6 +15,8 @@ import FontMaker from "../graphics/FontMaker";
 import Geometry from "../graphics/Geometry";
 import SphereUtils from "../graphics/SphereUtils";
 import { spherizeUV } from "three/webgpu";
+import MediaPlayer from "../graphics/MediaPlayer";
+import { GUI } from "dat.gui";
 
 
 const NoisePartices = ({ height = window.innerHeight, width = window.innerWidth, particleCount = 700 }) => {
@@ -48,6 +50,7 @@ const NoisePartices = ({ height = window.innerHeight, width = window.innerWidth,
     };
 
     const timeStep = 1 / 60;
+    speed = 5.0;
 
     // // Define boundary walls for confinement
     // const boundaries = [
@@ -70,6 +73,7 @@ const NoisePartices = ({ height = window.innerHeight, width = window.innerWidth,
     useEffect(() => {
         const scene = sceneRef.current;
         const world = worldRef.current; // Ensure you're using the reference 
+        const gui = new GUI();
 
         // Set up camera
         const camera = new THREE.PerspectiveCamera(75, width / height, 0.1, 1000);
@@ -190,9 +194,6 @@ const NoisePartices = ({ height = window.innerHeight, width = window.innerWidth,
         plane.rotation.x = -0.5 * Math.PI;
         plane.receiveShadow = true;
 
-        const gridHelper = new THREE.GridHelper(30);
-        scene.add(gridHelper);
-
         // const sphereGeometry = new THREE.SphereGeometry(4, 50, 50);
         // const sphereMaterial = new THREE.MeshPhongMaterial({
         //     color: 0x0000FF,
@@ -213,27 +214,10 @@ const NoisePartices = ({ height = window.innerHeight, width = window.innerWidth,
         // sphParticleBody.addShape(sphbody); // Add the sphere shape
         // world.addBody(sphParticleBody);
         // sphereBodiesRef.current.push(sphParticleBody);
-        const ambientLight = new THREE.AmbientLight(0x333333);
-        scene.add(ambientLight);
 
-        const directionalLight = new THREE.DirectionalLight(0xFFFFFF, 0.8);
-        scene.add(directionalLight);
-        directionalLight.position.set(-30, 50, 0);
-        directionalLight.castShadow = true;
-
-        const dLightHelper = new THREE.DirectionalLightHelper(directionalLight, 5);
-        scene.add(dLightHelper);
-        // Initialize helpers
-        const helpers = new LightAxisUtilHelper(scene, camera, renderer);
-
-        // // Add helpers to the scene
-        helpers.addAxesHelper(); // Adds the axes helper to the 
-        helpers.addGridHelper(); // Also adds the grid helper to the scene
-        // helpers.addHemisphereLightHelper(light);
-        helpers.addShadowCameraHelper(directionalLight);
-        helpers.addDirectionalLightHelper(directionalLight);
-        helpers.addOrbitControls(); // Add orbit controls
-
+        // Lighting setup
+        const light = new Lighting(scene, camera, speed, renderer);
+        light.initializeLightAndHelpers()
         // Instanced mesh setup
         // const particleGeometry = new THREE.SphereGeometry(0.2, 16, 16);
         // const particleMaterial = new THREE.MeshStandardMaterial({ color: randomHexColor() });
@@ -251,8 +235,11 @@ const NoisePartices = ({ height = window.innerHeight, width = window.innerWidth,
             const geometry = new THREE.SphereGeometry(0.3, 16, 16);
             if (i % 3 === 0) {
                 material = shader.shaderMaterials().axialSawMaterial;
-            } else {
+            } else
+            if (i % 3 === 1) {
                 material = new THREE.MeshStandardMaterial({ color: randomHexColor() });
+            } else {
+                material = shader.shaderMaterials().explosiveMaterial;
             };
 
             const mesh = new THREE.Mesh(geometry, material);
@@ -292,6 +279,7 @@ const NoisePartices = ({ height = window.innerHeight, width = window.innerWidth,
         const sandParticles = new SandParticles(scene, world, shader.shaderMaterials().explosiveMaterial, 40);
         // sandParticles.addParticles();
         sandParticles.createNoiseParticles(100, 1.6, shader.shaderMaterials().noiseMaterial);
+        const mediaPlayer = new MediaPlayer(scene, camera, renderer, gui, canvasRef.current, width, height, shader);
 
         // Pass both scene and camera to the FontMaker constructor
         const fontMaker = new FontMaker(scene, camera, navigate);
@@ -401,6 +389,7 @@ const NoisePartices = ({ height = window.innerHeight, width = window.innerWidth,
             fontMaker.update()
             sphereUtils.update();
             sandParticles.update();
+            mediaPlayer.update();
             shader.shaderMaterials().sawMaterial.uniforms.time.value = time * 0.002;
             shader.shaderMaterials().axialSawMaterial.uniforms.time.value = time + Math.sin(time * 0.01);
 

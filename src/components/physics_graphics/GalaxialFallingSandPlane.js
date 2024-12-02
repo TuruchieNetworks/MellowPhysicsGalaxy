@@ -323,30 +323,8 @@ const GalaxialFallingSandPlane = ({ height = window.innerHeight, width = window.
         // directionalLight.castShadow = true;
 
         // Lighting setup
-        const light = new Lighting(scene, camera);
-        const directionalLight = light.addDirectionalLight({ color: 0xFFFFFF, intensity: 1, position: { x: -30, y: 50, z: 0 }, castShadow: true });
-
-        light.addAmbientLight({ color: 0x333333, intensity: 0.5, castShadow: true });
-        light.addSpotLight({ color: 0xFFFFFF, intensity: 1, position: { x: -100, y: 100, z: 0 }, angle: 0.2, castShadow: true });
-        light.addHemisphereLight({ skyColor: 0xFFFFFF, groundColor: 0x444444, intensity: 0.9, position: { x: 0, y: 50, z: 0 }, castShadow: true });
-        light.addPointLight({ color: 0xff0000, intensity: 0.8, position: { x: 20, y: 20, z: 20 }, castShadow: true });
-
-        // Optionally, add a path for an object or animation
-        // const points = [new THREE.Vector3(0, 0, 0), new THREE.Vector3(10, 0, 0)];
-        // light.createPath(points, randomHexColor())
-        light.createCameraPath(randomHexColor());
-
-        // const dLightHelper = new THREE.DirectionalLightHelper(directionalLight, 5);
-        // scene.add(dLightHelper);
-        // Initialize helpers
-        const helpers = new LightAxisUtilHelper(scene, camera, renderer);
-        // // Add helpers to the scene
-        helpers.addAxesHelper(); // Adds the axes helper to the 
-        helpers.addGridHelper(); // Also adds the grid helper to the scene
-        // helpers.addHemisphereLightHelper(light);
-        helpers.addShadowCameraHelper(directionalLight);
-        helpers.addDirectionalLightHelper(directionalLight);
-        // helpers.addOrbitControls(); // Add orbit controls
+        const light = new Lighting(scene, camera, 5.0, renderer);
+        light.initializeLightAndHelpers();
 
         // Bounding Box
         // const boundingObjects = new BoundingObjects(scene, 50, 0.25, 50);
@@ -419,7 +397,7 @@ const GalaxialFallingSandPlane = ({ height = window.innerHeight, width = window.
         window.addEventListener('mousemove', (event) => {
             sphereUtils.updateHover(event);
         });
-        
+
         const fontMaker = new FontMaker(scene, camera, navigate);
 
         // Load the font and create the text mesh
@@ -428,7 +406,7 @@ const GalaxialFallingSandPlane = ({ height = window.innerHeight, width = window.
                 color: 0xff0000,
                 size: 3.6,
                 height: 1.3,
-                position: { x: -10, y: -15, z: 50 }, 
+                position: { x: -10, y: -15, z: 50 },
             });
 
             // Optionally enable raycasting for click detection

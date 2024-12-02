@@ -2,40 +2,42 @@ import React, { useEffect, useState, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import '../../App.css';
 import ImageCarousel from '../carousels/ImageCarousel';
-import blue_concert from '../../img/blue_concert.jpg';
-import globe_concert from '../../img/globe_concert.jpg';
-import metal_blocks from '../../img/metal_blocks.jpg';
-import vasil_guitar from '../../img/vasil_guitar.jpg';
-import crowd_angle from '../../img/angle_outdoor_concerts.jpg';
-import bright_stage from '../../img/tube_concerts.avif';
-import blue_stage from '../../img/blue_stage_entrance.avif';
-import guitar_boy from '../../img/dark-greece.avif';
-import concert_lights from '../../img/bright-concert-lights.avif';
-import PerlinShader from '../surface_shaders/PerlinShader';
-import NoiseShader from '../surface_shaders/NoiseShader';
 import useCarouselImages from '../hooks/UseCarouselImages';
 import HeaderLinks from '../headers/HeaderLinks';
 import Biography from '../layout/Bio';
-import PhysicsAnimations from '../physics_graphics/PhysicsAnimations';
-import MusicBackground from '../backgroundVideos/MusicBackground';
 import FallingGhoasts from '../physics_graphics/FallingGhoasts';
+import ImageUtils from '../graphics/ImageUtils';
+// import PhysicsAnimations from '../physics_graphics/PhysicsAnimations';
+// import MusicBackground from '../backgroundVideos/MusicBackground';
+// import blue_concert from '../../img/blue_concert.jpg';
+// import globe_concert from '../../img/globe_concert.jpg';
+// import metal_blocks from '../../img/metal_blocks.jpg';
+// import vasil_guitar from '../../img/vasil_guitar.jpg';
+// import crowd_angle from '../../img/angle_outdoor_concerts.jpg';
+// import bright_stage from '../../img/tube_concerts.avif';
+// import blue_stage from '../../img/blue_stage_entrance.avif';
+// import guitar_boy from '../../img/dark-greece.avif';
+// import concert_lights from '../../img/bright-concert-lights.avif';
+// import PerlinShader from '../surface_shaders/PerlinShader';
+// import NoiseShader from '../surface_shaders/NoiseShader';
 // Array of background images
-const images = [
-    globe_concert,
-    metal_blocks,
-    vasil_guitar,
-    concert_lights,
-    crowd_angle,
-    blue_stage,
-    guitar_boy,
-    blue_concert,
-    bright_stage
-];
+// const images = [
+//     globe_concert,
+//     metal_blocks,
+//     vasil_guitar,
+//     concert_lights,
+//     crowd_angle,
+//     blue_stage,
+//     guitar_boy,
+//     blue_concert,
+//     bright_stage
+// ];
 const Merchandise = () => {
-    const intervalRef = useRef(null);
     const videoRef = useRef(null);
-    const { idx, changeImage } = useCarouselImages(images);
-    console.log(changeImage)
+    const intervalRef = useRef(null);
+    const imageUtils = new ImageUtils();
+    const images = imageUtils.getAllConcertImages();
+    const { idx } = useCarouselImages(images);
 
     useEffect(() => {
         // Play the video when the component mounts

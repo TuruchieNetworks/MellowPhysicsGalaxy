@@ -12,6 +12,7 @@ import concert_lights from '../../img/bright-concert-lights.avif';
 import crowd_angle from '../../img/angle_outdoor_concerts.jpg';
 import DancingTwerk from '../../FBXs/DancingTwerk.fbx';
 import monkeyUrl from '../../GLTFs/monkey.glb';
+import Shaders from '../graphics/Shaders';
 // import sun from '../../galaxy_imgs/sun.jpg';
 // import mars from '../../galaxy_imgs/mars.jpg';
 // import earth from '../../galaxy_imgs/earth.jpg';
@@ -27,14 +28,46 @@ import monkeyUrl from '../../GLTFs/monkey.glb';
 // import guitar_boy from '../../img/dark-greece.avif';
 
 const textureLoader = new THREE.TextureLoader();
+const shader = new Shaders();
 // Hook to create a single-material box with shadows
 export const useBox = () => {
   return useMemo(() => {
     const boxGeometry = new THREE.BoxGeometry(6, 8, 10);
-    const boxMaterial = new THREE.MeshPhongMaterial({
-      color: 0x00FF00,
-      map: textureLoader.load(nebula),
-    });
+    const boxMaterial = [
+      new THREE.MeshPhongMaterial({
+        map: textureLoader.load(nebula),
+        color: 0x00FF00 * Math.random(0x00FF00)
+      }),
+      // shader.shaderMaterials().sawMaterial,
+      // new THREE.MeshPhongMaterial({ map: textureLoader.load(stars) }),
+      new THREE.MeshPhongMaterial({ 
+        map: textureLoader.load(nebula),
+        color: 0x00FF00 * Math.random(0x00FF00)
+      }),
+      // shader.shaderMaterials().sawMaterial,
+      new THREE.MeshPhongMaterial({ 
+        map: textureLoader.load(nebula),
+        color: 0x00FF00 * Math.random(0x00FF00) 
+      }),
+      // shader.shaderMaterials().sawMaterial,
+      // shader.shaderMaterials().explosiveMaterial,
+      // shader.shaderMaterials().sawMaterial,
+      new THREE.MeshPhongMaterial({ 
+        map: textureLoader.load(crowd_angle),
+        color: 0x00FF00 * Math.random(0x00FF00)
+      }),
+      // new THREE.MeshPhongMaterial({ map: textureLoader.load(nebula) }),
+      new THREE.MeshPhongMaterial({ 
+        map: textureLoader.load(concert_lights),
+        color: 0x00FF00 * Math.random(0x00FF00) 
+      }),
+      new THREE.ShaderMaterial(
+        shader.shaderConfigs().sawShader
+
+      )
+      // shader.shaderMaterials().sawMaterial,
+      // new THREE.MeshPhongMaterial({ map: textureLoader.load(concert_lights) }),
+    ]
 
     const box = new THREE.Mesh(boxGeometry, boxMaterial);
     //box.position.set(10, 5, -10);
@@ -56,11 +89,18 @@ export const useMultiBox = () => {
     const boxGeometry = new THREE.BoxGeometry(6, 8, 10);
     const boxMultiMaterial = [
       new THREE.MeshPhongMaterial({ map: textureLoader.load(bright_stage) }),
-      new THREE.MeshPhongMaterial({ map: textureLoader.load(stars) }),
+      // shader.shaderMaterials().sawMaterial,
+      // new THREE.MeshPhongMaterial({ map: textureLoader.load(stars) }),
       new THREE.MeshPhongMaterial({ map: textureLoader.load(nebula) }),
-      new THREE.MeshPhongMaterial({ map: textureLoader.load(crowd_angle) }),
-      new THREE.MeshPhongMaterial({ map: textureLoader.load(nebula) }),
+      // shader.shaderMaterials().explosiveMaterial,
       new THREE.MeshPhongMaterial({ map: textureLoader.load(concert_lights) }),
+      // shader.shaderMaterials().sawMaterial,
+      shader.shaderMaterials().explosiveMaterial,
+      // shader.shaderMaterials().sawMaterial,
+      new THREE.MeshPhongMaterial({ map: textureLoader.load(crowd_angle) }),
+      // new THREE.MeshPhongMaterial({ map: textureLoader.load(nebula) }),
+      shader.shaderMaterials().sawMaterial,
+      // new THREE.MeshPhongMaterial({ map: textureLoader.load(concert_lights) }),
     ];
 
     const multiBox = new THREE.Mesh(boxGeometry, boxMultiMaterial);

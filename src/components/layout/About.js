@@ -11,8 +11,8 @@ import landing_dj from '../../img/landing_dj.jpg';
 import metal_blocks from '../../img/metal_blocks.jpg';
 import vasil_guitar from '../../img/vasil_guitar.jpg';
 import FallingSand from '../physics_graphics/FallingSand';
-import PerlinShader from '../surface_shaders/PerlinShader';
-import PhysicsAnimations from '../physics_graphics/PhysicsAnimations';
+// import PerlinShader from '../surface_shaders/PerlinShader';
+// import PhysicsAnimations from '../physics_graphics/PhysicsAnimations';
 
 const images = [
     landing_dj,
@@ -23,7 +23,7 @@ const images = [
 ];
 
 const About = ({ currentBackground, handlePrev, handleNext }) => {
-    const { idx, changeImage } = useCarouselImages(images);
+    const { idx } = useCarouselImages(images);
     const videoRef = useRef(null);
 
     useEffect(() => {

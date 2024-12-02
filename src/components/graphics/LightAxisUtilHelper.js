@@ -11,7 +11,7 @@ export class LightAxisUtilHelper {
         this.gridHelper = null; // Store the grid helper
 
         // Create initial helpers
-        this.createInitialHelpers();
+        // this.createInitialHelpers();
     }
 
     createInitialHelpers() {
@@ -107,8 +107,9 @@ export class LightAxisUtilHelper {
         this.orbitControls = new OrbitControls(this.camera, this.renderer.domElement);
         this.orbitControls.enableDamping = true; // Enable damping for smooth controls
         this.orbitControls.dampingFactor = 0.25; // Damping factor for controls
-        this.orbitControls.screenSpacePanning = false; // Disable screen space panning
+        // this.orbitControls.screenSpacePanning = false; // Disable screen space panning
         this.orbitControls.maxPolarAngle = Math.PI / 2; // Limit vertical rotation
+    
         this.orbitControls.update(); // Call update initially
     }
 

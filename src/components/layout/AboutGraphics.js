@@ -1,31 +1,31 @@
 import React, { useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import '../../App.css';
-import ImageCarousel from '../carousels/ImageCarousel';
-import HeaderLinks from '../headers/HeaderLinks';
-import Bio from './Bio';
-import useCarouselImages from '../hooks/UseCarouselImages';
-import blue_concert from '../../img/blue_concert.jpg';
-import globe_concert from '../../img/globe_concert.jpg';
-import landing_dj from '../../img/landing_dj.jpg';
-import metal_blocks from '../../img/metal_blocks.jpg';
-import vasil_guitar from '../../img/vasil_guitar.jpg';
-import FallingSand from '../physics_graphics/FallingSand';
-import PerlinShader from '../surface_shaders/PerlinShader';
-import About from './About';
-import PhysicsAnimations from '../physics_graphics/PhysicsAnimations';
 import Biography from './Bio';
+import HeaderLinks from '../headers/HeaderLinks';
+import ImageUtils from '../graphics/ImageUtils';
+import ImageCarousel from '../carousels/ImageCarousel';
+import useCarouselImages from '../hooks/UseCarouselImages';
+import FallingSand from '../physics_graphics/FallingSand';
+// import blue_concert from '../../img/blue_concert.jpg';
+// import globe_concert from '../../img/globe_concert.jpg';
+// import landing_dj from '../../img/landing_dj.jpg';
+// import metal_blocks from '../../img/metal_blocks.jpg';
+// import vasil_guitar from '../../img/vasil_guitar.jpg';
+// import PhysicsAnimations from '../physics_graphics/PhysicsAnimations';
 
-const images = [
-    landing_dj,
-    blue_concert,
-    globe_concert,
-    metal_blocks,
-    vasil_guitar
-];
+// const images = [
+//     landing_dj,
+//     blue_concert,
+//     globe_concert,
+//     metal_blocks,
+//     vasil_guitar
+// ];
 
 const AboutGraphics = ({ currentBackground, handlePrev, handleNext }) => {
-    const { idx, changeImage } = useCarouselImages(images);
+    const imageUtils = new ImageUtils();
+    const images = imageUtils.getAllConcertImages();
+    const { idx } = useCarouselImages(images);
     const videoRef = useRef(null);
 
     useEffect(() => {

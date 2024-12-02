@@ -57,12 +57,21 @@ export class SandParticles {
         for (let i = 0; i < count; i++) {
             // Create Three.js mesh
             const geometry = new THREE.SphereGeometry(0.2, 16, 16);
-            const material = new THREE.MeshStandardMaterial({ color: this.randomHexColor() });
+            let material;
+            if (i % 3 === 0) {
+                material = new THREE.MeshStandardMaterial({ color: this.randomHexColor() });
+            } else if (i % 3 === 1) {
+                material = this.shader.shaderMaterials().sawMaterial;
+            } else if (i % 3 === 2) {
+                // material = shader.shaderMaterials().explosiveMaterial;
+                material = new THREE.MeshStandardMaterial({ color: this.randomHexColor() });
+            }
             const mesh = new THREE.Mesh(geometry, material);
-            const x = (Math.random() - 0.5) * 10;
-            const y = Math.random() * 10 + 10; // Start above the ground
-            const z = (Math.random() - 0.5) * 10;
-            mesh.position.set(x, y, z);
+
+            const pos = this.createRandomPoints();
+
+            // Set random position
+            mesh.position.set(pos.x, pos.y, pos.z);
     
             this.sandParticles.push(mesh);
             this.scene.add(mesh);
@@ -71,7 +80,7 @@ export class SandParticles {
             const shape = new CANNON.Sphere(0.2);
             const particleBody = new CANNON.Body({
                 mass: 0.5, // Adjust mass for better fall behavior
-                position: new CANNON.Vec3(x, y, z),
+                position: new CANNON.Vec3(mesh.position.x, mesh.position.y, mesh.position.z),
                 linearDamping: 0.1, // Reduced damping for more natural fall
             });
             const randomForce = this.randomForce;
@@ -369,7 +378,7 @@ export class SandParticles {
         }
     }
 
-    update() {
+    updateSandParticles() {
         if (this.sandParticles.length === this.particleBodies.length) {
             this.sandParticles.forEach((mesh, index) => {
                 mesh.rotation.x += 0.1;
@@ -387,7 +396,9 @@ export class SandParticles {
         } else {
             console.warn("Mismatch in the number of sand particles and particle bodies");
         }
+    }
 
+    updateNoiseParticles() {
         if (this.noiseParticles.length === this.noiseParticleBodies.length) {
             for (let i = 0; i < this.noiseParticles.length; i++) {
                 const mesh = this.noiseParticles[i];
@@ -400,7 +411,9 @@ export class SandParticles {
                 mesh.position.copy(body.position);  // Sync mesh with physics body position
             }
         }
+    }
 
+    updateGhostParticles() {
         if (this.ghostParticles.length === this.ghostBodies.length) {
             this.ghostParticles.forEach((mesh, i) => {
                 mesh.rotation.x += 0.1;
@@ -412,6 +425,12 @@ export class SandParticles {
                 mesh.quaternion.copy(body.quaternion);
             });
         }
+    }
+
+    update() {
+        this.updateSandParticles();
+        this.updateNoiseParticles();
+        this.updateGhostParticles();
     }
 
     // Cleanup method to remove all particles and bodies from the scene and world

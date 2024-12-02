@@ -1,4 +1,5 @@
 import React, { useEffect, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import * as THREE from 'three';
 import * as CANNON from "cannon-es";
 import stars from '../../galaxy_imgs/stars.jpg';
@@ -12,6 +13,10 @@ import BoundingObjects from '../graphics/BoundingObjects';
 import { useBox, useMultiBox } from '../../components/hooks/UseBoxGeometry';
 import Shaders from '../graphics/Shaders';
 import SandParticles from '../graphics/SandParticles';
+import MediaPlayer from '../graphics/MediaPlayer';
+import { GUI } from 'dat.gui';
+import FontMaker from '../graphics/FontMaker';
+import GaussianDistribution from '../graphics/GaussianDistribution';
 
 const NoiseShader = ({ width = window.innerWidth, height = window.innerHeight, particleCount = 40 }) => {
     const canvasRef = useRef();
@@ -22,6 +27,7 @@ const NoiseShader = ({ width = window.innerWidth, height = window.innerHeight, p
     const sceneRef = useRef(new THREE.Scene());
     const worldRef = useRef(new CANNON.World());
     const { randomHexColor, randomRgbaColor } = useColorUtils();
+    const navigate = useNavigate();
     // const { starryBackgrounds, noisePlane, sawPlane, convolutionPlane } = useShaderUtils();
     const box = useBox();
     const multiBox = useMultiBox();
@@ -145,6 +151,7 @@ const NoiseShader = ({ width = window.innerWidth, height = window.innerHeight, p
     useEffect(() => {
         const scene = sceneRef.current;
         const world = worldRef.current;
+        const gui = new GUI();
 
         // Set up camera
         const camera = new THREE.PerspectiveCamera(75, width / height, 0.1, 1000);
@@ -179,28 +186,8 @@ const NoiseShader = ({ width = window.innerWidth, height = window.innerHeight, p
         // scene.background = textureLoader.load(stars);
 
         // Lighting setup
-        const light = new Lighting(scene, camera);
-        light.addAmbientLight({ color: randomHexColor(), intensity: 0.5, castShadow: true });
-        light.addSpotLight({ color: randomRgbaColor(), intensity: 1, position: { x: -100, y: 100, z: 0 }, angle: 0.2, castShadow: true });
-        light.addHemisphereLight({ skyColor: 0xFFFFFF, groundColor: 0x444444, intensity: 0.9, position: { x: 0, y: 50, z: 0 }, castShadow: true });
-        light.addDirectionalLight({ color: randomHexColor(), intensity: 1, position: { x: 10, y: 20, z: 10 }, castShadow: true });
-        light.addPointLight({ color: randomRgbaColor(), intensity: 0.8, position: { x: 20, y: 20, z: 20 }, castShadow: true });
-        const directionalLight = light.addDirectionalLight({ color: randomHexColor(), intensity: 1, position: { x: 10, y: 20, z: 10 }, castShadow: true });
-
-        // Optionally, add a path for an object or animation
-        // const points = [new THREE.Vector3(0, 0, 0), ns
-        light.createPath(light.oneCameraPath, randomHexColor());
-
-        // Initialize helpers
-        const helpers = new LightAxisUtilHelper(scene, camera, renderer);
-
-        // // Add helpers to the scene
-        helpers.addAxesHelper(); // Adds the axes helper to the scene automatically
-        helpers.addGridHelper(); // Also adds the grid helper to the scene
-
-        // helpers.addHemisphereLightHelper(light);
-        helpers.addShadowCameraHelper(directionalLight);
-        helpers.addDirectionalLightHelper(directionalLight);
+        const light = new Lighting(scene, camera, 5.0, renderer);
+        light.initializeLightAndHelpers()
 
         // helpers.addOrbitControls(); // Add orbit controls
 
@@ -290,7 +277,7 @@ const NoiseShader = ({ width = window.innerWidth, height = window.innerHeight, p
             velocity: sphereObj.velocity,
             mass: sphereObj.mass
         })) || [];
-        scene.add(objectsWithPhysics)
+        scene.add(boundingObjects)
 
         // Create the cube boundary
         // boundingObjects.createBoundaryBox()
@@ -304,19 +291,23 @@ const NoiseShader = ({ width = window.innerWidth, height = window.innerHeight, p
         scene.add(box);
         scene.add(multiBox);
 
+        const gaussianDistribution = new GaussianDistribution();
+
         // Step 5: Create sand particles with assigned material and interaction properties
         for (let i = 0; i < particleCount; i++) {
             // Three.js particle
             const geometry = new THREE.SphereGeometry(1.6, 16, 16);
             const material = mat;
             // const material = new THREE.MeshStandardMaterial({ color: randomHexColor() });
+            //let material;
+            // i % 2 === 0 ?
+            // material = mat:
+            // material = shader.shaderMaterials().explosiveMaterial;
 
             const mesh = new THREE.Mesh(geometry, material);
             mesh.castShadow = true;
-            const x = (Math.random() - 0.5) * 10;
-            const y = Math.random() * 10 + 10;
-            const z = (Math.random() - 0.5) * 10;
-            mesh.position.set(x, y, z);
+            const pos = gaussianDistribution.generateRandomPositions();
+            mesh.position.set(pos.x, pos.y, pos.z);
 
             // mesh.position.set(
             //     (Math.random() - 0.5) * 10,
@@ -330,7 +321,7 @@ const NoiseShader = ({ width = window.innerWidth, height = window.innerHeight, p
             const body = new CANNON.Sphere(1.6);
             const particleBody = new CANNON.Body({
                 mass: 13.1,
-                position: new CANNON.Vec3(x, y, z),
+                position: new CANNON.Vec3(mesh.position.x, mesh.position.y, mesh.position.z),
                 // mass: 0.1, // Small mass for realistic sand behavior
                 // position: new CANNON.Vec3(mesh.position.x, mesh.position.y, mesh.position.z),
                 // material: sandMaterial // Assign the sand material for particle interactions
@@ -389,6 +380,25 @@ const NoiseShader = ({ width = window.innerWidth, height = window.innerHeight, p
         // Animation loop
         let startTime = Date.now(); // Move this outside `animate`
         const sphereUtils = new SphereUtils(scene, world, camera, textureLoader, plane);
+        const mediaPlayer = new MediaPlayer(scene, camera, renderer, gui, canvasRef.current, width, height, shader);
+        // window.addEventListener('click', mediaPlayer.loadMedia());
+        boundingObjects.updateProperties(150, 0.5, shader.shaderMaterials().explosiveMaterial);
+        
+        const fontMaker = new FontMaker(scene, camera, navigate);
+
+        // Load the font and create the text mesh
+        fontMaker.loadFont(() => {
+            fontMaker.createTextMesh('MELLOW GRAPHICS!!!', {
+                color: 0xff0000,
+                size: 1.6,
+                height: 0.3,
+                position: { x: -10, y: -15, z: 0 }, // Adjust y-position to place text below main scene area
+            });
+
+            // Optionally enable raycasting for click detection
+            fontMaker.enableRaycast();
+        });
+
 
         // Handle mouse movements
         window.addEventListener('mousemove', (event) => {
@@ -397,6 +407,9 @@ const NoiseShader = ({ width = window.innerWidth, height = window.innerHeight, p
 
         // Handle clicks to create spheres
         window.addEventListener('click', () => {
+            if(mediaPlayer.isPlaying === false) {
+                mediaPlayer.loadMedia();
+            }
             sphereUtils.handleClick();
         });
 
@@ -410,6 +423,7 @@ const NoiseShader = ({ width = window.innerWidth, height = window.innerHeight, p
             }
         });
 
+        const cameraPathPoints = light.cameraPathPoints;
         const animate = (time) => {
             requestAnimationFrame(animate);
 
@@ -432,16 +446,31 @@ const NoiseShader = ({ width = window.innerWidth, height = window.innerHeight, p
             timeValue = 0.1;
 
             // Update Camera
-            light.update()
-            shader.update()
+            // light.update()
+            shader.update();
+            mediaPlayer.update();
 
             // Update spheres in each frame
             sphereUtils.update();
             boundingObjects.updateSpheres();
 
             // Update shader time
-            noiseShader.uniforms.time.value = time * 0.001; // Update time uniform
-            
+            noiseShader.uniforms.time.value = time * 0.001; 
+
+            // Update time uniform Calculate the index of the current point in the camera path
+            const elapsedTime = (Date.now() - startTime) / 1000; // Convert to seconds
+            const speed = 5; // Speed factor
+            const totalPoints = cameraPathPoints.length;
+    
+            const pointIndex = Math.floor(elapsedTime / speed) % totalPoints;
+            const nextPointIndex = (pointIndex + 1) % totalPoints;
+    
+            // Interpolate between the current and next point
+            const t = (elapsedTime % speed) / speed; // Value between 0 and 1 over 'speed' seconds
+            const currentPoint = cameraPathPoints[pointIndex];
+            const nextPoint = cameraPathPoints[nextPointIndex];
+            camera.position.lerpVectors(currentPoint, nextPoint, t);
+            camera.lookAt(scene.position); // Ensure the camera looks at the center of the scene
 
             renderer.render(scene, camera);
         };
@@ -462,8 +491,10 @@ const NoiseShader = ({ width = window.innerWidth, height = window.innerHeight, p
         return () => {
             // Clean up the world and scene on unmount
             sandParticlesRef.current.forEach(mesh => scene.remove(mesh));
-            sphereUtils.dispose()
+            sphereUtils.dispose();
+            fontMaker.dispose();
             renderer.dispose();
+            mediaPlayer.cleanup();
         };
     }, [width, height, particleCount]);
 

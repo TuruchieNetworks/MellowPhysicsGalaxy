@@ -4,24 +4,27 @@ import '../../App.css';
 import Biography from '../layout/Bio';
 import HeaderLinks from '../headers/HeaderLinks';
 import ImageCarousel from '../carousels/ImageCarousel';
-import landing_dj from '../../img/landing_dj.jpg';
-import blue_concert from '../../img/blue_concert.jpg';
-import globe_concert from '../../img/globe_concert.jpg';
-import metal_blocks from '../../img/metal_blocks.jpg';
-import vasil_guitar from '../../img/vasil_guitar.jpg';
 import useCarouselImages from '../hooks/UseCarouselImages';
 import GalaxialFallingSandPlane from '../physics_graphics/GalaxialFallingSandPlane';
+import ImageUtils from '../graphics/ImageUtils';
+// import landing_dj from '../../img/landing_dj.jpg';
+// import blue_concert from '../../img/blue_concert.jpg';
+// import globe_concert from '../../img/globe_concert.jpg';
+// import metal_blocks from '../../img/metal_blocks.jpg';
+// import vasil_guitar from '../../img/vasil_guitar.jpg';
 
-const images = [
-    landing_dj,
-    blue_concert,
-    globe_concert,
-    metal_blocks,
-    vasil_guitar
-];
+// const images = [
+//     landing_dj,
+//     blue_concert,
+//     globe_concert,
+//     metal_blocks,
+//     vasil_guitar
+// ];
 
 const Services = ({ currentBackground, handlePrev, handleNext }) => {
-    const { idx, changeImage } = useCarouselImages(images);
+    const imageUtils = new ImageUtils();
+    const images = imageUtils.getAllConcertImages();
+    const { idx } = useCarouselImages(images);
     const videoRef = useRef(null);
 
     useEffect(() => {

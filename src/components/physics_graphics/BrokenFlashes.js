@@ -15,6 +15,7 @@ import Shaders from "../graphics/Shaders";
 import SandParticles from "../graphics/SandParticles";
 import FontMaker from "../graphics/FontMaker";
 import SphereUtils from "../graphics/SphereUtils";
+import { Lighting } from "../graphics/Lighting";
 
 
 const BrokenFlashes = ({ height = window.innerHeight, width = window.innerWidth, particleCount = 200 }) => {
@@ -105,6 +106,10 @@ const BrokenFlashes = ({ height = window.innerHeight, width = window.innerWidth,
         // Configure world gravity
         world.gravity.set(0, -9.81, 0);
 
+        // Lighting setup
+        const light = new Lighting(scene, camera, 5.0, renderer);
+        light.initializeLightAndHelpers();
+
         // Add ground mesh to scene
         // scene.add(groundMesh);
         const canonBoxGeo = new THREE.BoxGeometry(2, 2, 2);
@@ -153,8 +158,7 @@ const BrokenFlashes = ({ height = window.innerHeight, width = window.innerWidth,
 
         // const groundMesh = new THREE.Mesh(groundGeo, groundMat);
         // scene.add(groundMesh);
-        world.gravity.set(0, -9.81, 0); // Set gravity for the world
-
+        // world.gravity.set(0, -9.81, 0); // Set gravity for the world
         const groundBoxContactMat = new CANNON.ContactMaterial(
             groundPhysMat,
             boxPhysMat,
@@ -181,7 +185,7 @@ const BrokenFlashes = ({ height = window.innerHeight, width = window.innerWidth,
         // world.addContactMaterial(groundSphereContactMat);
 
         // Add the plane geometry to the scene
-        
+
         // const planeMaterial = new THREE.MeshPhongMaterial({
         //     color: 0xffffff,
         //     side: THREE.DoubleSide
@@ -195,9 +199,6 @@ const BrokenFlashes = ({ height = window.innerHeight, width = window.innerWidth,
         //plane.rotation.x = -0.5 * Math.PI; 
         plane.setRotation(-0.5 * Math.PI, 0, 0);
         plane.receiveShadow = true;
-
-        const gridHelper = new THREE.GridHelper(30);
-        scene.add(gridHelper);
 
         const sphereGeometry = new THREE.SphereGeometry(4, 50, 50);
         const sphereMaterial = new THREE.MeshPhongMaterial({
@@ -219,26 +220,6 @@ const BrokenFlashes = ({ height = window.innerHeight, width = window.innerWidth,
         sphParticleBody.addShape(sphbody); // Add the sphere shape
         world.addBody(sphParticleBody);
         sphereBodiesRef.current.push(sphParticleBody);
-
-        const ambientLight = new THREE.AmbientLight(0x333333);
-        scene.add(ambientLight);
-
-        const directionalLight = new THREE.DirectionalLight(0xFFFFFF, 0.8);
-        scene.add(directionalLight);
-        directionalLight.position.set(-30, 50, 0);
-        directionalLight.castShadow = true;
-
-        const dLightHelper = new THREE.DirectionalLightHelper(directionalLight, 5);
-        scene.add(dLightHelper);
-        // Initialize helpers
-        const helpers = new LightAxisUtilHelper(scene, camera, renderer);
-        // // Add helpers to the scene
-        helpers.addAxesHelper(); // Adds the axes helper to the 
-        helpers.addGridHelper(); // Also adds the grid helper to the scene
-        // helpers.addHemisphereLightHelper(light);
-        helpers.addShadowCameraHelper(directionalLight);
-        helpers.addDirectionalLightHelper(directionalLight);
-        helpers.addOrbitControls(); // Add orbit controls
 
         // Instanced mesh setup
         // const particleGeometry = new THREE.SphereGeometry(0.2, 16, 16);
@@ -309,7 +290,7 @@ const BrokenFlashes = ({ height = window.innerHeight, width = window.innerWidth,
         multiBox.position.x = 12;
 
         scene.add(box);
-        scene.add(multiBox);      
+        scene.add(multiBox);
 
         // Load the font and create the text mesh
         fontMaker.loadFont(() => {
@@ -394,8 +375,8 @@ const BrokenFlashes = ({ height = window.innerHeight, width = window.innerWidth,
             sphereUtils.update();
             sandParticles.update();
             shader.shaderMaterials().sawMaterial.uniforms.time.value = time + (Math.sin(time * 0.002));
-            shader.shaderMaterials().explosiveMaterial.uniforms.shapeFactor = time * Math.sin(0.001 + time);
-            shader.shaderMaterials().explosiveMaterial.uniforms.explodeIntensity.value = time + (time * Math.sin(0.01 + time));
+            // shader.shaderMaterials().explosiveMaterial.uniforms.shapeFactor = time * Math.sin(0.001 + time);
+            // shader.shaderMaterials().explosiveMaterial.uniforms.explodeIntensity.value = time + (time * Math.sin(0.01 + time));
 
             shader.time = time + (Math.sin(time * 0.002));
             shader.deltaTime = time + (Math.sin(time * 0.002));

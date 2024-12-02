@@ -1,19 +1,21 @@
 import * as THREE from 'three';
+
 export class Shaders {
   constructor(width = window.innerWidth,
     height = window.innerHeight,
     deltaTime = 1 / 60,
     time = 0.1,
-    shapeFactor = 0.5, 
+    shapeFactor = 0.5,
     cubeTexture = null,
     explodeIntensity = 0.1,
     side = THREE.DoubleSide,
     thickness = 1,
-    flatShading = true) {
+    flatShading = true,
+    u_frequency = 0.0) {
     this.width = width;
     this.height = height;
     this.time = time;
-    this.side = side;
+    this.u_frequency = u_frequency;
     this.thickness = thickness;
     this.explodeIntensity = explodeIntensity;
     this.flatShading = flatShading;
@@ -26,13 +28,15 @@ export class Shaders {
     this.addMouseListener();
     this.initializeShaders();
     this.createRandomHexColor();
-}
+  }
 
   initializeShaders() {
     this.northStar = this.useNorthStar();
     this.sawShader = this.useSawShader();
+    this.icoShader = this.useIcoShader();
     this.boidRender = this.useBoidRender();
     this.noiseShader = this.useNoiseShader();
+    this.musicShader = this.useMusicShader();
     this.axialSawShader = this.createSawShader();
     this.boidShaders = this.useBoidComputeShaders();
     this.darkNoiseShader = this.useDarkNoiseShader();
@@ -41,11 +45,12 @@ export class Shaders {
     this.wrinkledShader = this.useWrinkledShader();
     this.explosiveShader = this.useExplosiveShader();
     this.convolutionShader = this.useConvolutionShader();
+    this.frequencyShader = this.useFrequencyShader();
   }
 
-createRandomHexColor = () => {
+  createRandomHexColor = () => {
     return '#' + Math.floor(Math.random() * 16777215).toString(16);
-}
+  }
 
   useStarryBackgrounds() {
     const starryShader = {
@@ -252,24 +257,412 @@ createRandomHexColor = () => {
     return darkNoiseShader;
   }
 
+  useIcoShader() {
+    const shader = {
+      uniforms: {
+        u_time: { value: this.time },                // Time for animation (used for Perlin animation)
+        u_red: { value: 1.0 },
+        u_green: { value: 1.0 },
+        u_blue: { value: 1.0 },
+        u_frequency: { value: this.u_frequency },           // Current frequency value from the audio analysis
+        u_freqBands: { value: new THREE.Vector3(0.0, 0.0, 0.0) }, // Frequency bands (bass, mid, treble)
+        u_ampFactor: { value: 1.0 },           // Amplitude factor to scale frequency effects
+        u_perlinScale: { value: new THREE.Vector2(50.0, 20000.0) }, // Frequency scale for Perlin noise (50Hz to 20,000Hz)
+        u_resolution: { value: new THREE.Vector2(this.width, this.height) }, // Resolution (screen size)
+      },
+
+      vertexShader: `
+        uniform float u_time;
+
+        vec3 mod289(vec3 x)
+        {
+          return x - floor(x * (1.0 / 289.0)) * 289.0;
+        }
+        
+        vec4 mod289(vec4 x)
+        {
+          return x - floor(x * (1.0 / 289.0)) * 289.0;
+        }
+        
+        vec4 permute(vec4 x)
+        {
+          return mod289(((x*34.0)+10.0)*x);
+        }
+        
+        vec4 taylorInvSqrt(vec4 r)
+        {
+          return 1.79284291400159 - 0.85373472095314 * r;
+        }
+        
+        vec3 fade(vec3 t) {
+          return t*t*t*(t*(t*6.0-15.0)+10.0);
+        }
+
+        // Classic Perlin noise, periodic variant
+        float pnoise(vec3 P, vec3 rep)
+        {
+          vec3 Pi0 = mod(floor(P), rep); // Integer part, modulo period
+          vec3 Pi1 = mod(Pi0 + vec3(1.0), rep); // Integer part + 1, mod period
+          Pi0 = mod289(Pi0);
+          Pi1 = mod289(Pi1);
+          vec3 Pf0 = fract(P); // Fractional part for interpolation
+          vec3 Pf1 = Pf0 - vec3(1.0); // Fractional part - 1.0
+          vec4 ix = vec4(Pi0.x, Pi1.x, Pi0.x, Pi1.x);
+          vec4 iy = vec4(Pi0.yy, Pi1.yy);
+          vec4 iz0 = Pi0.zzzz;
+          vec4 iz1 = Pi1.zzzz;
+
+          vec4 ixy = permute(permute(ix) + iy);
+          vec4 ixy0 = permute(ixy + iz0);
+          vec4 ixy1 = permute(ixy + iz1);
+
+          vec4 gx0 = ixy0 * (1.0 / 7.0);
+          vec4 gy0 = fract(floor(gx0) * (1.0 / 7.0)) - 0.5;
+          gx0 = fract(gx0);
+          vec4 gz0 = vec4(0.5) - abs(gx0) - abs(gy0);
+          vec4 sz0 = step(gz0, vec4(0.0));
+          gx0 -= sz0 * (step(0.0, gx0) - 0.5);
+          gy0 -= sz0 * (step(0.0, gy0) - 0.5);
+
+          vec4 gx1 = ixy1 * (1.0 / 7.0);
+          vec4 gy1 = fract(floor(gx1) * (1.0 / 7.0)) - 0.5;
+          gx1 = fract(gx1);
+          vec4 gz1 = vec4(0.5) - abs(gx1) - abs(gy1);
+          vec4 sz1 = step(gz1, vec4(0.0));
+          gx1 -= sz1 * (step(0.0, gx1) - 0.5);
+          gy1 -= sz1 * (step(0.0, gy1) - 0.5);
+
+          vec3 g000 = vec3(gx0.x,gy0.x,gz0.x);
+          vec3 g100 = vec3(gx0.y,gy0.y,gz0.y);
+          vec3 g010 = vec3(gx0.z,gy0.z,gz0.z);
+          vec3 g110 = vec3(gx0.w,gy0.w,gz0.w);
+          vec3 g001 = vec3(gx1.x,gy1.x,gz1.x);
+          vec3 g101 = vec3(gx1.y,gy1.y,gz1.y);
+          vec3 g011 = vec3(gx1.z,gy1.z,gz1.z);
+          vec3 g111 = vec3(gx1.w,gy1.w,gz1.w);
+
+          vec4 norm0 = taylorInvSqrt(vec4(dot(g000, g000), dot(g010, g010), dot(g100, g100), dot(g110, g110)));
+          g000 *= norm0.x;
+          g010 *= norm0.y;
+          g100 *= norm0.z;
+          g110 *= norm0.w;
+          vec4 norm1 = taylorInvSqrt(vec4(dot(g001, g001), dot(g011, g011), dot(g101, g101), dot(g111, g111)));
+          g001 *= norm1.x;
+          g011 *= norm1.y;
+          g101 *= norm1.z;
+          g111 *= norm1.w;
+
+          float n000 = dot(g000, Pf0);
+          float n100 = dot(g100, vec3(Pf1.x, Pf0.yz));
+          float n010 = dot(g010, vec3(Pf0.x, Pf1.y, Pf0.z));
+          float n110 = dot(g110, vec3(Pf1.xy, Pf0.z));
+          float n001 = dot(g001, vec3(Pf0.xy, Pf1.z));
+          float n101 = dot(g101, vec3(Pf1.x, Pf0.y, Pf1.z));
+          float n011 = dot(g011, vec3(Pf0.x, Pf1.yz));
+          float n111 = dot(g111, Pf1);
+
+          vec3 fade_xyz = fade(Pf0);
+          vec4 n_z = mix(vec4(n000, n100, n010, n110), vec4(n001, n101, n011, n111), fade_xyz.z);
+          vec2 n_yz = mix(n_z.xy, n_z.zw, fade_xyz.y);
+          float n_xyz = mix(n_yz.x, n_yz.y, fade_xyz.x); 
+          return 2.2 * n_xyz;
+        }
+
+        uniform float u_frequency;
+
+        void main() {
+            float noise = 3.0 * pnoise(position + u_time, vec3(10.0));
+            float displacement = (u_frequency + u_time / 30.) * (noise / 10.);
+            vec3 newPosition = position + normal * displacement;
+            gl_Position = projectionMatrix * modelViewMatrix * vec4(newPosition, 1.0);
+        }
+      `,
+      fragmentShader: `
+        uniform float u_time;
+        uniform float u_red;
+        uniform float u_blue;
+        uniform float u_green;
+        void main() {
+            gl_FragColor = vec4(vec3(u_red, 0.0 + u_time, u_blue), 1. );
+        }`
+
+    }
+    return shader
+  }
+
+  useMusicShader(
+    u_frequency = 0.0,) {
+    const shader = {
+      uniforms: {
+        u_time: { value: this.time },                // Time for animation (used for Perlin animation)
+        u_frequency: { value: u_frequency },           // Current frequency value from the audio analysis
+        u_freqBands: { value: new THREE.Vector3(0.0, 0.0, 0.0) }, // Frequency bands (bass, mid, treble)
+        u_ampFactor: { value: 1.0 },           // Amplitude factor to scale frequency effects
+        u_perlinScale: { value: new THREE.Vector2(50.0, 20000.0) }, // Frequency scale for Perlin noise (50Hz to 20,000Hz)
+        u_resolution: { value: new THREE.Vector2(this.width, this.height) }, // Resolution (screen size)
+      },
+
+      vertexShader: `#version 300 es
+        precision highp float;
+    
+        in vec3 position;
+        in vec3 normal;
+    
+        uniform mat4 modelViewMatrix;
+        uniform mat4 projectionMatrix;
+        uniform float u_time;
+        uniform vec3 u_freqBands;
+        uniform vec2 u_perlinScale;
+        uniform vec2 u_resolution;
+    
+        out vec3 vPosition;
+  
+        // Classic Perlin noise functions
+        vec3 mod289(vec3 x) {
+            return x - floor(x * (1.0 / 289.0)) * 289.0;
+        }
+    
+        vec4 mod289(vec4 x) {
+            return x - floor(x * (1.0 / 289.0)) * 289.0;
+        }
+    
+        vec4 permute(vec4 x) {
+            return mod289(((x * 34.0) + 10.0) * x);
+        }
+    
+        vec4 taylorInvSqrt(vec4 r) {
+            return 1.79284291400159 - 0.85373472095314 * r;
+        }
+    
+        vec3 fade(vec3 t) {
+            return t * t * t * (t * (t * 6.0 - 15.0) + 10.0);
+        }
+    
+        float pnoise(vec3 P, vec3 rep) {
+          vec3 Pi0 = mod(floor(P), rep);
+          vec3 Pi1 = mod(Pi0 + vec3(1.0), rep);
+          Pi0 = mod289(Pi0);
+          Pi1 = mod289(Pi1);
+          vec3 Pf0 = fract(P);
+          vec3 Pf1 = Pf0 - vec3(1.0);
+
+          vec4 ix = vec4(Pi0.x, Pi1.x, Pi0.x, Pi1.x);
+          vec4 iy = vec4(Pi0.yy, Pi1.yy);
+          vec4 iz0 = Pi0.zzzz;
+          vec4 iz1 = Pi1.zzzz;
+
+          vec4 ixy = permute(permute(ix) + iy);
+          vec4 ixy0 = permute(ixy + iz0);
+          vec4 ixy1 = permute(ixy + iz1);
+
+          vec4 gx0 = ixy0 * (1.0 / 7.0);
+          vec4 gy0 = fract(floor(gx0) * (1.0 / 7.0)) - 0.5;
+          gx0 = fract(gx0);
+          vec4 gz0 = vec4(0.5) - abs(gx0) - abs(gy0);
+          vec4 sz0 = step(gz0, vec4(0.0));
+          gx0 -= sz0 * (step(0.0, gx0) - 0.5);
+          gy0 -= sz0 * (step(0.0, gy0) - 0.5);
+
+          vec4 gx1 = ixy1 * (1.0 / 7.0);
+          vec4 gy1 = fract(floor(gx1) * (1.0 / 7.0)) - 0.5;
+          gx1 = fract(gx1);
+          vec4 gz1 = vec4(0.5) - abs(gx1) - abs(gy1);
+          vec4 sz1 = step(gz1, vec4(0.0));
+          gx1 -= sz1 * (step(0.0, gx1) - 0.5);
+          gy1 -= sz1 * (step(0.0, gy1) - 0.5);
+
+          vec3 g000 = vec3(gx0.x, gy0.x, gz0.x);
+          vec3 g100 = vec3(gx0.y, gy0.y, gz0.y);
+          vec3 g010 = vec3(gx0.z, gy0.z, gz0.z);
+          vec3 g110 = vec3(gx0.w, gy0.w, gz0.w);
+          vec3 g001 = vec3(gx1.x, gy1.x, gz1.x);
+          vec3 g101 = vec3(gx1.y, gy1.y, gz1.y);
+          vec3 g011 = vec3(gx1.z, gy1.z, gz1.z);
+          vec3 g111 = vec3(gx1.w, gy1.w, gz1.w);
+
+          vec4 norm0 = taylorInvSqrt(vec4(dot(g000, g000), dot(g010, g010), dot(g100, g100), dot(g110, g110)));
+          g000 *= norm0.x;
+          g010 *= norm0.y;
+          g100 *= norm0.z;
+          g110 *= norm0.w;
+
+          vec4 norm1 = taylorInvSqrt(vec4(dot(g001, g001), dot(g011, g011), dot(g101, g101), dot(g111, g111)));
+          g001 *= norm1.x;
+          g011 *= norm1.y;
+          g101 *= norm1.z;
+          g111 *= norm1.w;
+
+          float n000 = dot(g000, Pf0);
+          float n100 = dot(g100, vec3(Pf1.x, Pf0.yz));
+          float n010 = dot(g010, vec3(Pf0.x, Pf1.y, Pf0.z));
+          float n110 = dot(g110, vec3(Pf1.xy, Pf0.z));
+          float n001 = dot(g001, vec3(Pf0.xy, Pf1.z));
+          float n101 = dot(g101, vec3(Pf1.x, Pf0.y, Pf1.z));
+          float n011 = dot(g011, vec3(Pf0.x, Pf1.yz));
+          float n111 = dot(g111, Pf1);
+
+          vec3 fade_xyz = fade(Pf0);
+          vec4 n_z = mix(vec4(n000, n100, n010, n110), vec4(n001, n101, n011, n111), fade_xyz.z);
+          vec2 n_yz = mix(n_z.xy, n_z.zw, fade_xyz.y);
+          float n_xyz = mix(n_yz.x, n_yz.y, fade_xyz.x);
+          return 2.2 * n_xyz;
+        }
+    
+        void main() {
+          // Modify noise based on current frequency data (bass, mid, treble) and time
+          float noise = 3.0 * pnoise(position + u_time, vec3(10.0)); 
+
+          // Normalize frequency bands to influence displacement
+          float frequencyEffect = u_freqBands.x * 0.5 + u_freqBands.y * 0.3 + u_freqBands.z * 0.2;
+
+          // Scale displacement by screen resolution for dynamic scaling
+          float resolutionScale = u_resolution.x * u_resolution.y;
+
+          /* Final displacement, now influenced by both time, frequency, and screen resolution
+          */
+
+          float displacement = (u_frequency / 30.0) * (noise / 10.0) * frequencyEffect * resolutionScale * u_ampFactor;
+
+          // Apply displacement to vertex positions
+          vec3 newPosition = position + normal * displacement;
+
+          // Set the final vertex position
+          gl_Position = projectionMatrix * modelViewMatrix * vec4(newPosition, 1.0);
+        }
+      `,
+
+      fragmentShader: `
+        #version 300 es
+        precision highp float;
+    
+        out vec4 fragColor;
+    
+        uniform vec3 u_freqBands;      // Frequency data (bass, mid, treble)
+        uniform float u_time;          // Time to animate the shader
+        uniform vec2 u_resolution;     // Resolution of the screen
+    
+        void main() {
+          // Simple color effect based on the frequency bands
+          vec3 color = vec3(u_freqBands.x * 0.3, u_freqBands.y * 0.5, u_freqBands.z * 0.2);
+
+          // Time-based effect to animate the color
+          color.r += sin(u_time * 0.1) * 0.1;
+          color.g += sin(u_time * 0.2) * 0.1;
+          color.b += sin(u_time * 0.3) * 0.1;
+
+          fragColor = vec4(color, 1.0);
+        }
+      `
+    };
+
+    return shader;
+  }
+
+  useFrequencyShader() {
+    const shader = {
+      uniforms: {
+        u_time: { value: 0.0 },                // Time for animation (used for Perlin animation)
+        u_frequency: { value: 0.0 },           // Current frequency value from the audio analysis
+        u_freqBands: { value: new THREE.Vector3(0.0, 0.0, 0.0) }, // Frequency bands (bass, mid, treble)
+        u_ampFactor: { value: 1.0 },           // Amplitude factor to scale frequency effects
+        u_perlinScale: { value: new THREE.Vector2(50.0, 20000.0) }, // Frequency scale for Perlin noise (50Hz to 20,000Hz)
+        u_resolution: { value: new THREE.Vector2(this.width, this.height) }, // Resolution (screen size)
+      },
+
+      vertexShader: `#version 300 es
+        precision highp float;
+        in vec3 position;
+        in vec3 normal;
+        uniform mat4 modelViewMatrix;
+        uniform mat4 projectionMatrix;
+        uniform float u_time;
+        uniform vec3 u_freqBands;
+        uniform vec2 u_perlinScale;
+        out vec3 vPosition;
+        out vec3 vColor;
+  
+        // Function to generate Perlin noise based on input frequency
+        float perlinNoise(vec3 position) {
+            // Placeholder Perlin noise generation (adjust as per your library)
+            return fract(sin(dot(position.xyz ,vec3(12.9898,78.233,151.7182))) * 43758.5453);
+        }
+  
+        void main() {
+          // Generate Perlin noise based on time and position, scaled by frequency data
+          float noise = perlinNoise(position + u_time * 0.1); // Using time to animate noise
+  
+          // Map the noise value to the desired frequency range (50Hz to 20,000Hz)
+          float frequencyEffect = mix(u_perlinScale.x, u_perlinScale.y, noise);
+  
+          // Adjust displacement based on frequency bands (bass, mid, treble)
+          // Bass, mid, and treble frequencies are weighted for more dynamic effects
+          float bassEffect = u_freqBands.x * 0.5;   // Bass (low frequencies)
+          float midEffect = u_freqBands.y * 0.3;    // Mid (mid-range frequencies)
+          float trebleEffect = u_freqBands.z * 0.2; // Treble (high frequencies)
+  
+          // The final displacement is based on the frequency bands and the Perlin noise scale
+          float displacement = (bassEffect + midEffect + trebleEffect) * frequencyEffect * u_ampFactor;
+  
+          // Apply displacement to vertex positions
+          vec3 newPosition = position + normal * displacement;
+  
+          // Compute color based on frequency bands
+          // Bass frequencies will be red, mid frequencies green, and treble frequencies blue
+          vec3 bassColor = vec3(1.0, 0.0, 0.0);    // Red for bass
+          vec3 midColor = vec3(0.0, 1.0, 0.0);     // Green for mid
+          vec3 trebleColor = vec3(0.0, 0.0, 1.0);  // Blue for treble
+  
+          // Combine the colors based on frequency bands
+          vec3 color = bassColor * bassEffect + midColor * midEffect + trebleColor * trebleEffect;
+  
+          // Set the final vertex position and color
+          gl_Position = projectionMatrix * modelViewMatrix * vec4(newPosition, 1.0);
+          vColor = color; // Pass the color to the fragment shader
+        }
+      `,
+
+      fragmentShader: `#version 300 es
+        precision highp float;
+        in vec3 vColor;  // The color passed from the vertex shader
+        out vec4 FragColor;
+  
+        void main() {
+          // Output the color of the fragment (vertex color)
+          FragColor = vec4(vColor, 1.0); // Set alpha to 1.0 for full opacity
+        }
+      `,
+    };
+    return shader;
+  }
+
   useExplosiveShader() {
     const explosiveShader = {
-      uniforms: {
-        time: { value: 0.0 },
+      uniforms: {               // Time for animation (used for Perlin animation)
+        u_red: { value: 1.0 },
+        u_green: { value: 1.0 },
+        u_blue: { value: 1.0 },
+        u_frequency: { value: this.u_frequency },           // Current frequency value from the audio analysis
+        u_freqBands: { value: new THREE.Vector3(0.0, 0.0, 0.0) }, // Frequency bands (bass, mid, treble)
+        u_ampFactor: { value: 1.0 },           // Amplitude factor to scale frequency effects
+        u_perlinScale: { value: new THREE.Vector2(50.0, 20000.0) }, // Frequency scale for Perlin noise (50Hz to 20,000Hz)
+        u_resolution: { value: new THREE.Vector2(this.width, this.height) }, // Resolution (screen size)
+        time: { value: this.time },
+        shapeFactor: { value: this.shapeFactor },
         mousePosition: { value: new THREE.Vector2(0.0, 0.0) },
         hovered: { value: 0.0 },
         explodeIntensity: { value: this.explodeIntensity },
         backgroundTexture: { value: this.cubeTexture },
         side: { value: this.side }, // Retain the side parameter
         flatShading: { value: this.flatShading }, // Retain flat shading
-        color: { value: new THREE.Color(this.createRandomHexColor()) }
+        color: { value: new THREE.Color() }
       },
-  
+
       vertexShader: `
         uniform float time;
         uniform float hovered;
         uniform vec2 mousePosition;
         uniform float explodeIntensity;
+        uniform float u_frequency;
         uniform float shapeFactor;
         varying vec2 vUv;
 
@@ -281,26 +674,27 @@ createRandomHexColor = () => {
         float noise(vec2 p) {
           return fract(sin(dot(p, vec2(12.9898, 78.233))) * 43758.5453);
         }
-  
+    
         void main() {
           vUv = uv;
           vec3 pos = position;
 
           // Apply noise based on UV coordinates and time
-          float n = noise(vUv * 10.0 + time * 0.1);
+          float n = noise(vUv * 10.0 + time * 0.1 + u_frequency);
   
           // Calculate distance to mouse position
           float dist = distance(mousePosition, vec2(pos.x, pos.y));
-          float effect = hovered * smoothstep(0.2, 0.0, dist) * noise(pos.xy * 10.0 + sin(time));
+          // float effect = hovered * smoothstep(0.2, 0.0, dist) * noise(pos.xy * 10.0 + sin(time));
+          float effect = hovered * smoothstep(0.2, (0.0 + sin(shapeFactor) + time), dist) * noise(pos.xy * 10.0 + sin(time + shapeFactor));
   
           // Apply explode effect
-          pos += normal * effect * explodeIntensity;
+          pos += normal * effect * (explodeIntensity + sin(time));
   
           gl_Position = projectionMatrix * modelViewMatrix * vec4(pos, 1.0);
           //gl_Position = projectionMatrix * modelViewMatrix * vec4(position.x, sin(position.z + (n * time)) + cos(position.y * time), cos(position.z + (n * time)), 1.0);// Flat Bird
         }
       `,
-  
+
       fragmentShader: `
         uniform float time;
         varying vec2 vUv;
@@ -323,9 +717,9 @@ createRandomHexColor = () => {
         }
       `
     };
-  
+
     return explosiveShader;
-  } 
+  }
 
   useCyclicPowderShader() {
     const powderShader = {
@@ -393,8 +787,21 @@ createRandomHexColor = () => {
       uniforms: {
         time: { value: this.time },
         resolution: { value: new THREE.Vector2(this.width, this.height) },
-        shapeFactor: { value: 0.5 }, // Control for trapezoidal shape
+        shapeFactor: { value: this.shapeFactor }, // Control for trapezoidal shape
+        u_frequency: { value: this.u_frequency },           // Current frequency value from the audio analysis
+        u_freqBands: { value: new THREE.Vector3(0.0, 0.0, 0.0) }, // Frequency bands (bass, mid, treble)
+        u_ampFactor: { value: 1.0 },           // Amplitude factor to scale frequency effects
+        u_perlinScale: { value: new THREE.Vector2(50.0, 20000.0) }, // Frequency scale for Perlin noise (50Hz to 20,000Hz)
+        u_resolution: { value: new THREE.Vector2(this.width, this.height) }, // Resolution (screen size)
+        shapeFactor: { value: this.shapeFactor },
+        mousePosition: { value: new THREE.Vector2(0.0, 0.0) },
+        hovered: { value: 0.0 },
+        explodeIntensity: { value: this.explodeIntensity },
+        backgroundTexture: { value: this.cubeTexture },
+        side: { value: this.side }, // Retain the side parameter
+        flatShading: { value: this.flatShading }, // Retain flat shading
       },
+
       vertexShader: `
         varying vec2 vUv;
         void main() {
@@ -405,6 +812,7 @@ createRandomHexColor = () => {
 
       fragmentShader: `
         uniform float time;
+        uniform float shapeFactor;
         varying vec2 vUv;
 
         float noise(float x, float z) {
@@ -428,7 +836,7 @@ createRandomHexColor = () => {
           vec3 orange = vec3(0.9, 0.6, 0.3);
           vec3 color = red;
 
-          float burst = noise(x, z);
+          float burst = noise(x + shapeFactor, z);
           float value = 0.2;
 
           // color = vec3(uv, 0.0);
@@ -511,7 +919,7 @@ createRandomHexColor = () => {
     };
     return darkNoiseShader;
   };
-  
+
   useWrinkledShader() {
     return {
       uniforms: {
@@ -628,6 +1036,118 @@ createRandomHexColor = () => {
       `
     };
   }
+  // createSawShader() {
+  //   return {
+  //     uniforms: {
+  //       time: { value: this.time },
+  //       resolution: { value: new THREE.Vector2(this.width, this.height) },
+  //       shapeFactor: { value: this.shapeFactor },
+  //       u_red: { value: 1.0 },
+  //       u_green: { value: 1.0 },
+  //       u_blue: { value: 1.0 },
+  //       u_frequency: { value: this.u_frequency },           // Current frequency value from the audio analysis
+  //       u_freqBands: { value: new THREE.Vector3(0.0, 0.0, 0.0) }, // Frequency bands (bass, mid, treble)
+  //       u_ampFactor: { value: 1.0 },           // Amplitude factor to scale frequency effects
+  //       u_perlinScale: { value: new THREE.Vector2(50.0, 20000.0) }, // Frequency scale for Perlin noise (50Hz to 20,000Hz)
+  //       mousePosition: { value: new THREE.Vector2(0.0, 0.0) },
+  //       hovered: { value: 0.0 },
+  //       explodeIntensity: { value: this.explodeIntensity },
+  //       backgroundTexture: { value: this.cubeTexture },
+  //       side: { value: this.side }, // Retain the side parameter
+  //       flatShading: { value: this.flatShading }, // Retain flat shading
+  //       color: { value: new THREE.Color() }
+  //     },
+  //     vertexShader: `
+  //       varying vec2 vUv;
+  //       uniform float time;
+  //       uniform float hovered;
+  //       uniform vec2 mousePosition;
+  //       uniform float explodeIntensity;
+  //       uniform float u_frequency;
+  //       uniform float shapeFactor;
+
+  //       float trapezoid(float x, float height, float width) {
+  //           float slope = height / (width * 0.5);
+  //           return smoothstep(0.0, slope, height - abs(x));
+  //       }
+  
+  //       float noise(vec2 p) {
+  //         return fract(sin(dot(p, vec2(12.9898, 78.233))) * 43758.5453);
+  //       }
+
+  //       void main() {
+  //         vUv = uv;
+  //         vec3 pos = position;
+
+  //         // Apply noise based on UV coordinates and time
+  //         float n = noise(vUv * 10.0 + time * 0.1 + u_frequency);
+  
+  //         // Calculate distance to mouse position
+  //         float dist = distance(mousePosition, vec2(pos.x, pos.y));
+  //         // float effect = hovered * smoothstep(0.2, 0.0, dist) * noise(pos.xy * 10.0 + sin(time));
+  //         float effect = hovered * smoothstep(0.2, (0.0 + sin(shapeFactor) + time), dist) * noise(pos.xy * 10.0 + sin(time + shapeFactor));
+  
+  //         // Apply explode effect
+  //         pos += normal * effect * (explodeIntensity + time);
+  
+  //         gl_Position = projectionMatrix * modelViewMatrix * vec4(pos, 1.0);
+  //         //gl_Position = projectionMatrix * modelViewMatrix * vec4(position.x, sin(position.z + (n * time)) + cos(position.y * time), cos(position.z + (n * time)), 1.0);// Flat Bird
+  //         //gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+  //       }
+  //     `,
+  //     fragmentShader: `
+  //       uniform float time;
+  //       uniform float shapeFactor; // Now we can adjust this dynamically
+  //       varying vec2 vUv;
+
+  //       float noise(float x, float z) {
+  //         return fract(sin(dot(vec2(x, z) + time, vec2(12.9898, 78.233))) * 43758.5453);
+  //       }
+
+  //       float S(float t) {
+  //         return smoothstep(0.0, 1.0, t);
+  //       }
+  
+  //       // Simple 2D noise function
+  //       float noise(vec2 p) {
+  //         return fract(sin(dot(p, vec2(12.9898, 78.233))) * 43758.5453);
+  //       }
+
+  //       void main() {
+  //         vec2 uv = vUv * 10.0 * shapeFactor; // Scale UV based on shapeFactor
+  //         float x = uv.x;
+  //         float z = uv.y;
+
+  //         // Apply noise based on UV coordinates and time
+  //         float n = noise(vUv * 10.0 + time * 0.1);
+  
+  //         float burst = noise(x, z);
+  //         float value = 0.2;
+
+  //         for (int i = -1; i <= 1; i++) {
+  //           for (int j = -1; j <= 1; j++) {
+  //             float aij = 0.0;
+  //             float bij = 1.0;
+  //             float cij = 0.51;
+  //             float dij = 0.33;
+
+  //             value += aij + (bij - aij) * S(x - float(i)) + (aij - bij - cij + dij) * S(x - float(i)) * S(z - float(j));
+  //           }
+  //         }
+
+  //         //vec3 color = vec3((0.65 + (vUv.x + sin(n * 0.2))), (0.85 + (vUv.y + n * 0.2)), 1.0); // Blue color
+
+  //         // Modify the color with noise
+  //         vec3 color = vec3(vUv.x + sin(n * 0.2) + burst, (vUv.y + n * 0.2 + value), (1.0 + burst + value)); // Adds noise to the x and y UV-based color
+  
+  //         gl_FragColor = vec4(color, 1.0);
+        
+  //         vec3 noiseColor = vec3(burst, value, burst + value);
+  //         gl_FragColor = vec4(color, 1.0);
+  //       }
+  //     `
+  //   };
+  // }
 
   useNorthStar() {
     // Custom Shader Material with Noise
@@ -758,6 +1278,7 @@ createRandomHexColor = () => {
 
   shaderMaterials() {
     const sawMaterial = new THREE.ShaderMaterial(this.sawShader);
+    const icoMaterial = new THREE.ShaderMaterial(this.icoShader)
     const noiseMaterial = new THREE.ShaderMaterial(this.noiseShader);
     const northStarMaterial = new THREE.ShaderMaterial(this.northStar);
     const starryMaterial = new THREE.ShaderMaterial(this.starryShader);
@@ -769,9 +1290,12 @@ createRandomHexColor = () => {
     const wrinkledMaterial = new THREE.ShaderMaterial(this.wrinkledShader);
     const explosiveMaterial = new THREE.ShaderMaterial(this.explosiveShader);
     const powderMaterial = new THREE.ShaderMaterial(this.powderShader);
+    const musicMaterial = new THREE.ShaderMaterial(this.musicShader);
+    const frequencyMaterial = new THREE.ShaderMaterial(this.frequencyShader)
 
     return {
       sawMaterial,
+      icoMaterial,
       noiseMaterial,
       darkNoiseMaterial,
       axialSawMaterial,
@@ -780,10 +1304,11 @@ createRandomHexColor = () => {
       boidsMaterial,
       northStarMaterial,
       starryMaterial,
-      boidsRender,
       wrinkledMaterial,
       explosiveMaterial,
-      powderMaterial
+      powderMaterial,
+      musicMaterial,
+      frequencyMaterial
     };
   }
 
@@ -801,9 +1326,11 @@ createRandomHexColor = () => {
       wrinkledShader: this.wrinkledShader,
       explosiveShader: this.explosiveShader,
       powderShader: this.powderShader,
+      musicShader: this.musicShader,
+      frequencyShader: this.frequencyShader,
     };
   }
-  
+
   // Convert mouse coordinates from screen space to normalized device coordinates
   convertMouseToNDC(event) {
     const x = (event.clientX / window.innerWidth) * 2 - 1; // Normalize X between -1 and 1
@@ -832,7 +1359,7 @@ createRandomHexColor = () => {
     const randomColor = Math.random(); // Color shift between 0 and 1
     this.boidShaders.uniforms.boidSpeed.value = randomSpeed;
     this.boidShaders.uniforms.colorShift.value = randomColor;
-    console.log(`Random click event: Boid Speed: ${randomSpeed}, Color Shift: ${randomColor}`);
+    // console.log(`Random click event: Boid Speed: ${randomSpeed}, Color Shift: ${randomColor}`);
   }
 
   addMouseHover(renderer = null) {
@@ -851,6 +1378,29 @@ createRandomHexColor = () => {
     this.explosiveShader.uniforms.hovered.value = 1.0;
   }
 
+  updateVisualizr() {
+    // Update the time value for animation in the shader
+    this.frequencyShader.uniforms.u_time.value = this.clock.getElapsedTime();
+
+    // Get the average frequency for the shader (already used)
+    const averageFrequency = this.analyser.getAverageFrequency();
+    this.frequencyShader.uniforms.u_frequency.value = averageFrequency;
+
+    // Update frequency bands (bass, mid, treble) for more granular control
+    const frequencyBands = this.analyser.getFrequencyBands(); // This could be an array or object
+    const bass = frequencyBands[0];    // Bass frequencies
+    const mid = frequencyBands[1];     // Mid frequencies
+    const treble = frequencyBands[2];  // Treble frequencies
+
+    // Pass the frequency bands to the shader
+    this.frequencyShader.uniforms.u_freqBands.value.set(bass, mid, treble);
+
+    // You can adjust the amplitude factor if needed based on frequency response
+    // Example: If the bass is dominant, increase the amplitude factor
+    const ampFactor = Math.max(bass, mid, treble); // Just an example, adjust based on your needs
+    this.frequencyShader.uniforms.u_ampFactor.value = ampFactor;
+  }
+
   // Update method for shader uniforms and dynamic behavior
   update() {
     this.addMouseListener()
@@ -864,11 +1414,11 @@ createRandomHexColor = () => {
     // Update other uniforms if necessary
     this.sawShader.uniforms.time.value = this.time;
     this.axialSawShader.uniforms.time.value = (Math.sin(this.time) * 0.5) + 0.5;
-    this.powderShader.uniforms.time.value = (Math.sin(this.time) * 0.5) + 0.5  + Math.cos(0.1 + this.time);
-    this.wrinkledShader.uniforms.time.value = (Math.sin(this.time) * 0.5) + 0.5  + Math.cos(0.1 + this.time);
-    this.darkNoiseShader.uniforms.time.value = (Math.sin(this.time) * 0.5) + 0.5  + Math.cos(0.1 + this.time);
-    this.explosiveShader.uniforms.time.value = (Math.sin(this.time) * 0.5) + 0.5  + Math.cos(0.1 + this.time);
-    this.explosiveShader.uniforms.explodeIntensity.value = (Math.sin(this.time) * 0.5) + 0.5  + Math.cos(0.1 + this.time);
+    this.powderShader.uniforms.time.value = (Math.sin(this.time) * 0.5) + 0.5 + Math.cos(0.1 + this.time);
+    this.wrinkledShader.uniforms.time.value = (Math.sin(this.time) * 0.5) + 0.5 + Math.cos(0.1 + this.time);
+    this.darkNoiseShader.uniforms.time.value = (Math.sin(this.time) * 0.5) + 0.5 + Math.cos(0.1 + this.time);
+    this.explosiveShader.uniforms.time.value = (Math.sin(this.time) * 0.5) + 0.5 + Math.cos(0.1 + this.time);
+    this.explosiveShader.uniforms.explodeIntensity.value = (Math.sin(this.time) * 0.5) + 0.5 + Math.cos(0.1 + this.time);
     this.noiseShader.uniforms.time.value = (Math.cos(this.time) * 0.5) + 0.5;
     this.starryShader.uniforms.time.value = Math.sin(this.time) + 0.1;
     this.starryShader.uniforms.explodeIntensity.value = Math.sin(this.time) + Math.cos(0.1 + this.time);

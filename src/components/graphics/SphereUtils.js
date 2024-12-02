@@ -236,7 +236,7 @@ class SphereUtils {
 
             if (velAlongDist > 0) return; // Prevent spheres moving apart from colliding again
 
-            const impulse = (2 * velAlongDist) / (sphereA.mass + sphereB.mass);
+            const impulse = (2.9 * velAlongDist) / (sphereA.mass + sphereB.mass);
             sphereA.velocity.sub(distVec.clone().multiplyScalar(impulse * sphereB.mass));
             sphereB.velocity.add(distVec.clone().multiplyScalar(impulse * sphereA.mass));
         }
@@ -264,8 +264,8 @@ class SphereUtils {
         if (!this.plane) return;
 
         // Get the plane's normal and a point on the plane
-        const planeNormal = this.plane.getNormal(); // Assuming getNormal() method
-        const planePoint = this.plane.getPoint();   // Assuming getPoint() returns a point on the plane
+        const planeNormal = this.plane.getNormal; // Assuming getNormal() method
+        const planePoint = this.plane.getPoint;   // Assuming getPoint() returns a point on the plane
 
         // Vector from the sphere to the plane point
         const sphereToPlane = new THREE.Vector3().subVectors(sphere.mesh.position, planePoint);
@@ -340,7 +340,7 @@ class SphereUtils {
                         }
                     });
 
-                    this.handlePlaneCollision(sphere); // Handle plane collision
+                    // ssthis.handlePlaneCollision(sphere); // Handle plane collision
                 }
             });
         }
@@ -349,7 +349,7 @@ class SphereUtils {
     // Central update method to be called each frame
     update() {
         this.updateSpheres();
-        this.handlePlaneCollision();
+        // this.handlePlaneCollision();
     }
 
     // Toggle gravity on or off

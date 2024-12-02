@@ -56,7 +56,7 @@ export default class FontMaker {
   async initFont() {
     try {
       this.font = await this.loadFont();
-      console.log('Font loaded:', this.font);
+      //console.log('Font loaded:', this.font);
       this.createTextMesh(this.defaultText);
       this.createTextMesh(this.defaultText);
     } catch (error) {
@@ -138,7 +138,7 @@ export default class FontMaker {
     // Add the mesh to the scene
     this.scene.add(this.textMesh);
 
-    console.log('Text Mesh created:', this.textMesh);
+    ///sconsole.log('Text Mesh created:', this.textMesh);
 
     return this.textMesh;
   }
@@ -188,7 +188,7 @@ export default class FontMaker {
     const intersects = this.raycaster.intersectObjects(this.scene.children);
 
     if (intersects.length > 0 && intersects[0].object.userData.clickable) {
-      console.log('Text clicked!');
+      // console.log('Text clicked!');
       this.navigate(path); // Use `navigate` from `useNavigate`
     }
   }

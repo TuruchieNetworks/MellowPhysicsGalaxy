@@ -10,6 +10,7 @@ import useCarouselImages from '../hooks/UseCarouselImages';
 import MusicBackground from '../backgroundVideos/MusicBackground';
 import GalaxialFallingSandPlane from '../physics_graphics/GalaxialFallingSandPlane';
 import NoiseShader from '../surface_shaders/NoiseShader';
+import MusicPlayerScene from '../physics_graphics/MusicPlayerScene';
 
 // const images = [
 //     landing_dj,
@@ -44,6 +45,7 @@ const Landing = () => {
                 backgroundSize: 'cover', // Ensure the background covers the whole container
                 backgroundPosition: 'center', // Position the background image in the center
             }}>
+                {/* <MusicPlayerScene /> */}
             <NoiseShader />
             {/*
             <SphereDrops />

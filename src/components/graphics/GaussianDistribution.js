@@ -16,6 +16,20 @@ class GaussianDistribution {
     return Math.sqrt(-2.0 * Math.log(u)) * Math.cos(2.0 * Math.PI * v);
   }
 
+  generateRandomPositions() {
+    const x = (Math.random() - 0.5) * 10;
+    const y = Math.random() * 10 + 10;
+    const z = (Math.random() - 0.5) * 10;
+    return {x, y, z};
+  }
+
+  generateGaussianRandomPositions() {
+    const x = (Math.random() - 0.5 + this.stdDevVelocity * this.randomGaussian()) * 10;
+    const y = Math.random() * 10 + 10 + this.stdDevVelocity * this.randomGaussian();
+    const z = (Math.random() - 0.5 + this.stdDevVelocity * this.randomGaussian()) * 10;
+    return {x, y, z};
+  }
+
   getVelocity() {
     return new THREE.Vector3(
       this.meanVelocity + this.stdDevVelocity * this.randomGaussian(),

@@ -14,6 +14,9 @@ import Shaders from "../graphics/Shaders";
 import SandParticles from "../graphics/SandParticles";
 import FontMaker from "../graphics/FontMaker";
 import SphereUtils from "../graphics/SphereUtils";
+import { Lighting } from "../graphics/Lighting";
+import MediaPlayer from "../graphics/MediaPlayer";
+import { GUI } from "dat.gui";
 
 
 const FallingSand = ({ height = window.innerHeight, width = window.innerWidth, particleCount = 600 }) => {
@@ -68,6 +71,7 @@ const FallingSand = ({ height = window.innerHeight, width = window.innerWidth, p
     useEffect(() => {
         const scene = sceneRef.current;
         const world = worldRef.current; // Ensure you're using the reference 
+        const gui = new GUI();
 
         // Set up camera
         const camera = new THREE.PerspectiveCamera(75, width / height, 0.1, 1000);
@@ -96,6 +100,9 @@ const FallingSand = ({ height = window.innerHeight, width = window.innerWidth, p
         // Fog
         scene.fog = new THREE.Fog(0xFFFFFF, 0, 200);
         scene.fog = new THREE.FogExp2(randomHexColor(), 0.01);
+
+        const light = new Lighting(scene, camera, 5.0, renderer);
+        light.initializeLightAndHelpers();
 
         // Configure world gravity
         world.gravity.set(0, -9.81, 0);
@@ -129,7 +136,6 @@ const FallingSand = ({ height = window.innerHeight, width = window.innerWidth, p
         world.addBody(underGroundBody);
         underGroundBody.quaternion.setFromEuler(-Math.PI / 2, 0, 0);
 
-
         const boxPhysMat = new CANNON.Material();
         const groundPhysMat = new CANNON.Material();
         const canonBoxBody = new CANNON.Body({
@@ -149,8 +155,7 @@ const FallingSand = ({ height = window.innerHeight, width = window.innerWidth, p
 
         // const groundMesh = new THREE.Mesh(groundGeo, groundMat);
         // scene.add(groundMesh);
-        world.gravity.set(0, -9.81, 0); // Set gravity for the world
-
+        // world.gravity.set(0, -9.81, 0); // Set gravity for the world
         const groundBoxContactMat = new CANNON.ContactMaterial(
             groundPhysMat,
             boxPhysMat,
@@ -160,13 +165,13 @@ const FallingSand = ({ height = window.innerHeight, width = window.innerWidth, p
         world.addContactMaterial(groundBoxContactMat);
 
         const spherePhysMat = new CANNON.Material();
-        const canonSphereBody = new CANNON.Body({
+        const spherePhysBody = new CANNON.Body({
             mass: 4,
             position: new CANNON.Vec3(0, 10, -10),
             material: spherePhysMat
         });
-        canonSphereBody.addShape(new CANNON.Sphere(1)); // Adjust the size if needed
-        world.addBody(canonSphereBody);
+        spherePhysBody.addShape(new CANNON.Sphere(1)); // Adjust the size if needed
+        world.addBody(spherePhysBody);
 
         // const groundSphereContactMat = new CANNON.ContactMaterial(
         //     groundPhysMat,
@@ -183,7 +188,7 @@ const FallingSand = ({ height = window.innerHeight, width = window.innerWidth, p
             side: THREE.DoubleSide
         });
 
-        const shader = new Shaders(width, height, timeStep, 0.1, 50, cubeTextureLoader, 0.1, 2, 1, true);
+        const shader = new Shaders(width, height, timeStep, 0.1, 50, cubeTextureLoader, 0.1, 2, 1, true, 0.1);
         const plane = new THREE.Mesh(planeGeometry, shader.shaderMaterials().sawMaterial);
         scene.add(plane);
         plane.rotation.x = -0.5 * Math.PI;
@@ -191,8 +196,8 @@ const FallingSand = ({ height = window.innerHeight, width = window.innerWidth, p
 
         plane.receiveShadow = true;
 
-        const gridHelper = new THREE.GridHelper(30);
-        scene.add(gridHelper);
+        // const gridHelper = new THREE.GridHelper(30);
+        // scene.add(gridHelper);
 
         // const sphereGeometry = new THREE.SphereGeometry(4, 50, 50);
         // const sphereMaterial = new THREE.MeshPhongMaterial({
@@ -214,24 +219,24 @@ const FallingSand = ({ height = window.innerHeight, width = window.innerWidth, p
         // sphParticleBody.addShape(sphbody); // Add the sphere shape
         // world.addBody(sphParticleBody);
         // sphereBodiesRef.current.push(sphParticleBody);
-        const ambientLight = new THREE.AmbientLight(0x333333);
-        scene.add(ambientLight);
+        // const ambientLight = new THREE.AmbientLight(0x333333);
+        // scene.add(ambientLight);
 
-        const directionalLight = new THREE.DirectionalLight(0xFFFFFF, 0.8);
-        scene.add(directionalLight);
-        directionalLight.position.set(-30, 50, 0);
-        directionalLight.castShadow = true;
+        // const directionalLight = new THREE.DirectionalLight(0xFFFFFF, 0.8);
+        // scene.add(directionalLight);
+        // directionalLight.position.set(-30, 50, 0);
+        // directionalLight.castShadow = true;
 
-        const dLightHelper = new THREE.DirectionalLightHelper(directionalLight, 5);
-        scene.add(dLightHelper);
-        // Initialize helpers
-        const helpers = new LightAxisUtilHelper(scene, camera, renderer);
-        helpers.addAxesHelper();
-        helpers.addGridHelper();
-        // helpers.addHemisphereLightHelper(light);
-        helpers.addShadowCameraHelper(directionalLight);
-        helpers.addDirectionalLightHelper(directionalLight);
-        helpers.addOrbitControls(); // Add orbit controls
+        // const dLightHelper = new THREE.DirectionalLightHelper(directionalLight, 5);
+        // scene.add(dLightHelper);
+        // // Initialize helpers
+        // const helpers = new LightAxisUtilHelper(scene, camera, renderer);
+        // helpers.addAxesHelper();
+        // helpers.addGridHelper();
+        // // helpers.addHemisphereLightHelper(light);
+        // helpers.addShadowCameraHelper(directionalLight);
+        // helpers.addDirectionalLightHelper(directionalLight);
+        // helpers.addOrbitControls(); // Add orbit controls
 
         // Instanced mesh setup
         // const particleGeometry = new THREE.SphereGeometry(0.2, 16, 16);
@@ -257,13 +262,25 @@ const FallingSand = ({ height = window.innerHeight, width = window.innerWidth, p
         sphereUtils.createCannonSphere({ r: 10, w: 50, h: 50 }, randomHexColor(), { x: -10, y: 20, z: -80 }, 10.1, shader.shaderMaterials().explosiveMaterial);
         const sandParticles = new SandParticles(scene, world, shader.shaderMaterials().noiseMaterial, 100);
         sandParticles.createDarkFlashNoiseParticles(60, 1.4, shader.shaderMaterials().sawMaterial);
+        sandParticles.addParticles(120);
+        const mediaPlayer = new MediaPlayer(scene, camera, renderer, gui, canvasRef.current, width, height, shader);
+
 
         // Pass both scene and camera to the FontMaker constructor
         const fontMaker = new FontMaker(scene, camera, navigate);
         for (let i = 0; i < particleCount; i++) {
             // Three.js particle
             const geometry = new THREE.SphereGeometry(0.3, 16, 16);
-            const material = new THREE.MeshStandardMaterial({ color: randomHexColor() });
+            let material;
+            if (i % 3 === 0) {
+                material = new THREE.MeshStandardMaterial({ color: randomHexColor() });
+            } else if (i % 3 === 1) {
+                material = shader.shaderMaterials().sawMaterial;
+            } 
+            else if (i % 3 === 2) {
+                // material = shader.shaderMaterials().explosiveMaterial;
+                material = new THREE.MeshStandardMaterial({ color: randomHexColor() });
+            }
             const mesh = new THREE.Mesh(geometry, material);
 
             const pos = sandParticles.createRandomPoints();
@@ -297,7 +314,7 @@ const FallingSand = ({ height = window.innerHeight, width = window.innerWidth, p
 
         // scene.add(box);
         // scene.add(multiBox);
-      
+
 
         // fontMaker.initialize('Falling Ghoasts Rush: Shoot Or Die Trying!!!', {
         //     color: 0xff0000,
@@ -319,13 +336,35 @@ const FallingSand = ({ height = window.innerHeight, width = window.innerWidth, p
             fontMaker.enableRaycast();
         });
 
-        // Event listeners for mouse movements and clicks
-        const onMouseMove = (event) => fontMaker.onMouseMove(event);
-        const onMouseClick = (event) => fontMaker.onMouseClick(event, '/FallingFlashes');
+        // Method For Hover events
+        const onMouseMove = (event) => {
+            fontMaker.onMouseMove(event);
+            sphereUtils.updateHover(event);
+        }
 
-        // Attach event listeners
-        window.addEventListener('click', onMouseClick);
+        // Method for click events
+        const onMouseClick = (event) => {
+            sphereUtils.handleClick();
+            fontMaker.onMouseClick(event, '/FallingFlashes');
+
+            if (mediaPlayer.isPlaying === false) {
+                mediaPlayer.loadMedia();
+            }
+        }
+
+        // Attach event listeners for  mouse movements
         window.addEventListener('mousemove', onMouseMove);
+        window.addEventListener('click', onMouseClick);
+
+        // Toggle gravity on key press (for example, "G" key)
+        window.addEventListener('keydown', (event) => {
+            if (event.key === 'a' || event.key === 'l') {
+                sphereUtils.handleClick();
+            }
+            if (event.key === 'g') {
+                sphereUtils.toggleGravity();
+            }
+        });
 
         // Handle window resizing and adjust font size based on screen width
         const handleWindowResize = () => {
@@ -381,10 +420,11 @@ const FallingSand = ({ height = window.innerHeight, width = window.innerWidth, p
             shader.update();
             fontMaker.update();
             sphereUtils.update();
-            // sandParticles.updateNoise();
+            mediaPlayer.update();
+            sandParticles.updateSandParticles();
             shader.shaderMaterials().sawMaterial.uniforms.time.value = time * 0.001;
-            shader.shaderMaterials().explosiveMaterial.uniforms.shapeFactor = time * Math.sin(0.001 + time);
-            shader.shaderMaterials().explosiveMaterial.uniforms.explodeIntensity.value = 0.5 + (time * Math.sin(0.01 + time));
+            // shader.shaderMaterials().explosiveMaterial.uniforms.shapeFactor.value = time * Math.sin(0.001 + time);
+            // shader.shaderMaterials().explosiveMaterial.uniforms.explodeIntensity.value = 0.5 + (time * Math.sin(0.01 + time));
 
             // Render the scene
             renderer.render(scene, camera);
@@ -402,6 +442,9 @@ const FallingSand = ({ height = window.innerHeight, width = window.innerWidth, p
 
             // Dispose of font maker resources
             fontMaker.dispose();
+            sphereUtils.dispose();
+            mediaPlayer.cleanup();
+            sandParticles.cleanup();
 
             // Clean up renderer to release WebGL context
             renderer.dispose();

@@ -13,6 +13,9 @@ import Shaders from "../graphics/Shaders";
 import SandParticles from "../graphics/SandParticles";
 import FontMaker from "../graphics/FontMaker";
 import SphereUtils from "../graphics/SphereUtils";
+import { Lighting } from "../graphics/Lighting";
+import { GUI } from "dat.gui";
+import MediaPlayer from "../graphics/MediaPlayer";
 
 
 const FallingTracks = ({ height = window.innerHeight, width = window.innerWidth, particleCount = 800 }) => {
@@ -47,7 +50,7 @@ const FallingTracks = ({ height = window.innerHeight, width = window.innerWidth,
         const x = (Math.random() - 0.5) * 10;
         const y = Math.random() * 10 + 10;
         const z = (Math.random() - 0.5) * 10;
-        return {x, y, z}
+        return { x, y, z }
     }
 
     const timeStep = 1 / 60;
@@ -73,6 +76,7 @@ const FallingTracks = ({ height = window.innerHeight, width = window.innerWidth,
     useEffect(() => {
         const scene = sceneRef.current;
         const world = worldRef.current; // Ensure you're using the reference 
+        const gui = new GUI();
 
         // Set up camera
         const camera = new THREE.PerspectiveCamera(75, width / height, 0.1, 1000);
@@ -105,6 +109,10 @@ const FallingTracks = ({ height = window.innerHeight, width = window.innerWidth,
         // Configure world gravity
         world.gravity.set(0, -9.81, 0);
 
+        // Lighting setup
+        const light = new Lighting(scene, camera, 5.0, renderer);
+        light.initializeLightAndHelpers();
+
         // Add ground mesh to scene
         // scene.add(groundMesh);
         const canonBoxGeo = new THREE.BoxGeometry(2, 2, 2);
@@ -130,9 +138,9 @@ const FallingTracks = ({ height = window.innerHeight, width = window.innerWidth,
         //     mass: 0, // Set mass to 0 for static bodies
         //     position: new CANNON.Vec3(0, -1, 0)
         // });
-        underGroundBody.addShape(new CANNON.Plane()); // Add plane shape to ground body
-        world.addBody(underGroundBody);
-        underGroundBody.quaternion.setFromEuler(-Math.PI / 2, 0, 0);
+        groundBody.addShape(new CANNON.Plane()); // Add plane shape to ground body
+        world.addBody(groundBody);
+        groundBody.quaternion.setFromEuler(-Math.PI / 2, 0, 0);
 
 
         const boxPhysMat = new CANNON.Material();
@@ -189,7 +197,7 @@ const FallingTracks = ({ height = window.innerHeight, width = window.innerWidth,
         });
 
         const shader = new Shaders(width, height);
-        const plane = new THREE.Mesh(planeGeometry, shader.shaderMaterials().explosiveMaterial);
+        const plane = new THREE.Mesh(planeGeometry, shader.shaderMaterials().sawMaterial);
         scene.add(plane);
         plane.rotation.x = -0.5 * Math.PI;
         plane.receiveShadow = true;
@@ -219,24 +227,6 @@ const FallingTracks = ({ height = window.innerHeight, width = window.innerWidth,
         // sphParticleBody.addShape(sphbody); // Add the sphere shape
         // world.addBody(sphParticleBody);
         // sphereBodiesRef.current.push(sphParticleBody);
-        const ambientLight = new THREE.AmbientLight(0x333333);
-        scene.add(ambientLight);
-
-        const directionalLight = new THREE.DirectionalLight(0xFFFFFF, 0.8);
-        scene.add(directionalLight);
-        directionalLight.position.set(-30, 50, 0);
-        directionalLight.castShadow = true;
-
-        const dLightHelper = new THREE.DirectionalLightHelper(directionalLight, 5);
-        scene.add(dLightHelper);
-        // Initialize helpers
-        const helpers = new LightAxisUtilHelper(scene, camera, renderer);
-        helpers.addAxesHelper();
-        helpers.addGridHelper();
-        // helpers.addHemisphereLightHelper(light);
-        helpers.addShadowCameraHelper(directionalLight);
-        helpers.addDirectionalLightHelper(directionalLight);
-        helpers.addOrbitControls(); // Add orbit controls
 
         // Instanced mesh setup
         // const particleGeometry = new THREE.SphereGeometry(0.2, 16, 16);
@@ -262,10 +252,9 @@ const FallingTracks = ({ height = window.innerHeight, width = window.innerWidth,
             const geometry = new THREE.SphereGeometry(0.4, 16, 16);
             let material;
             if (i % 3 === 0) {
-                material = shader.shaderMaterials().axialSawMaterial;
-            } else 
-            if (i % 3 === 2) {
-                material = shader.shaderMaterials().darkNoiseMaterial;
+                material = shader.shaderMaterials().sawMaterial;
+            } else if (i % 3 === 2) {
+                material = shader.shaderMaterials().wrinkledMaterial;
             } else {
                 material = new THREE.MeshStandardMaterial({ color: randomHexColor() });
             };
@@ -310,6 +299,7 @@ const FallingTracks = ({ height = window.innerHeight, width = window.innerWidth,
 
         const sandParticles = new SandParticles(scene, world, shader.shaderMaterials().explosiveMaterial);
         sandParticles.createNoiseParticles(60, 1.4, shader.shaderMaterials().explosiveMaterial, shader.shaderMaterials().sawMaterial);// Assuming you have access to both `scene` and `camera` objects
+        const mediaPlayer = new MediaPlayer(scene, camera, renderer, gui, canvasRef.current, width, height, shader);
 
         // Pass both scene and camera to the FontMaker constructor
         const fontMaker = new FontMaker(scene, camera, navigate);
@@ -335,22 +325,38 @@ const FallingTracks = ({ height = window.innerHeight, width = window.innerWidth,
         });
 
         // Event listeners for mouse movements and clicks
-        const onMouseMove = (event) => fontMaker.onMouseMove(event);
+        // const onMouseMove = (event) => fontMaker.onMouseMove(event);
         // const onMouseClick = (event) => fontMaker.onMouseClick(event, '/FallingGhoasts');
 
+        // Event listeners for mouse movements and clicks
+        const onMouseMove = (event) => {
+            fontMaker.onMouseMove(event);
+            sphereUtils.updateHover(event);
+        };
+
+        const onMouseClick = (event) => {
+            sphereUtils.handleClick(shader.shaderMaterials().wrinkledMaterial);
+
+            if (mediaPlayer.isPlaying === false) {
+                mediaPlayer.loadMedia();
+            }
+
+            fontMaker.onMouseClick(event, '/FallingTracks');
+        }
+
         // Attach event listeners
-        // window.addEventListener('click', onMouseClick);
+        window.addEventListener('click', onMouseClick);
         window.addEventListener('mousemove', onMouseMove);
 
-        // Handle Sphere mouse movements
-        window.addEventListener('mousemove', (event) => {
-            sphereUtils.updateHover(event);
-        });
+        // // Handle Sphere mouse movements
+        // window.addEventListener('mousemove', (event) => {
+        //     sphereUtils.updateHover(event);
+        // });
 
-        // Handle clicks to create spheres
-        window.addEventListener('click', () => {
-            sphereUtils.handleClick(shader.shaderMaterials().wrinkledMaterial);
-        });
+        // // Handle clicks to create spheres
+        // window.addEventListener('click', () => {
+        //     sphereUtils.handleClick(shader.shaderMaterials().wrinkledMaterial);
+        // });
 
         // Toggle gravity on key press (for example, "G" key)
         window.addEventListener('keydown', (event) => {
@@ -412,6 +418,7 @@ const FallingTracks = ({ height = window.innerHeight, width = window.innerWidth,
             // });
             shader.update();
             fontMaker.update();
+            mediaPlayer.update();
             sphereUtils.update();
             sandParticles.update();
             shader.shaderMaterials().sawMaterial.uniforms.time.value = time * 0.001
@@ -432,8 +439,9 @@ const FallingTracks = ({ height = window.innerHeight, width = window.innerWidth,
 
             // Dispose of font maker resources
             fontMaker.dispose();
-            sphereUtils.dispose()
-            sandParticles.cleanup()
+            sphereUtils.dispose();
+            mediaPlayer.cleanup();
+            sandParticles.cleanup();
 
             // Clean up renderer to release WebGL context
             renderer.dispose();

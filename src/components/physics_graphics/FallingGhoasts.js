@@ -14,38 +14,37 @@ import Shaders from "../graphics/Shaders";
 import SandParticles from "../graphics/SandParticles";
 import FontMaker from "../graphics/FontMaker";
 import SphereUtils from "../graphics/SphereUtils";
+import { Lighting } from "../graphics/Lighting";
+import MediaPlayer from "../graphics/MediaPlayer";
+import { GUI } from "dat.gui";
 
 
-const FallingGhoasts = ({ height = window.innerHeight, width = window.innerWidth, particleCount = 500 }) => {
-    const { randomHexColor, randomRgbaColor } = useColorUtils();
+const FallingGhoasts = ({ height = window.innerHeight, width = window.innerWidth, particleCount = 300 }) => {
+    const navigate = useNavigate();
     const canvasRef = useRef();
     const sceneRef = useRef(new THREE.Scene());
     const worldRef = useRef(new CANNON.World());
-    const sandParticlesRef = useRef([]);
-    const sphereBodiesRef = useRef([]);
     const sphereMeshRef = useRef([]);
+    const sphereBodiesRef = useRef([]);
+    const sandParticlesRef = useRef([]);
     const particleBodiesRef = useRef([]);
-    const navigate = useNavigate();
     const box = useBox();
     const multiBox = useMultiBox();
-
-    // Access the Cannon.js world and ground
-    // Access the Cannon.js ground
+    const { randomHexColor } = useColorUtils();
     const { groundBody } = useCannonGround();
-    const { underGroundBody } = useCannonUnderground();
-    const { cannonBox, boxMesh } = useCannonBox(); // If you want to use boxes as well
+    // const { cannonBox, boxMesh } = useCannonBox(); // If you want to use boxes as well
 
     // Define your box boundaries (min and max coordinates)
-    const boxBoundary = {
-        min: new THREE.Vector3(-10, 0, -10),
-        max: new THREE.Vector3(10, 10, 10),
-    };
+    // const boxBoundary = {
+    //     min: new THREE.Vector3(-10, 0, -10),
+    //     max: new THREE.Vector3(10, 10, 10),
+    // };
 
-    // Define your sphere boundary (center and radius)
-    const sphereBoundary = {
-        center: new THREE.Vector3(0, 5, 0),
-        radius: 10,
-    };
+    // // Define your sphere boundary (center and radius)
+    // const sphereBoundary = {
+    //     center: new THREE.Vector3(0, 5, 0),
+    //     radius: 10,
+    // };
 
     const timeStep = 1 / 60;
 
@@ -67,11 +66,17 @@ const FallingGhoasts = ({ height = window.innerHeight, width = window.innerWidth
     //     wallBody.addShape(wallShape);
     //     worldRef.current.addBody(wallBody);  // Access world using worldRef.current
     // });
-
+    const createRandomPosition = () => {
+        const x = (Math.random() - 0.5) * 10;
+        const y = Math.random() * 10 + 10;
+        const z = (Math.random() - 0.5) * 10;
+        return { x, y, z };
+    }
 
     useEffect(() => {
         const scene = sceneRef.current;
         const world = worldRef.current; // Ensure you're using the reference 
+        const gui = new GUI();
 
         // Set up camera
         const camera = new THREE.PerspectiveCamera(75, width / height, 0.1, 1000);
@@ -129,9 +134,9 @@ const FallingGhoasts = ({ height = window.innerHeight, width = window.innerWidth
         //     mass: 0, // Set mass to 0 for static bodies
         //     position: new CANNON.Vec3(0, -1, 0)
         // });
-        underGroundBody.addShape(new CANNON.Plane()); // Add plane shape to ground body
-        world.addBody(underGroundBody);
-        underGroundBody.quaternion.setFromEuler(-Math.PI / 2, 0, 0);
+        groundBody.addShape(new CANNON.Plane()); // Add plane shape to ground body
+        world.addBody(groundBody);
+        groundBody.quaternion.setFromEuler(-Math.PI / 2, 0, 0);
 
         const boxPhysMat = new CANNON.Material();
         const groundPhysMat = new CANNON.Material();
@@ -152,7 +157,6 @@ const FallingGhoasts = ({ height = window.innerHeight, width = window.innerWidth
 
         // const groundMesh = new THREE.Mesh(groundGeo, groundMat);
         // scene.add(groundMesh);
-        world.gravity.set(0, -9.81, 0); // Set gravity for the world
 
         const groundBoxContactMat = new CANNON.ContactMaterial(
             groundPhysMat,
@@ -180,7 +184,7 @@ const FallingGhoasts = ({ height = window.innerHeight, width = window.innerWidth
         // world.addContactMaterial(groundSphereContactMat);
 
         // Add the plane geometry to the scene
-        
+
         // const planeMaterial = new THREE.MeshPhongMaterial({
         //     color: 0xffffff,
         //     side: THREE.DoubleSide
@@ -196,10 +200,7 @@ const FallingGhoasts = ({ height = window.innerHeight, width = window.innerWidth
         scene.add(gridHelper);
 
         const sphereGeometry = new THREE.SphereGeometry(4, 50, 50);
-        const sphereMaterial = new THREE.MeshPhongMaterial({
-            color: 0x0000FF,
-            wireframe: false
-        });
+        const sphereMaterial = shader.shaderMaterials().sawMaterial;
         const sphere = new THREE.Mesh(sphereGeometry, sphereMaterial);
         scene.add(sphere);
         sphere.position.set(-10, 10, -80);
@@ -216,50 +217,33 @@ const FallingGhoasts = ({ height = window.innerHeight, width = window.innerWidth
         world.addBody(sphParticleBody);
         sphereBodiesRef.current.push(sphParticleBody);
 
-        const ambientLight = new THREE.AmbientLight(0x333333);
-        scene.add(ambientLight);
+        /*
+        Instanced mesh setup
+        const particleGeometry = new THREE.SphereGeometry(0.2, 16, 16);
+        const particleMaterial = new THREE.MeshStandardMaterial({ color: randomHexColor() });
 
-        const directionalLight = new THREE.DirectionalLight(0xFFFFFF, 0.8);
-        scene.add(directionalLight);
-        directionalLight.position.set(-30, 50, 0);
-        directionalLight.castShadow = true;
+        const instancedMesh = new THREE.InstancedMesh(particleGeometry, particleMaterial, particleCount);
+        scene.add(instancedMesh);
 
-        const dLightHelper = new THREE.DirectionalLightHelper(directionalLight, 5);
-        scene.add(dLightHelper);
-        // Initialize helpers
-        const helpers = new LightAxisUtilHelper(scene, camera, renderer);
-        // // Add helpers to the scene
-        helpers.addAxesHelper(); // Adds the axes helper to the 
-        helpers.addGridHelper(); // Also adds the grid helper to the scene
-        // helpers.addHemisphereLightHelper(light);
-        helpers.addShadowCameraHelper(directionalLight);
-        helpers.addDirectionalLightHelper(directionalLight);
-        helpers.addOrbitControls(); // Add orbit controls
+        Initialize matrix and Cannon bodies for each particle
+        const tempMatrix = new THREE.Matrix4();
+        */
+        const light = new Lighting(scene, camera, 5.0, renderer);
+        light.initializeLightAndHelpers();
 
-        // Instanced mesh setup
-        // const particleGeometry = new THREE.SphereGeometry(0.2, 16, 16);
-        // const particleMaterial = new THREE.MeshStandardMaterial({ color: randomHexColor() });
-
-        // const instancedMesh = new THREE.InstancedMesh(particleGeometry, particleMaterial, particleCount);
-        // scene.add(instancedMesh);
-
-        // Initialize matrix and Cannon bodies for each particle
-        // const tempMatrix = new THREE.Matrix4();
         // Create sand particles in both Three.js and Cannon.js
         for (let i = 0; i < particleCount; i++) {
             // Three.js particle
+            let material;
             const geometry = new THREE.SphereGeometry(0.2, 16, 16);
-            const material = new THREE.MeshStandardMaterial({ color: randomHexColor() });
+            if (i % 2 === 1) {
+                material = new THREE.MeshPhongMaterial({ color: randomHexColor() });
+            } else {
+                material = shader.shaderMaterials().explosiveMaterial;
+            }
             const mesh = new THREE.Mesh(geometry, material);
-            mesh.position.set(
-                (Math.random() - 0.5) * 10,
-                Math.random() * 10 + 10,
-                (Math.random() - 0.5) * 10
-            );
-
-            const x = (Math.random() - 0.5) * 10;
-            const y = Math.random() * 10 + 10;
-            const z = (Math.random() - 0.5) * 10;
+            const pos = createRandomPosition();
+            mesh.position.set(pos.x, pos.y, pos.z);
 
             // Set position in the instanced mesh matrix
             // tempMatrix.setPosition(x, y, z);
@@ -280,7 +264,7 @@ const FallingGhoasts = ({ height = window.innerHeight, width = window.innerWidth
             const shape = new CANNON.Sphere(0.2);
             const particleBody = new CANNON.Body({
                 mass: 13.1,
-                position: new CANNON.Vec3(x, y, z),
+                position: new CANNON.Vec3(mesh.position.x, mesh.position.y, mesh.position.z),
                 // type: CANNON.Body.STATIC
             });
             particleBody.addShape(shape);
@@ -294,13 +278,14 @@ const FallingGhoasts = ({ height = window.innerHeight, width = window.innerWidth
         multiBox.position.x = 12;
 
         scene.add(box);
-        scene.add(multiBox);      
-        
+        scene.add(multiBox);
+
         const sphereUtils = new SphereUtils(scene, world, camera, textureLoader, plane);
         sphereUtils.createCannonSphere({ r: 10, w: 50, h: 50 }, randomHexColor(), { x: -10, y: 20, z: -80 }, 10.1, shader.shaderMaterials().explosiveMaterial);
 
-        const sandParticles = new SandParticles(scene, world, shader.shaderMaterials().noiseMaterial, 40);
-        sandParticles.createNoiseParticles(100, 1.4, shader.shaderMaterials().noiseMaterial, shader.shaderMaterials().sawMaterial);// Assuming you have access to both `scene` and `camera` objects
+        const sandParticles = new SandParticles(scene, world, shader.shaderMaterials().explosiveMaterial, 40);
+        sandParticles.createNoiseParticles(100, 1.4, shader.shaderMaterials().wrinkledMaterial, shader.shaderMaterials().sawMaterial);// Assuming you have access to both `scene` and `camera` objects
+        const mediaPlayer = new MediaPlayer(scene, camera, renderer, gui, canvasRef.current, width, height, shader);
 
         // Pass both scene and camera to the FontMaker constructor
         const fontMaker = new FontMaker(scene, camera, navigate);
@@ -334,6 +319,10 @@ const FallingGhoasts = ({ height = window.innerHeight, width = window.innerWidth
         // Handle clicks to create spheres
         window.addEventListener('click', () => {
             sphereUtils.handleClick(shader.shaderMaterials().wrinkledMaterial);
+
+            if (mediaPlayer.isPlaying === false) {
+                mediaPlayer.loadMedia();
+            }
         });
 
         // Toggle gravity on key press (for example, "G" key)
@@ -363,8 +352,6 @@ const FallingGhoasts = ({ height = window.innerHeight, width = window.innerWidth
         let time = Date.now();
         // Animation loop
         const animate = () => {
-            requestAnimationFrame(animate);
-
             // Step the physics world
             world.step(timeStep);
 
@@ -382,15 +369,19 @@ const FallingGhoasts = ({ height = window.innerHeight, width = window.innerWidth
                 mesh.quaternion.copy(body.quaternion);
             });
 
+            // light.update();
             shader.update();
             fontMaker.update();
+            mediaPlayer.update();
             sphereUtils.update();
-            sandParticles.updateNoiseCannon();
-            sandParticles.updateShaderRotation();
-            shader.shaderMaterials().sawMaterial.uniforms.time.value = time * 0.001
+            sandParticles.updateNoiseParticles();
+            // sandParticles.updateShaderRotation();
+            shader.shaderMaterials().sawMaterial.uniforms.time.value = time + (time * 0.002);
 
             // Render the scene
             renderer.render(scene, camera);
+        
+            requestAnimationFrame(animate);
         };
         animate();
 
@@ -399,7 +390,8 @@ const FallingGhoasts = ({ height = window.innerHeight, width = window.innerWidth
             sandParticlesRef.current.forEach(mesh => scene.remove(mesh));
             renderer.dispose();
             fontMaker.dispose();
-            sphereUtils.update();
+            sphereUtils.dispose();
+            mediaPlayer.cleanup();
             sandParticles.cleanup();
         };
     }, [width, height, particleCount]);
